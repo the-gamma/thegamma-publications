@@ -1,0 +1,571 @@
+\documentclass[a4paper,UKenglish]{lipics-v2016}
+%This is a template for producing LIPIcs articles. 
+%See lipics-manual.pdf for further information.
+%for A4 paper format use option "a4paper", for US-letter use option "letterpaper"
+%for british hyphenation rules use option "UKenglish", for american hyphenation rules use option "USenglish"
+% for section-numbered lemmas etc., use "numberwithinsect"
+ 
+\usepackage{microtype}%if unwanted, comment out or use option "draft"
+\usepackage{lipsum}
+\usepackage{semantic}
+
+\bibliographystyle{plainurl}% the recommended bibstyle
+
+% ==================================================================================================
+
+\title{Data exploration through dot-driven development\footnote{This 
+  work was supported by Google Digital News Initiative.}}
+\titlerunning{Data exploration through dot-driven development}
+
+\author[1]{Tomas Petricek}
+\affil[1]{The Alan Turing Institute, London, UK\\
+  \texttt{tomas@tomasp.net}}
+\authorrunning{T. Petricek}
+\Copyright{Tomas Petricek}
+\subjclass{D.3.2 Very high-level languages}
+\keywords{data science, type providers, pivot, aggregation}
+
+
+\EventEditors{John Q. Open and Joan R. Acces}
+\EventNoEds{2}
+\EventLongTitle{42nd Conference on Very Important Topics (CVIT 2016)}
+\EventShortTitle{CVIT 2016}
+\EventAcronym{CVIT}
+\EventYear{2016}
+\EventDate{December 24--27, 2016}
+\EventLocation{Little Whinging, United Kingdom}
+\EventLogo{}
+\SeriesVolume{42}
+\ArticleNo{23}
+
+% ==================================================================================================
+
+% Formatting for source code & types
+\definecolor{cmtclr}{rgb}{0.0,0.6,0.0}
+\definecolor{kvdclr}{rgb}{0.0,0.0,0.6}
+\definecolor{numclr}{rgb}{0.0,0.4,0.0}
+\definecolor{strclr}{rgb}{0.4,0.3,0.0}
+\definecolor{prepclr}{rgb}{0.6,0.0,0.2}
+
+\newcommand{\langl}{\begin{picture}(4.5,7)
+\put(1.1,2.5){\rotatebox{60}{\line(1,0){5.5}}}
+\put(1.1,2.5){\rotatebox{300}{\line(1,0){5.5}}}
+\end{picture}}
+\newcommand{\rangl}{\begin{picture}(4.5,7)
+\put(.9,2.5){\rotatebox{120}{\line(1,0){5.5}}}
+\put(.9,2.5){\rotatebox{240}{\line(1,0){5.5}}}
+\end{picture}}
+
+\newcommand{\lsep}{~|~}
+\newcommand{\num}[1]{\textcolor{numclr}{#1}}
+\newcommand{\str}[1]{\textnormal{\textcolor{strclr}{\sffamily "#1"}}}
+\newcommand{\kvd}[1]{\textnormal{\textcolor{kvdclr}{\sffamily #1}}}
+\newcommand{\ident}[1]{\textnormal{\sffamily #1}}
+\newcommand{\qident}[1]{\textnormal{\sffamily \guillemotleft #1\guillemotright}}
+% \newcommand{\qident}[1]{\textnormal{\sffamily ‹#1›}}
+
+\newcommand{\dom}{\ident{dom}}
+
+% ==================================================================================================
+
+% TODO: Introduce pivot type provider somewhere early
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Data literacy is becoming increasingly important in the modern world. While spreadsheets make 
+simple data analytics accessible to a large number of people, creating transparent scripts that 
+can be checked, modified, reproduced and formally analyzed requires expert programming skills. 
+In this paper, we describe the design of a data exploration language that makes the task more 
+accessible by embedding advanced programming concepts in a simple core language.
+
+The core language uses type providers, but we employ them in a novel way -- rather than providing 
+types with members for accessing data, we provide types with members that allow the user to access 
+data, but also compose complex queries using only member access (``dot''). This lets us recreate 
+functionality that usually requires complex type systems (row polymporphism, dependent typing) 
+in an extremely simple object-based language.
+
+We formalize our approach using a minimal object-based calculus and prove that
+programs constructed using the provided types represent valid data transformations. We then discuss 
+a prototype implementation of the language, together with a simple editor that bridges
+some of the gaps between programming and spreadsheets. We believe that this provides a pathway towards
+democratizing data science -- our use of type providers significantly reduce the complexity of 
+languages that one needs to understand in order to write scripts for exploring data.
+\end{abstract}
+
+% ==================================================================================================
+
+\section{Introduction -- Simplifying data exploration}
+\label{sec:intro}
+
+The rise of big data and open data initiatives means that there is an increasing amount of raw data 
+available. At the same time, the fact that ``post-truth'' was chosen as the word of 2016 suggests 
+that there has never been greater need for increasing data literacy and building tools that let 
+anyone -- including journalists and interested citizens -- explore such data and use it to support facts.
+
+Spreadsheet tools made data exploration accessible to a large number of people, but operations 
+performed in a spreadsheet application cannot be reproduced or replicated with different 
+input parameters -- the manual mode of interaction is not repeatable and it breaks the link with 
+the original data source. The answer to this problem is to explore data programmatically. A program 
+can be run repeatedly and its parameters can be modified.
+
+However, even with the programming tools generally accepted as simple, exploring data is 
+surprisingly difficult. For example, consider the following Python program (using the pandas
+library), which reads a list of all Olympic medals ever awarded (see Appendix~A) and finds top 8 
+athletes by the number of gold medals they won in Rio 2016:
+
+\noindent
+\begin{equation*}
+\begin{array}{l}
+\ident{olympics} = \ident{pd.read\_csv}(\str{olympics.csv})\\[0.5em]
+\ident{olympics}[\ident{olympics}[\str{Games}]==\str{Rio (2016)}]\\
+\qquad .\ident{groupby}(\str{Athlete})\\
+\qquad .\ident{agg}(\left\{\str{Gold}:\ident{sum}\right\})\\
+\qquad .\ident{sort\_values}(\ident{by}=\str{Gold}, \ident{ascending}=\kvd{False})\\
+\qquad .\ident{head}(\num{8})
+\end{array}
+\end{equation*}
+
+\noindent
+The code is short and easy to understand, but writing or modifying it requires the user to 
+understand intricate details of Python and be well aware of the structure of the data source. 
+
+The short example specifies operation parameters in three different ways -- indexing $[\ldots]$ 
+is used for filtering; aggregation takes a dictionary $\left\{\ldots\right\}$ and sorting uses 
+optional parameters. The dynamic nature of Python makes the code simple, but it also means that
+auto-completion on member names (after typing dot) is not commonplace and so fining the operation
+names (\ident{groupby}, \ident{sort\_values}, \ident{head}, ...) often requires using a search 
+engine. Furthermore, column names are specified as strings and so the user often needs to refer back
+to the structure of the data source and be careful to avoid typos.
+
+The language presented in this paper reduces the number of language features by making member access
+the primary mechanism. For example, finding top 8 athletes by the number of gold medals in Rio 2016 
+can be written as (in code $\qident{\ldots}$ is written as \textquotesingle$\ldots$\textquotesingle):
+%
+\begin{equation*}
+\begin{array}{l}
+\ident{olympics}\\
+\quad.\qident{filter data}.\qident{Games is}.\qident{Rio (2016)}.\ident{then}\\
+\quad.\qident{group data}.\qident{by Athlete}.\qident{sum Gold}.\ident{then}\\
+\quad.\qident{sort data}.\qident{by Gold descending}.\ident{then}\\
+\quad.\qident{paging}.\ident{take}(\num{8})\\
+\end{array}
+\end{equation*}
+
+\noindent
+The language is object-based with nominal typing. This means that auto-completion can 
+provide list of available members when writing and modifying code. The members (such as 
+\qident{by Gold descending}) are provided by a type provier based on the knowledge of
+the data source and transformations applied so far -- thus only valid and meaningful 
+operations are provided. The rest of the paper gives a detailed description of the mechanism.
+
+\subparagraph{Contributions.} This paper explores an interesting corner in the programming
+language design space. We support it by a practical implementation and a formalization with
+a correctness proof. Our specific contributions are:
+
+\begin{itemize}
+\item We use type providers in a new way (Section~\ref{sec:tps}). Previous work focused on providing 
+  members for direct data access. In contrast, our pivot type provider (Section~\ref{sec:pivot}) lazily 
+  provides types with members that can be used for composing queries, making it possible to perform
+  entire date exploration through single programming mechanism (Section~\ref{sec:analysis-dot}).  
+
+\item Our mechanism shows how to embed fancy types into a simple nominally-typed programming  
+  language (Section~\ref{sec:analysis-col}). Our proof-of-concept language tracks names and types of 
+  available columns in the data set (inspired by row types), but the same mechanism can be used to 
+  implement other features in any Java-like language. 
+  
+\item We implement the language outlined in this paper (\url{github.com/the-gamma}) and make 
+  it available as a JavaScript component that can be used to build open and transparent 
+  data-driven visualizations (\url{thegamma.net}) and discuss the implementation (Section~\ref{sec:impl}).
+
+\item We formalize the language (Section~\ref{sec:foo}) and the type provider for data exploration
+  (Section~\ref{sec:pivot}) and show that queries constructed using the type provider are valid
+  (Section~\ref{sec:proofs}). Our formalization also covers the laziness of type providers, which
+  is an important aspect not covered in the existing literature.
+\end{itemize}
+
+% ==================================================================================================
+
+\section{Background -- Type providers}
+\label{sec:tps}
+
+The work presented in this paper consists of a simple nominally-typed host language and the pivot
+type provider, which provides types with members that can be used to construct and execute queries
+against an external data source. This section briefly reviews the existing work on type providers
+and explains what is new about the pivot type provider.
+
+\subparagraph{Information-rich programming.} Type providers were first presented as a mechanism
+for providing type-safe access to rich information sources. According to Syme et al. [X],
+a type provider is a compile-time component that imports external information source into a
+programming language. It provides two things to the compiler (or editor) hosting it. First, it 
+provides a type signature that models the external source using structures understood by the
+host language (e.g.~types with members). Second, it provides an implementation for the signatures
+which accesses data from the external source.
+
+For example, the World Bank type provider [X] provides a fine-grained access to development 
+indicators about countries of the world. The following accesses CO2 emissions in 2010 for all 
+available countries:
+%
+\begin{equation*}
+\begin{array}{l}
+\ident{world}.\ident{byYear}.\qident{2010}.\qident{Climate Change}.\qident{CO2 emissions (kt)}
+\end{array}
+\end{equation*}
+
+\noindent
+The provided schema consists of types with members such as \qident{CO2 emissions (kt)} and \qident{2010}.
+The members are generated by the type provider based on the meta-data provided by the World Bank.
+The second part provided by the type provider is code that is executed when the above code is run.
+For the example above:
+%
+\begin{equation*}
+\begin{array}{l}
+\ident{series.create}(\str{CO2 emissions (kt)},\str{Year},\str{Value},\\
+\qquad \ident{world.getByYear}(\num{2010},\str{EN.ATM.CO2E.KT}))
+\end{array}
+\end{equation*}
+
+\noindent
+Here, the provided code relies on runtime library that provides a representation of a series 
+(mapping from keys to values) and the \ident{getByYear} function that downloads data for a specified
+indicator represented by a code. The type provider provides a type-safe access to known indicators,
+which exist only as strings in the compiled code, increasing safety and making data access easier
+thanks to auto-completion (which offers a list of available indicators).
+
+\subparagraph{Types from data.} Recent work on the F\# Data library [X] uses type providers for 
+accessing data in structured formats such as XML, CSV and JSON. This is done by inferring the 
+structure of the data from a sample document, provided as a static parameter to a type provider.
+In the following example (adapted from [X]), a sample URL is passed to \ident{JsonProvider}:
+%
+\begin{equation*}
+\begin{array}{l}
+ \kvd{type}~\ident{Weather} = \ident{JsonProvider}\langl\str{http://api.owm.org/?q=London}\rangl \\[0.5em]
+ \kvd{let}~\ident{ldn} = \ident{Weather.GetSample}()\\
+ \ident{printfn}~\str{The temperature in London is \%f}~\ident{ldn.Main.Temp}
+\end{array}
+\end{equation*}
+
+\noindent
+As in the World Bank example, the JSON type provider generates types with members that let us access
+data in the external data source -- here, we access the temperature using \ident{ldn.Main.Temp}. 
+The provided code attempts to access the corresponding nested field and convert it to a number.
+The relative safety property guarantees that this will not fail if the sample is representative
+of the actual data loaded at runtime.
+    
+\subparagraph{Pivot type provider.} The pivot type provider presented in this paper follows the 
+same general mechanism as the F\# type providers discussed above, although it is embedded in a 
+simple language that runs in a web browser. 
+
+The main difference between our work and the type providers discussed above is that we do not use
+type providers for mapping external data sources into the type system (by providing members that
+correspond to parts of the data). Instead, we use type providers for (lazily) generating types 
+with members that let users compose type-safe queries over the data source. As discussed in 
+Section~\ref{sec:foo}, we model the provided code by a relational algebra.
+
+This means that our use of type providers is more akin to meta-programming or code generation with
+one important difference -- the schema provided by the pivot type provider is potentially infinite
+(as there are always more operations that can be applied). To support this, we use the fact that
+type providers are integrated into the type system and types can be provided lazilly. This is 
+also a new aspect of our formalization in Section~\ref{sec:foo}.
+
+% ==================================================================================================
+
+\section{Analysis -- What makes data exploration scripts complex}
+\label{sec:analysis}
+
+We started by contrasting a data exploration script using a popular Python library pandas 
+with a script that can be written using the pivot type provider (Section~\ref{sec:intro}). In this
+section, we analyze what makes the Python code complex and we discuss how our alternative design
+aims to simplify it. We use Python as a concrete example, but other commonly used tools (mentioned
+throughout) share the same properties:
+
+\begin{enumerate}
+\item The filtering operation is written using indexing $[\ldots]$ while all other operations are
+  written using member invocation with (optionally named) parameters. In the first case, we write
+  an expression $\ident{olympics}[\str{Games}]==\str{Rio (2016)}$ returning a vector of Booleans
+  while in the other, we specify a parameter value using $\ident{by}=\str{Gold}$. In other languges,
+  a parameter can also be a lambda function specifying a predicate or a transformation.
+  
+\item The aggregation operation takes a dictionary $\left\{\ldots\right\}$, which is yet another
+  concept the user needs to understand. Here, it lets us specify one or more aggregations to
+  be applied over a group. A way of specifying multiple operations or results is common in other 
+  languages. For example, anonymous types in LINQ play the same role.
+      
+\item The editor tooling available for Python is limited -- editors that provide auto-completion
+  rely on a mix of advanced static analysis and simple (not always correct) hints and often fail
+  for chained operations such as the one in our example\footnote{For an anecdotal evidence,
+  see for example: \url{stackoverflow.com/questions/25801246/}}. Statically-typed languages
+  provide better tooling, but at the cost of higher complexity\footnote{Again,
+  See \url{fslab.org/Deedle}
+  and \url{extremeoptimization.com/Documentation/Data_Frame/Data_Frames.aspx} }.
+
+\item In the Python example (as well as in most other data manipulation 
+  libraries\footnote{deedle, etc.}), column names are specified as strings. This makes static 
+  checking of column names and auto-completion help difficult. For example, \str{Gold} is a valid 
+  column name when calling \ident{sort\_values} -- we know that because it is a key of the 
+  dictionary passed to \ident{agg} before.
+\end{enumerate}
+
+\noindent
+We use the above four points as guiding principles for the design discussed in the rest of this
+section. We unify as many distinct languages constructs as possible by making member
+access the primary operation (Section~\ref{sec:analysis-dot}); we use simple nominal typing to
+enable auto-completion (Section~\ref{sec:analysis-auto}); we track column names using the pivot
+type provider (Section~\ref{sec:analysis-col}) and we use operation-chaining via member access
+for constructing dictionaries (Section~\ref{sec:analysis-and}).
+
+% --------------------------------------------------------------------------------------------------
+
+\subsection{Unifying language constructs with member access}
+\label{sec:analysis-dot}
+
+We unify this via dot
+
+Could this be done without type provider?
+  
+  
+\subsection{Dot-driven development}
+\label{sec:analysis-auto}
+
+  ○ We use simple nominal typing
+\subsection{Column names}
+\label{sec:analysis-col}
+
+
+The last two points are more interesting -- proponents of static typing would correctly
+point out that both member names and column names can be tracked by a more sophisticated type
+system. However, powerful types usually increase the complexity of the programming language.
+
+  ○ We use type providers to provide available options
+  (e.g. something)
+\subsection{Dictionary syntax}
+\label{sec:analysis-and}
+  ○ We create the "and blah. and blah. then" pattern
+  (e.g. grouping and sorting)
+
+
+~
+\begin{equation*}
+\begin{array}{l}
+\ident{olympics}\\
+\quad.\qident{filter data}.\qident{Games is}.\qident{Rio (2016)}.\ident{then}\\
+\quad.\qident{group data}.\qident{by Athlete}.\qident{sum Gold}.\ident{then}\\
+\quad.\qident{sort data}.\qident{by Gold descending}.\ident{then}\\
+\quad.\qident{paging}.\ident{take}(8)\\
+\quad.\qident{get series}.\qident{with key Athlete}.\qident{and value Gold}
+\end{array}
+\end{equation*}
+
+Introduction
+
+\begin{equation*}
+\begin{array}{l}
+\ident{olympics}\\
+\quad.\qident{filter data}.\qident{Games is}.\qident{Rio (2016)}.\ident{then}\\
+\quad.\qident{group data}.\qident{by Athlete}.\qident{sum Gold}.\ident{then}\\
+\quad.\qident{sort data}.\qident{by Gold descending}.\ident{then}\\
+\quad.\qident{paging}.\ident{take}(8)\\
+\quad.\qident{get series}.\qident{with key Athlete}.\qident{and value Gold}
+\end{array}
+\end{equation*}
+
+Details
+ - Grouping
+ - Filtering
+ - Joining
+
+
+\section{Formalising The Gamma script}
+\label{sec:foo}
+
+
+Target language is super simple OO language, but we can use it to encode very fancy types!!
+
+\subsection{Relational algebra}
+\begin{equation*}
+\begin{array}{rclll}
+  R & = & \Pi_{f_1, \ldots, f_n} (R) &&\textnormal{get columns}\\
+   & \lsep & \sigma_\varphi (R) &&\textnormal{filter by predicate}\\
+   & \lsep & \tau_{f_1, \ldots, f_n}(R) &&\textnormal{sort by fields}\\
+   & \lsep & \Phi_{f, \rho_1, \ldots, \rho_n} (R) &&\textnormal{group by $f$ and aggregate}\\
+   \\
+  \rho & = & \ident{count}  \\
+   & \lsep & \ident{sum}~f    \\       
+   & \lsep & \ident{dist}~f\\
+   & \lsep & \ident{conc}~f\\
+\end{array}
+\end{equation*}
+\subsection{Foo calculus}
+\begin{equation*}
+\begin{array}{rcl}
+ \tau &=& \ident{num} \lsep \ident{string} \lsep \ident{series}\langl \tau_1, \tau_2 \rangl \lsep \ident{Query}\\
+ l &=& \kvd{type}~C(\overline{x:\tau}) = \overline{m} \\[0.0em]
+ m &=& \kvd{member}~N:\tau= e
+\end{array}
+\end{equation*}
+
+
+
+\begin{equation*}
+\inference[(foo)]
+  {L_1; \Gamma \vdash e : C; L_2 \qquad ((\kvd{type}~C(\overline{x:\tau}) = ..\;\kvd{member}~N_i : \tau_i = e_i\;..), L) \in L_2}
+  {L_1; \Gamma \vdash e.N_i:\tau_i; L_2 \cup L}
+\end{equation*}
+
+\newpage
+
+
+\begin{figure}
+\begin{equation*}
+\begin{array}{ll}
+\ident{main}(F) = C \mapsto (l, L_1 \cup \ldots \cup L_4)\\[0.5em]
+\quad l = \kvd{type}~C(x:\ident{Query}) = \\
+\qquad \qquad \kvd{member}~\qident{drop fields} : C_1 = C_1(x) &\textnormal{where}~C_1, L_1 = \ident{drop}(F)\\
+\qquad \qquad \kvd{member}~\qident{sort data} : C_2 = C_2(x) &\textnormal{where}~C_2, L_2 = \ident{sort}(F)\\
+\qquad \qquad \kvd{member}~\qident{group data} : C_3 = C_3(x) &\textnormal{where}~C_3, L_3 = \ident{group}(F)\\
+\qquad \qquad \kvd{member}~\qident{get series} : C_4 = C_4(x) &\textnormal{where}~C_4, L_4 = \ident{get-key}(F)\\
+\\
+\ident{drop}(F) = C, \{l\} \cup \bigcup L_f\\[0.5em]
+\quad l = \kvd{type}~C(x:\ident{Query}) = \\
+\qquad \qquad \kvd{member}~\ident{then} : C = C(x)                 &\textnormal{where}~C, L = \ident{main}(F)\\
+\qquad \qquad \kvd{member}~\qident{drop $f$} : C_f = &\forall f \in \dom(F)~\textnormal{where}~C_f, L_f = \ident{drop}(F')\\
+\qquad \qquad \qquad  C_f(\Pi_{\ident{dom}(F')}(x))& \quad\textnormal{and}~ F' = \{ f'\mapsto\tau'\in F, f' \neq f\}\\
+\end{array}
+\end{equation*}
+
+\caption{Foo}
+\label{fig:foo}
+\end{figure}
+
+\begin{figure}
+\begin{equation*}
+\begin{array}{ll}
+\ident{get-key}(F) = C, \{l\} \cup \bigcup L_f \\[0.25em]
+\quad l = \kvd{type}~C(x:\ident{Query}) = &\forall f\in\dom(F)~\textnormal{where} \\
+\qquad \qquad \kvd{member}~\qident{with key $f$} : C_f = C_f(x) &\quad C_f, L_f = \ident{get-val}(F, f)\\
+\\
+\ident{get-val}(F, f_k) = C, \{l\} \cup \bigcup L_f \\[0.25em]
+\quad l = \kvd{type}~C(x:\ident{Query}) = &\forall f\in\dom(F)\setminus\{f\}~\textnormal{where} \\
+\qquad \qquad \kvd{member}~\qident{and value $f$} : C_f = C_f(\Pi_{f_k, f_v}(x)) &\quad  C_f~\textnormal{defined as below} \\
+\quad l_f = \kvd{type}~C_f(x:\ident{Query}) = &\quad\textnormal{and}~\tau_k, \tau_v~\textnormal{such that} \\
+\qquad \qquad \kvd{member}~\ident{series} : \ident{series}\langl\tau_k, \tau_v\rangl = x &\quad \tau_k = F(f_k), \tau_v = F(f) &\\
+\end{array}
+\end{equation*}
+
+\caption{Foo}
+\label{fig:foo}
+\end{figure}
+
+
+
+\section{Pivot type provider}
+\label{sec:pivot}
+
+Omit paging, because it's boring
+
+
+Our formalization of the pivot type provider follows the style used by Petricek et al. \cite{fsdata}
+in their formalization of F\# Data. In our case, a type provider is a function that takes a schema
+$F$ (mapping from field names to field types) and produces a class $C$ together with collection 
+of other class defintins $L$ that are used by $C$:
+%
+\begin{equation*}
+\ident{provider}(F) = C, L    ~~\textnormal{where}~F=\{ f_1 \mapsto \tau_1, \ldots, f_n \mapsto \tau_n \}
+\end{equation*}
+%
+The provided class $C$ has a constructor taking \ident{Query}. It may be a class with further 
+members that allow refining the query or a class with a single member \ident{series} that returns
+a value of type $\ident{series}\langl \tau_1, \tau_2 \rangl$. In the second case, we can evaluate
+the provided transformation on input $R$ using an expression $(\kvd{new}~C(R)).\ident{series}$.
+
+\subparagraph{Top-level type.} The top-level type allows the user to select a transformation. The
+members return objects with members that allow specifying further properties of each transformation.
+
+
+
+
+\subparagraph{Sorting.} yadda
+
+\begin{figure}
+\begin{equation*}
+\begin{array}{ll}
+\ident{sort}(F) = C, \{l\} \cup \bigcup L_f \cup \bigcup L'_f\\[0.25em]
+\quad l = \kvd{type}~C(x:\ident{Query}) = &\forall f\in\dom(F)~\textnormal{where} \\
+\qquad \qquad \kvd{member}~\qident{by $f$ descending} : C_f = C_f(x) &\quad C_f, L_f = \ident{sort-and}(F, \{ f \mapsto \ident{desc} \})\\
+\qquad \qquad \kvd{member}~\qident{by $f$ ascending} : C'_f = C'_f(x) &\quad C'_f, L'_f = \ident{sort-and}(F, \{ f \mapsto \ident{asc} \})\\
+\\[0.5em]
+\ident{sort-and}(F,S) = C, \{l\} \cup \bigcup L_f \cup \bigcup L'_f\\[0.25em]
+\quad l = \kvd{type}~C(x:\ident{Query}) = &\forall f\in\dom(F)\setminus\dom(S)~\textnormal{where} \\
+\qquad \qquad \kvd{member}~\qident{and $f$ descending} : C_f = C_f(x) &\quad C_f, L_f = \ident{sort-and}(F, S\cup\{ f \mapsto \ident{desc} \})\\
+\qquad \qquad \kvd{member}~\qident{and $f$ ascending} : C'_f = C'_f(x) &\quad C'_f, L'_f = \ident{sort-and}(F, S\cup\{ f \mapsto \ident{asc} \})\\
+\qquad \qquad \kvd{member}~\ident{then} : C = C(\tau_S(x))                 &\textnormal{where}~C, L = \ident{main}(F)\\
+\end{array}
+\end{equation*}
+\caption{Foo bar}
+\label{fig:foobar}
+\end{figure}
+
+\begin{figure}
+\begin{equation*}
+\begin{array}{ll}
+\ident{group}(F) = C, \{l\} \cup \bigcup L_f \\[0.25em]
+\quad l = \kvd{type}~C(x:\ident{Query}) = &\forall f\in\dom(F)~\textnormal{where} \\
+\qquad \qquad \kvd{member}~\qident{by $f$} : C_f = C_f(x) &\quad C_f, L_f = \ident{agg}(F, \{ f \mapsto F(f) \}, \emptyset)\\
+\\[0.5em]
+\ident{agg}(F,S,G) = C, \{l\} \cup \bigcup L_f \cup \bigcup L'_f\\[0.25em]
+\quad l = \kvd{type}~C(x:\ident{Query}) = &\forall f\in\dom(F)\setminus\dom(S)~\textnormal{where} \\
+\qquad \qquad \kvd{member}~\qident{distinct $f$} : C_f = C_f(x) &\quad C_f, L_f = \ident{agg}(F, S\cup\{ f \mapsto \ident{num}, G\cup\{\ident{dist}~f\} \})\\
+\qquad \qquad \kvd{member}~\qident{sum $f$} : C'_f = C'_f(x) &\quad C'_f, L'_f = \ident{agg}(F, S\cup\{ f \mapsto \ident{num} \}, G\cup\{\ident{sum}~f\})\\
+\qquad \qquad \kvd{member}~\qident{concat $f$} : C'_f = C'_f(x) &\quad C'_f, L'_f = \ident{agg}(F, S\cup\{ f \mapsto \ident{string} \}, G\cup\{\ident{conc}~f\})\\
+\qquad \qquad \kvd{member}~\qident{count all} : C = C(\tau_S(x))                 &\textnormal{where}~C, L = \ident{main}(F)\\
+\qquad \qquad \kvd{member}~\ident{then} : C = C(\tau_S(x))                 &\textnormal{where}~C, L = \ident{main}(F)\\
+\end{array}
+\end{equation*}
+\caption{Foo bar 2}
+\label{fig:foobar2}
+\end{figure}
+
+
+!!
+
+TODO: Somehow delay $L$
+
+!!
+
+We only generate sorting methods for fields not used yet
+
+Helper \ident{sort-and} also takes sorting keys already used
+
+\section{Properties}
+\label{sec:proofs}
+
+\section{Implementation}
+\label{sec:impl}
+
+~
+\newpage
+
+\subparagraph*{Acknowledgements.}
+
+I want to thank \dots
+
+\appendix
+\section{Morbi eros magna}
+
+Morbi eros magna, vestibulum non posuere non, porta eu quam. Maecenas vitae orci risus, eget imperdiet mauris. Donec massa mauris, pellentesque vel lobortis eu, molestie ac turpis. Sed condimentum convallis dolor, a dignissim est ultrices eu. Donec consectetur volutpat eros, et ornare dui ultricies id. Vivamus eu augue eget dolor euismod ultrices et sit amet nisi. Vivamus malesuada leo ac leo ullamcorper tempor. Donec justo mi, tempor vitae aliquet non, faucibus eu lacus. Donec dictum gravida neque, non porta turpis imperdiet eget. Curabitur quis euismod ligula. 
+
+
+%%
+%% Bibliography
+%%
+
+%% Either use bibtex (recommended), 
+
+\bibliography{lipics-v2016-sample-article}
+
+%% .. or use the thebibliography environment explicitely
+
+
+
+\end{document}

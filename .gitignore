@@ -1,0 +1,8 @@
+paket.exe
+paket.targets
+pivot/packages
+*.aux
+*.dvi
+*.log
+*.out
+*.vtc
