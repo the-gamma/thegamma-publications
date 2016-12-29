@@ -6,7 +6,9 @@
 % for section-numbered lemmas etc., use "numberwithinsect"
  
 \usepackage{microtype}%if unwanted, comment out or use option "draft"
-\usepackage{lipsum}
+\usepackage{pifont}
+\usepackage{fp}
+\usepackage{graphicx}
 \usepackage{semantic}
 
 \bibliographystyle{plainurl}% the recommended bibstyle
@@ -55,6 +57,8 @@
 \put(.9,2.5){\rotatebox{120}{\line(1,0){5.5}}}
 \put(.9,2.5){\rotatebox{240}{\line(1,0){5.5}}}
 \end{picture}}
+
+\newcommand{\ball}[1]{\FPeval{\result}{clip(201+#1)}\textnormal{\ding{\result}}}
 
 \newcommand{\lsep}{~|~}
 \newcommand{\num}[1]{\textcolor{numclr}{#1}}
@@ -320,15 +324,92 @@ for constructing dictionaries (Section~\ref{sec:analysis-and}).
 \subsection{Unifying language constructs with member access}
 \label{sec:analysis-dot}
 
-We unify this via dot
+LISP is the best example of a language that unifies many language constructs using a single
+form. In LISP, everything is an s-experssion. That is, either a list or a symbol. In contrast, 
+a typical data processing language uses a number of distinct constructs including indexers (for 
+range selection and filtering), method calls (for transformations) and named parameters (for further 
+configuration). Consider filtering and sorting:
+%
+\begin{equation*}
+\begin{array}{l}
+\ident{data}[\ident{data}[\str{Games}]==\str{Rio (2016)}] \qquad\ball{1}\\
+\ident{data}.\ident{filter}(\kvd{fun}~\ident{row}\rightarrow\ident{row}.\ident{Games}==\str{Rio (2016)})\qquad\ball{2}\\
+\ident{data}.\ident{sort\_values}(\ident{by}=\str{Gold}, \ident{ascending}=\kvd{False})\qquad\ball{3}\\
+\end{array}
+\end{equation*}
 
-Could this be done without type provider?
+\noindent
+Python and pandas uses indexers for filtering \ball{1} which can alternatively be written (e.g.~in 
+LINQ) using a method taking a predicate as a lambda function \ball{2}. Operations that are 
+parameterized only by column name, such as sorting in pandas \ball{3} are often methods with 
+named parameters.
+
+We aim to unify the above examples using a single language construct that offers a high-level programming
+model\footnote{In contrast, s-expressions in LISP are typically used as a lower-level encoding of 
+higher-level constructs. For example \ident{lambda} symbol encodes a lambda function as an s-expression.}
+and can be supported by modern tooling (as discussed in Section~\ref{sec:analysis-auto}).
+Member access provides an extremely simple programming construct that is, in conjunction with
+the type provider mechanism capable of expressing the above data transformations in a uniform way: 
+%
+\begin{equation*}
+\begin{array}{l}
+\ident{data}.\qident{sort data}.\qident{by Gold descending}\qquad\ball{1}\\
+\ident{data}.\qident{filter data}.\qident{Games is}.\qident{Rio (2016)}\qquad\ball{2}\\
+\end{array}
+\end{equation*}
+
+\noindent
+The member names tend to be longer and descriptive and we write them using \qident{...}.
+The names are not usually typed by the user (see~Section~\ref{sec:analysis-auto}) and so the
+length is not an issue when writing code. The above two examples illustrate two interesting
+aspects of our approach. 
+
+\subparagraph{Members, type providers, discoverability.}
+When sorting \ball{1} the member that specifies how sorting is done includes the name of the
+column. This is possible because the pivot type provider tracks the column names (see 
+Section~\ref{sec:analysis-col}) and provides members based on the available columns suitable
+for use as sort keys. When filtering \ball{2}, the member \qident{Rio (2016)} is provided based
+on the values in the data source (we discuss this furter in Section~\ref{sec:analysis-auto}).
+
+These two examples illustrate that member access can be expressive, but it requires huge number
+of types with huge number of members. Type providers address this by integration with the type
+system (formalized in Section~\ref{sec:foo}) that discovers members lazily. This is why 
+approaches based on code generation or pre-processors would not be viable.
+
+Using descriptive member names is only viable when the names are discoverable. The above
+code could be executed in a dynamically-typed languge that allows custom message-not-understood
+handlers, but it would be impossible to get the name right when writing it. Our approach 
+relies on discovering names through auto-completion as discussed in Section~\ref{sec:analysis-auto}.
+
+\subparagraph{Are members expressive enough?}
+
+no... but it works fine! See Section~\ref{sec:impl}.
+   there are ways to make it more expressive too.
   
+\begin{figure}
+\begin{center}
+\includegraphics[scale=0.35,trim=0mm 0mm 0mm 0mm,clip]{filter.png} % left bottom right top
+\end{center}
+\vspace{-0.5em}
+\caption{Auto-completion offering the available values of the athlete name column}
+\label{fig:subtyping-diagram}
+\end{figure}
   
 \subsection{Dot-driven development}
 \label{sec:analysis-auto}
 
-  ○ We use simple nominal typing
+Autocompletion - see figure.
+
+\subparagraph{Abstraction and data.}
+
+- Needs concrete data set or a sample, but that's fine
+
+\subparagraph{Values vs. types.}
+
+- provide values? Could be $\qident{Games is}(\str{Rio (2016)})$
+
+
+
 \subsection{Column names}
 \label{sec:analysis-col}
 
@@ -339,6 +420,11 @@ system. However, powerful types usually increase the complexity of the programmi
 
   ○ We use type providers to provide available options
   (e.g. something)
+
+Considerations
+
+ - renaming columns
+   
 \subsection{Dictionary syntax}
 \label{sec:analysis-and}
   ○ We create the "and blah. and blah. then" pattern
@@ -542,6 +628,8 @@ Helper \ident{sort-and} also takes sorting keys already used
 
 \section{Implementation}
 \label{sec:impl}
+
+Rio case study
 
 ~
 \newpage
