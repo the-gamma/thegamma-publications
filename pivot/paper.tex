@@ -87,7 +87,7 @@ accessible by embedding advanced programming concepts in a simple core language.
 The core language uses type providers, but we employ them in a novel way -- rather than providing 
 types with members for accessing data, we provide types with members that allow the user to access 
 data, but also compose complex queries using only member access (``dot''). This lets us recreate 
-functionality that usually requires complex type systems (row polymporphism, phantom types, 
+functionality that usually requires complex type systems (row polymporphism, type state, 
 dependent typing) in an extremely simple object-based language.
 
 We formalize our approach using a minimal object-based calculus and prove that
@@ -100,7 +100,7 @@ languages that one needs to understand in order to write scripts for exploring d
 
 % ==================================================================================================
 
-\section{Introduction -- Simplifying data exploration}
+\section{Introduction}
 \label{sec:intro}
 
 The rise of big data and open data initiatives means that there is an increasing amount of raw data 
@@ -192,7 +192,7 @@ a case study (Section~\ref{sec:impl}). Our contributions are:
 
 % ==================================================================================================
 
-\section{Background -- Type providers}
+\section{Using type providers in a novel way}
 \label{sec:tps}
 
 The work presented in this paper consists of a simple nominally-typed host language and the pivot
@@ -274,7 +274,7 @@ also a new aspect of our formalization in Section~\ref{sec:foo}.
 
 % ==================================================================================================
 
-\section{Analysis -- Simplifying data scripting}
+\section{Simplifying data scripting languages}
 \label{sec:analysis}
 
 In Section~\ref{sec:intro}, we contrasted a data exploration script written using a popular Python 
@@ -552,41 +552,106 @@ value of the static parameter.
 \section{Tracking column names}
 \label{sec:columns}
 
-proponents of static typing would correctly
-point out that both member names and column names can be tracked by a more sophisticated type
-system. However, powerful types usually increase the complexity of the programming language.
+The last difficulty with data scripting discussed in Section~\ref{sec:analysis-why} is that pandas 
+(and other data exploration libraries, even for statically-typed languages) track column names as 
+strings at runtime, making code error-prone and auto-complete on column names difficult to provie.
+Proponents of static typing would correctly point out that column names and their types can be
+tracked by a more sophisticated type system. 
+
+In this section, we discuss our approach -- we track column names statically using a mechanism
+that is inspired by row types and type state (Section~\ref{sec:columns-row}), however we 
+embed the mechanism using type providers into a simple nominal type system (Section~\ref{sec:columns-tp}).
+This way, the host language for the pivot type provider can be extremely simple -- and indeed, the
+mechanism could be added to languages such as Java or TypeScript with minimal effort. 
 
 % --------------------------------------------------------------------------------------------------
 
-\subsection{Using row types and phantom types}
-\label{sec:columns-row}
-
-Phantom types + row types
+\begin{figure}
 
 \begin{equation*}
-  \tau = [f_1\!:\!\tau_1, \ldots, f_n\!:\!\tau_n] \lsep \tau_\ident{lbl}
-\end{equation*}
-
-\begin{equation*}
-\inference
+\inference[(\emph{drop-start})~]
   {\Gamma \vdash e : [f_1\!:\!\tau_1, \ldots, f_n\!:\!\tau_n]}
-  {\Gamma \vdash e.\qident{drop columns}: [f_1\!:\!\tau_1, \ldots, f_n\!:\!\tau_n]_{\ident{sort}}}
+  {\Gamma \vdash e.\qident{drop columns}: [f_1\!:\!\tau_1, \ldots, f_n\!:\!\tau_n]_{\ident{drop}}}
 \end{equation*}
 
 \begin{equation*}
-\inference
-  {\Gamma \vdash e : [f_1\!:\!\tau_1, \ldots, f_n\!:\!\tau_n]_{\ident{sort}}}
+\inference[(\emph{drop-col})~]
+  {\Gamma \vdash e : [f_1\!:\!\tau_1, \ldots, f_n\!:\!\tau_n]_{\ident{drop}}}
+  {\Gamma \vdash e.\qident{drop~$f_i$}: [f_1\!:\!\tau_1, \ldots, f_{i-1}\!:\!\tau_{i-1}, f_{i+1}\!:\!\tau_{i+1}, \ldots, f_n\!:\!\tau_n ]_{\ident{drop}}}
+\end{equation*}
+
+\begin{equation*}
+\inference[(\emph{drop-then})~]
+  {\Gamma \vdash e : [f_1\!:\!\tau_1, \ldots, f_n\!:\!\tau_n]_{\ident{drop}}}
   {\Gamma \vdash e.\qident{then}: [f_1\!:\!\tau_1, \ldots, f_n\!:\!\tau_n]}
 \end{equation*}
 
+
+\caption{Tracking available column names with row types and type state}
+\label{fig:fancy-types}
+\end{figure}
+
+% --------------------------------------------------------------------------------------------------
+
+\subsection{Using row types and type state}
+\label{sec:columns-row}
+
+There are several common data transformations that modify the structure of the data set and affect
+what columns (and of what types) are available. When grouping and aggregating data, the resulting
+data set has columns depending on the aggregates calculated. Another simpler operation is adding
+or removing a column from the data set. For example, given the Olympic medals data set, we can 
+drop games and year as follows:
+%
 \begin{equation*}
-\inference
-  {\Gamma \vdash e : [f_1\!:\!\tau_1, \ldots, f_n\!:\!\tau_n]_{\ident{sort}}}
-  {\Gamma \vdash e.\qident{drop~$f_i$}: [f_1\!:\!\tau_1, \ldots, f_{i-1}\!:\!\tau_{i-1}, f_{i+1}\!:\!\tau_{i+1}, \ldots, f_n\!:\!\tau_n ]_{\ident{sort}}}
+  \begin{array}{l}
+    \ident{olympics}.\qident{drop columns}.\qident{drop Games}.\qident{drop Year}.\ident{then}
+  \end{array}
 \end{equation*}
 
-\subsection{Using type providers}
+\noindent
+Operations on the type of rows in the data set can be captured using row types [X]. In addition, 
+we need to annotate type with a form of type state [Y] to restrict what operations are available. 
+When dropping columns, we first access the \qident{drop columns} member, which sets the state to
+a state where we can drop individual columns using \qident{drop $f$}. The \ident{then} member can 
+then be used to complete the operation and choose another transformation.
+
+To illustrate tracking of columns using row types and type state, consider a simple language with
+variables (representing external data sources) and member access. Types can be either primitive 
+types $\alpha$, types annotated with a type state \ident{lbl} or row type with fields $f$:
+%
+\begin{equation*}
+\begin{array}{rcl}  
+e&=&v \lsep e.N\\
+\tau&=&\alpha \lsep \tau_\ident{lbl} \lsep [f_1\!:\!\tau_1, \ldots, f_n\!:\!\tau_n] 
+\end{array}  
+\end{equation*}
+
+\noindent
+Typing rules for members that are used to drop columns are shown in Figure~\ref{fig:fancy-types}.
+When \qident{drop columns} is invoked on a record, the type is annotated with a state \ident{drop}
+(\emph{drop-start}) indicating that individual columns may be dropped. The \ident{then} 
+operation (\emph{drop-then}) removes the state label. Individual members can be removed using
+\qident{drop $f_i$} and the (\emph{drop-col}) rule ensures the dropped column is available in the
+input row type and removes it.
+
+Other data transformations could be type checked in a similar way, but there are two drawbacks.
+First, row types and type state (although relatively straightforward) make the host language more
+complex. Second, rules such as (\emph{drop-col}) make auto-completion more difficult, because the
+editor needs to understand the rules and calculate what members may be invoked. This is a distinct
+operation from type checking and type infernece (which operate on complete programs) that needs 
+to be formalized and implemented.
+
+% --------------------------------------------------------------------------------------------------
+
+\subsection{Using the pivot type provider}
 \label{sec:columns-tp}
+
+If $\Gamma\vdash e:[f_1\!:\!\tau_1, \ldots, f_n\!:\!\tau_n]$ using row types and
+$\Gamma\vdash e:C$ then $\ident{fields}(C) = \{ f_1\mapsto\tau_1 \}$
+\begin{equation*}
+\end{equation*}
+
+\newpage
 
 % --------------------------------------------------------------------------------------------------
 
