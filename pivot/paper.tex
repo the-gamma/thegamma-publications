@@ -42,6 +42,10 @@
 
 % ==================================================================================================
 
+\theoremstyle{plain}
+\theoremstyle{definition}
+\newtheorem{rmrk}{Remark}
+
 % Formatting for source code & types
 \definecolor{cmtclr}{rgb}{0.0,0.6,0.0}
 \definecolor{kvdclr}{rgb}{0.0,0.0,0.6}
@@ -646,12 +650,56 @@ to be formalized and implemented.
 \subsection{Using the pivot type provider}
 \label{sec:columns-tp}
 
-If $\Gamma\vdash e:[f_1\!:\!\tau_1, \ldots, f_n\!:\!\tau_n]$ using row types and
-$\Gamma\vdash e:C$ then $\ident{fields}(C) = \{ f_1\mapsto\tau_1 \}$
+In our approach, the information about available fields is used by a type provider to provide
+types with appropriate members. This is hidden from the host language, which only sees class types
+with members. Provided class definitions consist of a constructor and members: 
+%
 \begin{equation*}
+\begin{array}{rcl}
+ l &=& \kvd{type}~C(x:\tau) = \overline{m} \\
+ m &=& \kvd{member}~N:\tau= e
+\end{array}
 \end{equation*}
 
-\newpage
+\noindent
+During type-checking, the type system keeps track of a list of provided class definitions $L$. 
+Checking member access is then just a matter of finding the corresponding class definition and
+finding the member type:
+%
+\begin{equation*}
+\inference[(\emph{member})~]
+  {L; \Gamma \vdash e : C & \kvd{type}~C(x:\tau) = ..\;\kvd{member}~N_i : \tau_i = e_i\;.. \in L}
+  {L; \Gamma \vdash e.N_i:\tau_i}
+\end{equation*}
+
+\noindent
+The rule, adapted from [X], does not capture laziness of type providers that is 
+important for the pivot type provider (where the number of provided classes is potentially 
+infinite). We discuss this aspect in Section~\ref{sec:foo}.
+
+Using type providers and nominal type system seemingly hides knowledge about fields available
+in the data set. However, for types constructed by the pivot type provider, we can define a 
+mapping \ident{fields} that returns the fields available in the data set represented by the 
+class. The type provider encodes the logic expressed in Section~\ref{sec:columns-row} in the
+following sense:
+
+\begin{rmrk}[Encoding of fancy types]
+\label{thm:encoding-fancy}
+If $\Gamma\vdash e:[f_1\!:\!\tau_1, \ldots, f_n\!:\!\tau_n]$ using a type system defined in 
+Figure~\ref{fig:fancy-types} and $\Gamma\vdash e:C$ using nominal typing and $C$ is a type 
+provided by the pivot type provider then $\ident{fields}(C) = \{ f_1\mapsto\tau_1, \ldots, f_n\mapsto\tau_n \}$.
+\end{rmrk}
+
+\noindent
+In the following two sections, we focus on formalizing the pivot type provider and the nominally 
+typed host language. We define the \ident{fields} predicate in Section~\ref{sec:proofs} and use it 
+to prove properties of the pivot type provider.
+
+We do not fully develop the type system based on fancy types sketched in Section~\ref{sec:columns-row}.
+However, the remark illustrates one interesting aspect of our work -- the type provider 
+mechanism makes it possible to express safety guarantees that would normally require row types and 
+type state in a simple nominally typed language. In a similar way, type providers have been used
+to encode session types [X], suggesting that this is a generally useful approach.
 
 % --------------------------------------------------------------------------------------------------
 
@@ -673,22 +721,81 @@ Target language is super simple OO language, but we can use it to encode very fa
    & \lsep & \ident{sum}~f    \\       
    & \lsep & \ident{dist}~f\\
    & \lsep & \ident{conc}~f\\
+\\
+\end{array} 
+\end{equation*}
+
+\newcommand{\vect}[1]{\langl #1 \rangl}
+
+$v=\vect{\{f_1\mapsto v_{1,1}, \ldots, f_n\mapsto v_{1,n}\},\ldots,\{f_1\mapsto v_{m,1}, \ldots, f_n\mapsto v_{m,n}\}}$
+
+\begin{figure}
+\begin{equation*}
+\begin{array}{l}
+\Pi_{f_{p(1)}, \ldots, f_{p(m)}} \{f_1\mapsto \vect{v_{1,1},\ldots,v_{1,r}}, \ldots, f_n\mapsto \vect{v_{n,1},\ldots,v_{n,r}}\} \leadsto \\
+  \quad \{f_{p(1)}\mapsto \vect{v_{p(1),1},\ldots,v_{p(1),r}}, \ldots, f_{p(m)}\mapsto \vect{v_{p(m),1},\ldots,v_{p(m),r}}\}  
+\\
+\\
+\sigma_\varphi \{f_1\mapsto \vect{v_{1,1},\ldots,v_{1,r}}, \ldots, f_n\mapsto \vect{v_{n,1},\ldots,v_{n,r}}\} \leadsto\\
+  \quad \{f_1\mapsto \vect{\ldots, v_{1,j}, \ldots}, \ldots, f_n\mapsto \vect{\ldots, v_{n,j},\ldots}\}
+  \qquad (\forall j.\;\varphi\, \{f_1\mapsto v_{1,j}, \ldots, f_n\mapsto v_{n,j}\})
+\\
+\\
+\tau_{f_{p(1)}, \ldots, f_{p(m)}} \{f_1\mapsto \vect{v_{1,1},\ldots,v_{1,r}}, \ldots, f_n\mapsto \vect{v_{n,1},\ldots,v_{n,r}}\} \leadsto\\
+  \quad \{f_1\mapsto \vect{v_{1,q(1)},\ldots,v_{1,q(r)}}, \ldots, f_n\mapsto \vect{v_{n,q(1)},\ldots,v_{n,q(r)}}\} 
+  \quad \textnormal{where $q$ permutation}\\
+  \qquad \textnormal{such that}~i\leq j\implies(v_{p(1),q(i)}, \ldots, v_{p(m),q(i)}) \leq (v_{p(1),q(j)}, \ldots, v_{p(m),q(j)})
+  \\
+  \\
+\Phi_{f_i, \rho_1, \ldots, \rho_m} \{f_1\mapsto \vect{v_{1,1},\ldots,v_{1,r}}, \ldots, f_n\mapsto \vect{v_{n,1},\ldots,v_{n,r}}\} \leadsto\\
+  \quad \{\ident{nm}(\rho_1)\mapsto a_1, \ldots, \ident{nm}(\rho_m)\mapsto a_m \} 
+  \quad \textnormal{where}\\
+  \qquad \{g_1,\ldots,g_s\}=\{\{l~|~k\in 1\ldots r, ~v_{i,l}=v_{i,k}\}, ~l\in 1\ldots r\} \\
+  ~~\begin{array}{ll}    
+    \qquad a_i = \vect{|g_1|, \ldots, |g_s|}  & \textnormal{when}~\rho_i = \ident{count} \\
+    \qquad a_i = \vect{\Sigma_{k\in g_1}v_{j,k}, \ldots, \Sigma_{k\in g_s}v_{j,k}} & \textnormal{when}~\rho_i = \ident{sum}~f_j \\
+    \qquad a_i = \vect{\Pi_{k\in g_1}v_{j,k}, \ldots, \Sigma_{k\in g_s}v_{j,k}}   & \textnormal{when}~\rho_i = \ident{conc}~f_j \\
+    \qquad a_i = \vect{|\{v_{j,k}, k\in g_1\}|, \ldots, |\{v_{j,k}, k\in g_s\}|}  & \textnormal{when}~\rho_i = \ident{dist}~f_j
+  \end{array}
 \end{array}
 \end{equation*}
+
+\caption{foo}
+\label{fig:zzz}
+\end{figure}
+
+%\noindent
+\begin{equation*}
+\Pi_{f_{p(1)}, \ldots, f_{p(n)}} \{f_1\mapsto \overline{v_1}, \ldots, f_n\mapsto \overline{v_m}\}
+  \leadsto \{f_{p(1)}\mapsto \overline{v_{p(1)}}, \ldots, f_{p(n)}\mapsto \overline{v_{p(n)}}\}
+\end{equation*}
+
+
 \subsection{Foo calculus}
 \begin{equation*}
 \begin{array}{rcl}
- \tau &=& \ident{num} \lsep \ident{string} \lsep \ident{series}\langl \tau_1, \tau_2 \rangl \lsep \ident{Query}\\
- l &=& \kvd{type}~C(\overline{x:\tau}) = \overline{m} \\[0.0em]
+ \tau &=& C \lsep \ident{num} \lsep \ident{string} \lsep \ident{series}\langl \tau_1, \tau_2 \rangl \lsep \ident{Query}\\
+ l &=& \kvd{type}~C(x:\tau) = \overline{m} \\[0.0em]
  m &=& \kvd{member}~N:\tau= e
 \end{array}
 \end{equation*}
+
+\begin{equation*}
+\begin{array}{rcl}
+ v &\narrow{=}& d \lsep \ident{None} \lsep \ident{Some}(v) \lsep \kvd{new}~C(\overline{v}) \lsep v_1::v_2 \\[0.0em]
+ e &\narrow{=}& d \lsep op \lsep e_1~e_2 \lsep \lambda x.e \lsep e.N \lsep \kvd{new}~C(\overline{e}) \\
+   &\narrow{|}& \ident{None} \lsep\kvd{match}~e~\kvd{with}~\ident{Some}(x) \rightarrow e_1 \,|\, \ident{None} \rightarrow e_2 \\
+   &\narrow{|}& \ident{Some}(e) \lsep e_1 = e_2 \lsep {\kvd{if}~e_1~\kvd{then}~e_2~\kvd{else}~e_3} \lsep \kvd{nil} \\
+   &\narrow{|}& e_1 :: e_2 \lsep \kvd{match}~e~\kvd{with}~x_1::x_2 \rightarrow e_1 \,|\, \kvd{nil} \rightarrow e_2
+\end{array}
+\end{equation*}
+
 
 
 
 \begin{equation*}
 \inference[(foo)]
-  {L_1; \Gamma \vdash e : C; L_2 \qquad ((\kvd{type}~C(\overline{x:\tau}) = ..\;\kvd{member}~N_i : \tau_i = e_i\;..), L) \in L_2}
+  {L_1; \Gamma \vdash e : C; L_2 \qquad ((\kvd{type}~C(x:\tau) = ..\;\kvd{member}~N_i : \tau_i = e_i\;..), L) \in L_2}
   {L_1; \Gamma \vdash e.N_i:\tau_i; L_2 \cup L}
 \end{equation*}
 
