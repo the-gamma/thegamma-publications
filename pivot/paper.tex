@@ -53,6 +53,7 @@
 \definecolor{strclr}{rgb}{0.4,0.3,0.0}
 \definecolor{prepclr}{rgb}{0.6,0.0,0.2}
 
+\newcommand{\vect}[1]{\langl #1 \rangl}
 \newcommand{\langl}{\begin{picture}(4.5,7)
 \put(1.1,2.5){\rotatebox{60}{\line(1,0){5.5}}}
 \put(1.1,2.5){\rotatebox{300}{\line(1,0){5.5}}}
@@ -701,33 +702,34 @@ mechanism makes it possible to express safety guarantees that would normally req
 type state in a simple nominally typed language. In a similar way, type providers have been used
 to encode session types [X], suggesting that this is a generally useful approach.
 
-% --------------------------------------------------------------------------------------------------
+% ==================================================================================================
 
-\section{Formalising The Gamma script}
-\label{sec:foo}
+\begin{figure}
 
-
-Target language is super simple OO language, but we can use it to encode very fancy types!!
-
-\subsection{Relational algebra}
 \begin{equation*}
 \begin{array}{rclll}
-  R & = & \Pi_{f_1, \ldots, f_n} (R) &&\textnormal{get columns}\\
-   & \lsep & \sigma_\varphi (R) &&\textnormal{filter by predicate}\\
-   & \lsep & \tau_{f_1, \ldots, f_n}(R) &&\textnormal{sort by fields}\\
-   & \lsep & \Phi_{f, \rho_1, \ldots, \rho_n} (R) &&\textnormal{group by $f$ and aggregate}\\
-   \\
-  \rho & = & \ident{count}  \\
-   & \lsep & \ident{sum}~f    \\       
-   & \lsep & \ident{dist}~f\\
-   & \lsep & \ident{conc}~f\\
+  D & = & \multicolumn{3}{l}{ 
+    \{f_1\mapsto \vect{v_{1,1},\ldots,v_{1,r}}, \ldots, f_n\mapsto \vect{v_{n,1},\ldots,v_{n,r}}\} 
+  }\\[0.5em]
+  R & = & \Pi_{f_1, \ldots, f_n} (R) &&\textnormal{Projection -- select specified column names}\\
+   & \lsep & \sigma_\varphi (R) &&\textnormal{Selection -- filter rows by given predicate}\\
+   & \lsep & \tau_{f_1, \ldots, f_n}(R) &&\textnormal{Sorting -- sort by specified columns}\\
+   & \lsep & \Phi_{f, \rho_1/f_1, \ldots, \rho_n/f_n} (R) &&\textnormal{Grouping -- group by and calculate aggregates}
+   \\[0.5em]
+  \rho & = & \ident{count}  &&\textnormal{Count number of rows in the group}\\
+   & \lsep & \ident{sum}~f  &&\textnormal{Sum numerical values of the column $f$}\\
+   & \lsep & \ident{dist}~f &&\textnormal{Count number of distinct values of the column $f$}\\
+   & \lsep & \ident{conc}~f &&\textnormal{Concatenat string values of the column $f$}\\
 \\
 \end{array} 
 \end{equation*}
 
-\newcommand{\vect}[1]{\langl #1 \rangl}
+\vspace{-1.5em}
+\caption{Relational algebra with values, sorting and aggregation}
+\label{fig:foo-rel}
+\end{figure}
 
-$v=\vect{\{f_1\mapsto v_{1,1}, \ldots, f_n\mapsto v_{1,n}\},\ldots,\{f_1\mapsto v_{m,1}, \ldots, f_n\mapsto v_{m,n}\}}$
+% --------------------------------------------------------------------------------------------------
 
 \begin{figure}
 \begin{equation*}
@@ -747,31 +749,65 @@ $v=\vect{\{f_1\mapsto v_{1,1}, \ldots, f_n\mapsto v_{1,n}\},\ldots,\{f_1\mapsto 
   \qquad \textnormal{such that}~i\leq j\implies(v_{p(1),q(i)}, \ldots, v_{p(m),q(i)}) \leq (v_{p(1),q(j)}, \ldots, v_{p(m),q(j)})
   \\
   \\
-\Phi_{f_i, \rho_1, \ldots, \rho_m} \{f_1\mapsto \vect{v_{1,1},\ldots,v_{1,r}}, \ldots, f_n\mapsto \vect{v_{n,1},\ldots,v_{n,r}}\} \leadsto\\
-  \quad \{\ident{nm}(\rho_1)\mapsto a_1, \ldots, \ident{nm}(\rho_m)\mapsto a_m \} 
+\Phi_{f_i, \rho_1/f_1', \ldots, \rho_m/f_m'} \{f_1\mapsto \vect{v_{1,1},\ldots,v_{1,r}}, \ldots, f_n\mapsto \vect{v_{n,1},\ldots,v_{n,r}}\} \leadsto\\
+  \quad \{f_1' \mapsto a_1, \ldots, f_m'\mapsto a_m \} 
   \quad \textnormal{where}\\
   \qquad \{g_1,\ldots,g_s\}=\{\{l~|~k\in 1\ldots r, ~v_{i,l}=v_{i,k}\}, ~l\in 1\ldots r\} \\
   ~~\begin{array}{ll}    
     \qquad a_i = \vect{|g_1|, \ldots, |g_s|}  & \textnormal{when}~\rho_i = \ident{count} \\
     \qquad a_i = \vect{\Sigma_{k\in g_1}v_{j,k}, \ldots, \Sigma_{k\in g_s}v_{j,k}} & \textnormal{when}~\rho_i = \ident{sum}~f_j \\
     \qquad a_i = \vect{\Pi_{k\in g_1}v_{j,k}, \ldots, \Sigma_{k\in g_s}v_{j,k}}   & \textnormal{when}~\rho_i = \ident{conc}~f_j \\
-    \qquad a_i = \vect{|\{v_{j,k}, k\in g_1\}|, \ldots, |\{v_{j,k}, k\in g_s\}|}  & \textnormal{when}~\rho_i = \ident{dist}~f_j
-  \end{array}
+    \qquad a_i = \vect{|\{v_{j,k}, k\in g_1\}|, \ldots, |\{v_{j,k}, k\in g_s\}|}  & \textnormal{when}~\rho_i = \ident{dist}~f_j \\
+  \end{array}\\
 \end{array}
 \end{equation*}
 
-\caption{foo}
-\label{fig:zzz}
+\caption{Vector-based semantics for operations of the extended relational algebra}
+\label{fig:foo-relsem}
 \end{figure}
 
-%\noindent
-\begin{equation*}
-\Pi_{f_{p(1)}, \ldots, f_{p(n)}} \{f_1\mapsto \overline{v_1}, \ldots, f_n\mapsto \overline{v_m}\}
-  \leadsto \{f_{p(1)}\mapsto \overline{v_{p(1)}}, \ldots, f_{p(n)}\mapsto \overline{v_{p(n)}}\}
-\end{equation*}
+% --------------------------------------------------------------------------------------------------
 
+\section{Formalising the host language}
+\label{sec:foo}
+
+Type providers often provide a thin type-safe layer over a richer untyped runtime component. In case 
+of providers for data access (Section~\ref{sec:tps}), the untyped runtime component performs operations
+over an external data source. In case of the pivot type provider, the untyped runtime component 
+is a relational algebra, which we use for modelling data transformations. We formalize the 
+relational algebra in Section~\ref{sec:foo-rel}, together with the object-based host language
+in Section~\ref{sec:foo-foo}.
+
+\subsection{Relational algebra with vector semantics}
+\label{sec:foo-rel}
+
+The focus of our work is on data aggregation and so we use a form of relational algebra with 
+extensions for grouping and sorting [X,Y,Z]. The syntax is defined in Figure~\ref{fig:foo-rel}.
+We write $f$ for column (field) names and we include definition of a data value $D$, which maps
+columns to vectors of length $r$ storing the data (values $v$ are defined below).
+Aside from standard projection $\Pi$ and selection $\sigma$, our algebra includes sorting 
+$\tau$ which takes one or more column names forming the sort key and aggregation $\Phi$, which
+requires a single grouping key and several aggregations together with names of the
+new columns to be returned.
+
+The semantics of the algbra is given in Figure~\ref{fig:foo-relsem}. We use vector-based semantics
+to support sorting and duplicate entries, but otherwise the formalization captures the usual
+behaviour. In projection and sorting, we write $f_{p(1)}, \ldots, f_{p(m)}$ to refer to a selection
+of fields from $f_1, \ldots, f_n$. Assuming $m\leq n$, $p$ can be seen as a mapping from $\{1\ldots m\}$
+to a subset of $\{1\ldots n\}$. In selection, $\varphi$ is a predicate applied to a mapping from 
+column names to values. In sorting, we assume that there is a permutation on row indices $q$ such
+that the tuples obtained by selecting values according to the sort key are ordered.
+
+The most complex operation is grouping. We need to group data by the value of the column $f_i$ and
+then apply aggregations $\rho_1,\ldots,\rho_m$. To do this, we first obtain a set of groups $g_1,\ldots, g_s$
+where each group represents a set of indicies of rows belonging to each group. For a given group 
+$g_i$ we can then obtain values of column $j$ for rows in the group as $\{v_{j,k}, k\in g_i\}$.
+This is used when performing the aggregations -- $|g_i|$ gives the number of rows in the group,
+$\Sigma$ sums numerical values and $\Pi$ (a slight notation abuse) concatenates string values. 
 
 \subsection{Foo calculus}
+\label{sec:foo-foo}
+
 \begin{equation*}
 \begin{array}{rcl}
  \tau &=& C \lsep \ident{num} \lsep \ident{string} \lsep \ident{series}\langl \tau_1, \tau_2 \rangl \lsep \ident{Query}\\
