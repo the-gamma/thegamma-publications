@@ -10,6 +10,7 @@
 \usepackage{fp}
 \usepackage{graphicx}
 \usepackage{semantic}
+\usepackage{lipsum}
 
 \bibliographystyle{plainurl}% the recommended bibstyle
 
@@ -65,7 +66,7 @@
 
 \newcommand{\ball}[1]{\FPeval{\result}{clip(201+#1)}\textnormal{\ding{\result}}}
 
-\newcommand{\lsep}{~|~}
+\newcommand{\lsep}{~\,|\,~}
 \newcommand{\num}[1]{\textcolor{numclr}{#1}}
 \newcommand{\str}[1]{\textnormal{\textcolor{strclr}{\sffamily "#1"}}}
 \newcommand{\kvd}[1]{\textnormal{\textcolor{kvdclr}{\sffamily #1}}}
@@ -711,10 +712,10 @@ to encode session types [X], suggesting that this is a generally useful approach
   D & = & \multicolumn{3}{l}{ 
     \{f_1\mapsto \vect{v_{1,1},\ldots,v_{1,r}}, \ldots, f_n\mapsto \vect{v_{n,1},\ldots,v_{n,r}}\} 
   }\\[0.5em]
-  R & = & \Pi_{f_1, \ldots, f_n} (R) &&\textnormal{Projection -- select specified column names}\\
-   & \lsep & \sigma_\varphi (R) &&\textnormal{Selection -- filter rows by given predicate}\\
-   & \lsep & \tau_{f_1, \ldots, f_n}(R) &&\textnormal{Sorting -- sort by specified columns}\\
-   & \lsep & \Phi_{f, \rho_1/f_1, \ldots, \rho_n/f_n} (R) &&\textnormal{Grouping -- group by and calculate aggregates}
+  e & = & \Pi_{f_1, \ldots, f_n} (e) &&\textnormal{Projection -- select specified column names}\\
+   & \lsep & \sigma_\varphi (e) &&\textnormal{Selection -- filter rows by given predicate}\\
+   & \lsep & \tau_{f_1, \ldots, f_n}(e) &&\textnormal{Sorting -- sort by specified columns}\\
+   & \lsep & \Phi_{f, \rho_1/f_1, \ldots, \rho_n/f_n} (e) &&\textnormal{Grouping -- group by and calculate aggregates}
    \\[0.5em]
   \rho & = & \ident{count}  &&\textnormal{Count number of rows in the group}\\
    & \lsep & \ident{sum}~f  &&\textnormal{Sum numerical values of the column $f$}\\
@@ -757,7 +758,7 @@ to encode session types [X], suggesting that this is a generally useful approach
     \qquad a_i = \vect{|g_1|, \ldots, |g_s|}  & \textnormal{when}~\rho_i = \ident{count} \\
     \qquad a_i = \vect{\Sigma_{k\in g_1}v_{j,k}, \ldots, \Sigma_{k\in g_s}v_{j,k}} & \textnormal{when}~\rho_i = \ident{sum}~f_j \\
     \qquad a_i = \vect{\Pi_{k\in g_1}v_{j,k}, \ldots, \Sigma_{k\in g_s}v_{j,k}}   & \textnormal{when}~\rho_i = \ident{conc}~f_j \\
-    \qquad a_i = \vect{|\{v_{j,k}, k\in g_1\}|, \ldots, |\{v_{j,k}, k\in g_s\}|}  & \textnormal{when}~\rho_i = \ident{dist}~f_j \\
+    \qquad a_i = \vect{|\{v_{j,k}\,|\, k\in g_1\}|, \ldots, |\{v_{j,k}\,|\, k\in g_s\}|}  & \textnormal{when}~\rho_i = \ident{dist}~f_j \\
   \end{array}\\
 \end{array}
 \end{equation*}
@@ -768,7 +769,7 @@ to encode session types [X], suggesting that this is a generally useful approach
 
 % --------------------------------------------------------------------------------------------------
 
-\section{Formalising the host language}
+\section{Formalising the host language and runtime}
 \label{sec:foo}
 
 Type providers often provide a thin type-safe layer over a richer untyped runtime component. In case 
@@ -801,41 +802,228 @@ that the tuples obtained by selecting values according to the sort key are order
 The most complex operation is grouping. We need to group data by the value of the column $f_i$ and
 then apply aggregations $\rho_1,\ldots,\rho_m$. To do this, we first obtain a set of groups $g_1,\ldots, g_s$
 where each group represents a set of indicies of rows belonging to each group. For a given group 
-$g_i$ we can then obtain values of column $j$ for rows in the group as $\{v_{j,k}, k\in g_i\}$.
+$g_i$ we can then obtain values of column $j$ for rows in the group as $\{v_{j,k}\,|\, k\in g_i\}$.
 This is used when performing the aggregations -- $|g_i|$ gives the number of rows in the group,
 $\Sigma$ sums numerical values and $\Pi$ (a slight notation abuse) concatenates string values. 
 
-\subsection{Foo calculus}
-\label{sec:foo-foo}
+% --------------------------------------------------------------------------------------------------
 
+\begin{figure}
 \begin{equation*}
 \begin{array}{rcl}
+  v &=& \kvd{new}~\,C(v)\, \lsep \kvd{new}~\ident{series}\langl \tau_1, \tau_2 \rangl(v)\; \lsep n \lsep s \lsep D \\
+  e &=& \kvd{new}~\,C(e)\, \lsep \kvd{new}~\ident{series}\langl \tau_1, \tau_2 \rangl(e)\;\, \lsep x \lsep v \lsep e.N \lsep \ldots\\
+  E &=& \kvd{new}~C(E) \lsep \kvd{new}~\ident{series}\langl \tau_1, \tau_2 \rangl(E)\, \lsep E.N \\
+    &|& \Pi_{f_1, \ldots, f_n}(E) \lsep \sigma_\varphi(E) \lsep \tau_{f_1, \ldots, f_n}(E) \lsep \Phi_{f_i, \rho_1/f_1', \ldots, \rho_m/f_m'} (E) \\
+    \\
  \tau &=& C \lsep \ident{num} \lsep \ident{string} \lsep \ident{series}\langl \tau_1, \tau_2 \rangl \lsep \ident{Query}\\
- l &=& \kvd{type}~C(x:\tau) = \overline{m} \\[0.0em]
+ l &=& \kvd{type}~C(x:\tau) = \overline{m} \\
  m &=& \kvd{member}~N:\tau= e
 \end{array}
 \end{equation*}
+\vspace{-1em}
 
+\[
+\inference[(\emph{member})~]
+{ L(C) = (\kvd{type}~C(x:\tau)= \ldots~\kvd{member}~N_i : \tau_i = e_i~\ldots), L'}
+{ (\kvd{new}~C(v)).N_i \leadsto_L e_i[x \leftarrow v] }\\
+\]
+\vspace{-2.5em}
+
+\[
+\inference[(\emph{context})~]
+{e \leadsto_L e'}
+{E[e] \leadsto_L E[e']}
+\]
+
+\caption{Syntax and remaining reduction rules of the Foo calculus}
+\label{fig:foo-syntax}
+\end{figure}
+
+% --------------------------------------------------------------------------------------------------
+
+\subsection{Foo calculus with lazy context}
+\label{sec:foo-foo}
+
+We model the host language using a variant of the Foo calculus [X]. The core of the calculus models
+a simple object-based language with objects and members. The syntax of the language is shown in
+Figure~\ref{fig:foo-syntax}. The relational algebra defined in Figure~\ref{fig:foo-rel} is included
+in the Foo calculus as a model of the runtime components of the pivot type provider -- the values
+include the data value $D$ and the expressions include all the operations of the relational algebra.
+
+The Foo calculus includes two special types. \ident{Query} is a type of data and queries 
+constructed using the relational algebra. The type $\ident{series}\langl \tau_1, \tau_2 \rangl$ 
+models a data series mapping keys of type $\tau_1$ to values of type $\tau_2$. A series is created 
+as a result of a query written using the pivot type provider. In the actual implementation, a series 
+can be passed to a charting library. A series is a statically-typed wrapper over a \ident{Query} 
+value and the proofs in Section~\ref{sec:proofs} show that a series obtained from the pivot type 
+provider contains keys and values of matching types.
+
+\subparagraph{Reduction rules.} The reduction relation $\leadsto_L$ is prameterized by a function
+$L$ that maps class names to class definitions, together with nested classes associated with the
+class definition (used during type-checking as discussed below). The map is not used in the 
+reduction rules for the relational algebra, given in Figure~\ref{fig:foo-relsem} and so it was 
+omitted there.
+
+The remaining reduction rules are given in Figure~\ref{fig:foo-syntax}. The (\emph{member}) rule 
+performs lookup using $L(C)$ to find the definition of the member that is being accessed and then
+it reduces member access by substituting the evaluated constructor argument $v$ for a variable $x$.
+We assume standard capture-avoiding substitution $[x\leftarrow v]$. The rule ignores the nested 
+class definitions $L'$. The (\emph{context}) rule performs reduction in an evaluation context $E$.
+
+\subparagraph{Type checking.} One interesting aspect of type-checking with type providers is that
+type providers can provide potentially infinite number of types. In F\#, the types are provided 
+lazily as the type checker explores parts of the type space used by the program [X]. Consider:
+%
 \begin{equation*}
-\begin{array}{rcl}
- v &\narrow{=}& d \lsep \ident{None} \lsep \ident{Some}(v) \lsep \kvd{new}~C(\overline{v}) \lsep v_1::v_2 \\[0.0em]
- e &\narrow{=}& d \lsep op \lsep e_1~e_2 \lsep \lambda x.e \lsep e.N \lsep \kvd{new}~C(\overline{e}) \\
-   &\narrow{|}& \ident{None} \lsep\kvd{match}~e~\kvd{with}~\ident{Some}(x) \rightarrow e_1 \,|\, \ident{None} \rightarrow e_2 \\
-   &\narrow{|}& \ident{Some}(e) \lsep e_1 = e_2 \lsep {\kvd{if}~e_1~\kvd{then}~e_2~\kvd{else}~e_3} \lsep \kvd{nil} \\
-   &\narrow{|}& e_1 :: e_2 \lsep \kvd{match}~e~\kvd{with}~x_1::x_2 \rightarrow e_1 \,|\, \kvd{nil} \rightarrow e_2
-\end{array}
+\ident{olympics}.\qident{group data}.\qident{by Athlete}.\qident{sum Gold}.\ident{then}
 \end{equation*}
 
-
-
-
+\noindent
+The type checker initially knows the type of $\ident{olympics}$ is a class $C_1$ with member 
+$\qident{group data}$ and it knows that the type of this member is $C_2$. However, it only needs to 
+obtain full definition of $C_2$ when checking the member $\qident{by Athlete}$. Types of other 
+member of $C_1$ remain unevaluated when they do not appear in the source code. This aspect of type
+providers have been omitted in previous work [X,Y], but it is necessary for the pivot type provider.
+The typing rules given are written using the following judgement:
+%
 \begin{equation*}
-\inference[(foo)]
-  {L_1; \Gamma \vdash e : C; L_2 \qquad ((\kvd{type}~C(x:\tau) = ..\;\kvd{member}~N_i : \tau_i = e_i\;..), L) \in L_2}
+L_1; \Gamma \vdash e : \tau; L_2
+\end{equation*}
+
+\noindent
+The judgement states that given class definitions $L_1$ and a variable context $\Gamma$, the type
+of expression $e$ is $\tau$ and the type checking evaluated further class definitions that are
+now included in $L_2$. The structure of class definitions $L_1$ is a function mapping a class name 
+$C$ to a pair consisting of the definition and a function that provides definitions of 
+further classes: 
+%
+\begin{equation*}
+L_1(C) = \kvd{type}~C(x:\tau) = \overline{m}, L'
+\end{equation*}
+
+\noindent
+The types of members of the class $C$ may be already known classes defined by $L_1$, but also classes 
+defined by $L'$. This models laziness as $L'$ is a function that may never be evaluated. 
+
+The rules that define type-checking are shown in Figure~\ref{fig:foo-typecheck}. The two rules
+that force the discovery of new classes are (\emph{new}) and (\emph{member}). In both cases,
+we perform a lookup using $L_2(C)$ which returns a class definition together with further classes
+$L$. We treat functions as sets and join $L_2$ with further classes defined by $L$ using $L_2 \cup L$.
+
+The rules for primitive types and variables are standard and do not affect the discovered classes.
+Input data (\emph{data}) is of type \ident{Query} and all the operations of relational algebra 
+take a value of type \ident{Query} and produce a result of type \ident{Query}. This is the 
+untyped (or one-typed) subset of the Foo calculus. A \ident{Query} value can be converted into a
+series type (\emph{series}) of any type\footnote{This can be seen as a boundary between static and
+dynamic typing in gradually typed languages [X,Y,Z].} -- in the pivot type provider, the 
+\ident{Query} type is always hidden and users can only work with type-safe series type.
+
+Finally, we also define a judgement $L_1 \vdash l; L_2$ which states that given known classes $L_1$,
+a class definition $l$ is well typed and produces known classes $L_2$. This checks the types of 
+bodies of all members of the class:
+%
+\begin{equation*}
+\inference
+  { L; \Gamma,x:\tau \vdash e_i : \tau_i; L_{i} & m_i = \kvd{member}~N_i:\tau_i= e_i }
+  { L \vdash \kvd{type}~C(x:\tau) = m_1\ldots m_n; L_1 \cup \ldots \cup L_n }
+\end{equation*}
+
+% --------------------------------------------------------------------------------------------------
+
+\begin{figure}[t]
+
+\[
+\inference[(\emph{int})~]{}{L; \Gamma \vdash n : \ident{int}; L }
+\quad
+\inference[(\emph{string})~]{}{L; \Gamma \vdash s : \ident{string}; L}
+\quad
+\inference[(\emph{var})~]{}{L; \Gamma, x:\tau\vdash x:\tau; L}
+\]
+\vspace{-2em}
+
+\[
+\inference[(\emph{data})~]
+  {L; \Gamma \vdash v_{i,j} : \tau;L \quad \tau \in \{ \ident{int}, \ident{string} \}}
+  {L; \Gamma \vdash \{f_1\mapsto \vect{v_{1,1},\ldots,v_{1,r}}, \ldots, f_n\mapsto \vect{v_{n,1},\ldots,v_{n,r}}\} : \ident{Query};L }
+\]
+\vspace{-2em}
+
+\[
+\inference[(\emph{proj})~]
+  {L_1; \Gamma\vdash e : \ident{Query}; L_2}
+  {L_1; \Gamma\vdash \Pi_{f_1, \ldots, f_n} (e) : \ident{Query}; L_2}
+\qquad\inference[(\emph{sort})~]
+  {L_1; \Gamma\vdash e : \ident{Query}; L_2}
+  {L_1; \Gamma\vdash \tau_{f_1, \ldots, f_n}(e): \ident{Query}; L_2}
+\]
+
+\[
+\inference[(\emph{sel})~]
+  {L_1; \Gamma\vdash e : \ident{Query}; L_2}
+  {L_1; \Gamma\vdash \sigma_\varphi (e) : \ident{Query}; L_2}
+\qquad
+\inference[(\emph{group})~]
+  {L_1; \Gamma\vdash e : \ident{Query}; L_2}
+  {L_1; \Gamma\vdash \Phi_{f, \rho_1/f_1, \ldots, \rho_n/f_n}(e): \ident{Query}; L_2}
+\]
+\vspace{-2em}
+
+\[
+\inference[(\emph{series})~]
+  {L_1; \Gamma\vdash e : \ident{Query}; L_2}
+  {L_1; \Gamma\vdash \kvd{new}~\ident{series}\langl \tau_1, \tau_2 \rangl(e) : \ident{series}\langl \tau_1, \tau_2 \rangl; L_2}
+\]
+\vspace{-2em}
+
+\[
+\inference[(\emph{new})~]
+  {L_1; \Gamma \vdash e : \tau, L_2 & L_2(C) = (\kvd{type}~C(x:\tau) = \ldots), L}
+  {L_1; \Gamma \vdash \kvd{new}~C(e) : C; L_2 \cup L}
+\]
+\vspace{-2em}
+
+\[
+\inference[(\emph{member})~]
+  {L_1; \Gamma \vdash e : C; L_2 \qquad L_2(C)=(\kvd{type}~C(x:\tau) = ..\;\kvd{member}~N_i : \tau_i = e_i\;..), L}
   {L_1; \Gamma \vdash e.N_i:\tau_i; L_2 \cup L}
-\end{equation*}
+\]
+\caption{Type-checking of Foo expressions with lazy context}
+\label{fig:foo-typecheck}
+\end{figure}
 
-\newpage
+% --------------------------------------------------------------------------------------------------
+
+
+\section{Pivot type provider}
+\label{sec:pivot}
+
+Omit paging, because it's boring
+
+
+Our formalization of the pivot type provider follows the style used by Petricek et al. \cite{fsdata}
+in their formalization of F\# Data. In our case, a type provider is a function that takes a schema
+$F$ (mapping from field names to field types) and produces a class $C$ together with collection 
+of other class defintins $L$ that are used by $C$:
+%
+\begin{equation*}
+\ident{provider}(F) = C, L    ~~\textnormal{where}~F=\{ f_1 \mapsto \tau_1, \ldots, f_n \mapsto \tau_n \}
+\end{equation*}
+%
+The provided class $C$ has a constructor taking \ident{Query}. It may be a class with further 
+members that allow refining the query or a class with a single member \ident{series} that returns
+a value of type $\ident{series}\langl \tau_1, \tau_2 \rangl$. In the second case, we can evaluate
+the provided transformation on input $R$ using an expression $(\kvd{new}~C(R)).\ident{series}$.
+
+\subparagraph{Top-level type.} The top-level type allows the user to select a transformation. The
+members return objects with members that allow specifying further properties of each transformation.
+
+
+
+
+\subparagraph{Sorting.} yadda
+
+\lipsum
 
 
 \begin{figure}
@@ -879,35 +1067,6 @@ $\Sigma$ sums numerical values and $\Pi$ (a slight notation abuse) concatenates 
 \label{fig:foo}
 \end{figure}
 
-
-
-\section{Pivot type provider}
-\label{sec:pivot}
-
-Omit paging, because it's boring
-
-
-Our formalization of the pivot type provider follows the style used by Petricek et al. \cite{fsdata}
-in their formalization of F\# Data. In our case, a type provider is a function that takes a schema
-$F$ (mapping from field names to field types) and produces a class $C$ together with collection 
-of other class defintins $L$ that are used by $C$:
-%
-\begin{equation*}
-\ident{provider}(F) = C, L    ~~\textnormal{where}~F=\{ f_1 \mapsto \tau_1, \ldots, f_n \mapsto \tau_n \}
-\end{equation*}
-%
-The provided class $C$ has a constructor taking \ident{Query}. It may be a class with further 
-members that allow refining the query or a class with a single member \ident{series} that returns
-a value of type $\ident{series}\langl \tau_1, \tau_2 \rangl$. In the second case, we can evaluate
-the provided transformation on input $R$ using an expression $(\kvd{new}~C(R)).\ident{series}$.
-
-\subparagraph{Top-level type.} The top-level type allows the user to select a transformation. The
-members return objects with members that allow specifying further properties of each transformation.
-
-
-
-
-\subparagraph{Sorting.} yadda
 
 \begin{figure}
 \begin{equation*}
