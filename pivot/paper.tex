@@ -714,9 +714,10 @@ to encode session types [X], suggesting that this is a generally useful approach
   }\\[0.5em]
   e & = & \Pi_{f_1, \ldots, f_n} (e) &&\textnormal{Projection -- select specified column names}\\
    & \lsep & \sigma_\varphi (e) &&\textnormal{Selection -- filter rows by given predicate}\\
-   & \lsep & \tau_{f_1, \ldots, f_n}(e) &&\textnormal{Sorting -- sort by specified columns}\\
+   & \lsep & \tau_{f_1\mapsto\omega_1, \ldots, f_n\mapsto\omega_n}(e) &&\textnormal{Sorting -- sort by specified columns}\\
    & \lsep & \Phi_{f, \rho_1/f_1, \ldots, \rho_n/f_n} (e) &&\textnormal{Grouping -- group by and calculate aggregates}
    \\[0.5em]
+  \omega & = & \ident{desc}\lsep\ident{asc}  &&\textnormal{Sort order -- descending or ascending}\\
   \rho & = & \ident{count}  &&\textnormal{Count number of rows in the group}\\
    & \lsep & \ident{sum}~f  &&\textnormal{Sum numerical values of the column $f$}\\
    & \lsep & \ident{dist}~f &&\textnormal{Count number of distinct values of the column $f$}\\
@@ -744,17 +745,20 @@ to encode session types [X], suggesting that this is a generally useful approach
   \qquad (\forall j.\;\varphi\, \{f_1\mapsto v_{1,j}, \ldots, f_n\mapsto v_{n,j}\})
 \\
 \\
-\tau_{f_{p(1)}, \ldots, f_{p(m)}} \{f_1\mapsto \vect{v_{1,1},\ldots,v_{1,r}}, \ldots, f_n\mapsto \vect{v_{n,1},\ldots,v_{n,r}}\} \leadsto\\
+\tau_{f_{p(1)}\mapsto\omega_1, \ldots, f_{p(m)}\mapsto\omega_m} \{f_1\mapsto \vect{v_{1,1},\ldots,v_{1,r}}, \ldots, f_n\mapsto \vect{v_{n,1},\ldots,v_{n,r}}\} \leadsto\\
   \quad \{f_1\mapsto \vect{v_{1,q(1)},\ldots,v_{1,q(r)}}, \ldots, f_n\mapsto \vect{v_{n,q(1)},\ldots,v_{n,q(r)}}\} 
   \quad \textnormal{where $q$ permutation}\\
-  \qquad \textnormal{such that}~i\leq j\implies(v_{p(1),q(i)}, \ldots, v_{p(m),q(i)}) \leq (v_{p(1),q(j)}, \ldots, v_{p(m),q(j)})
+  \qquad \textnormal{such that}~\forall i, j.~i\leq j\implies(u_{1,i}, \ldots, v_{m,i}) \leq (v_{1,j}, \ldots, v_{m,j})~ \textnormal{where}\\
+  \qquad \quad u_{k,l}=v_{p(k),q(l)} \quad \,~~(\textnormal{when}~\omega_k=\ident{asc}) \\
+  \qquad \quad u_{k,l}=-v_{p(k),q(l)} \quad (\textnormal{when}~\omega_k=\ident{desc})
   \\
   \\
 \Phi_{f_i, \rho_1/f_1', \ldots, \rho_m/f_m'} \{f_1\mapsto \vect{v_{1,1},\ldots,v_{1,r}}, \ldots, f_n\mapsto \vect{v_{n,1},\ldots,v_{n,r}}\} \leadsto\\
-  \quad \{f_1' \mapsto a_1, \ldots, f_m'\mapsto a_m \} 
+  \quad \{f_1' \mapsto a_1, \ldots, f_m'\mapsto a_m, f_i\mapsto b \} 
   \quad \textnormal{where}\\
   \qquad \{g_1,\ldots,g_s\}=\{\{l~|~k\in 1\ldots r, ~v_{i,l}=v_{i,k}\}, ~l\in 1\ldots r\} \\
   ~~\begin{array}{ll}    
+    \qquad b = \vect{v_{i,k_1},\ldots,v_{i, k_s}} & \textnormal{where}~k_j \in g_j \\
     \qquad a_i = \vect{|g_1|, \ldots, |g_s|}  & \textnormal{when}~\rho_i = \ident{count} \\
     \qquad a_i = \vect{\Sigma_{k\in g_1}v_{j,k}, \ldots, \Sigma_{k\in g_s}v_{j,k}} & \textnormal{when}~\rho_i = \ident{sum}~f_j \\
     \qquad a_i = \vect{\Pi_{k\in g_1}v_{j,k}, \ldots, \Sigma_{k\in g_s}v_{j,k}}   & \textnormal{when}~\rho_i = \ident{conc}~f_j \\
@@ -772,12 +776,11 @@ to encode session types [X], suggesting that this is a generally useful approach
 \section{Formalising the host language and runtime}
 \label{sec:foo}
 
-Type providers often provide a thin type-safe layer over a richer untyped runtime component. In case 
+Type providers often provide a thin type-safe layer over richer untyped runtime components. In case 
 of providers for data access (Section~\ref{sec:tps}), the untyped runtime component performs operations
-over an external data source. In case of the pivot type provider, the untyped runtime component 
-is a relational algebra, which we use for modelling data transformations. We formalize the 
-relational algebra in Section~\ref{sec:foo-rel}, together with the object-based host language
-in Section~\ref{sec:foo-foo}.
+over external data sources. In case of the pivot type provider, the untyped runtime component 
+is a relational algebra modelling data transformations. We formalize the relational algebra in 
+Section~\ref{sec:foo-rel}, together with the object-based host language in Section~\ref{sec:foo-foo}.
 
 \subsection{Relational algebra with vector semantics}
 \label{sec:foo-rel}
@@ -787,9 +790,9 @@ extensions for grouping and sorting [X,Y,Z]. The syntax is defined in Figure~\re
 We write $f$ for column (field) names and we include definition of a data value $D$, which maps
 columns to vectors of length $r$ storing the data (values $v$ are defined below).
 Aside from standard projection $\Pi$ and selection $\sigma$, our algebra includes sorting 
-$\tau$ which takes one or more column names forming the sort key and aggregation $\Phi$, which
-requires a single grouping key and several aggregations together with names of the
-new columns to be returned.
+$\tau$ which takes one or more columns forming the sort key (with sort order $\omega$)
+and aggregation $\Phi$, which requires a single grouping key and several aggregations together with 
+names of the new columns to be returned.
 
 The semantics of the algbra is given in Figure~\ref{fig:foo-relsem}. We use vector-based semantics
 to support sorting and duplicate entries, but otherwise the formalization captures the usual
@@ -797,13 +800,17 @@ behaviour. In projection and sorting, we write $f_{p(1)}, \ldots, f_{p(m)}$ to r
 of fields from $f_1, \ldots, f_n$. Assuming $m\leq n$, $p$ can be seen as a mapping from $\{1\ldots m\}$
 to a subset of $\{1\ldots n\}$. In selection, $\varphi$ is a predicate applied to a mapping from 
 column names to values. In sorting, we assume that there is a permutation on row indices $q$ such
-that the tuples obtained by selecting values according to the sort key are ordered.
+that the tuples obtained by selecting values according to the given sort key are ordered. The 
+auxiliary definition $u_{k,l}$ negates the number to reverse the sort order when descending order
+is required.
 
 The most complex operation is grouping. We need to group data by the value of the column $f_i$ and
 then apply aggregations $\rho_1,\ldots,\rho_m$. To do this, we first obtain a set of groups $g_1,\ldots, g_s$
 where each group represents a set of indicies of rows belonging to each group. For a given group 
 $g_i$ we can then obtain values of column $j$ for rows in the group as $\{v_{j,k}\,|\, k\in g_i\}$.
-This is used when performing the aggregations -- $|g_i|$ gives the number of rows in the group,
+This is used to calculate the resulting data set -- the field $f_i$ becomes a new column formed
+by the group keys (obtained by picking one of the indices from $g_j$ for each group); other fields
+are calculated by aggregating data in various ways -- $|g_i|$ gives the number of rows in the group,
 $\Sigma$ sums numerical values and $\Pi$ (a slight notation abuse) concatenates string values. 
 
 % --------------------------------------------------------------------------------------------------
@@ -811,12 +818,12 @@ $\Sigma$ sums numerical values and $\Pi$ (a slight notation abuse) concatenates 
 \begin{figure}
 \begin{equation*}
 \begin{array}{rcl}
-  v &=& \kvd{new}~\,C(v)\, \lsep \kvd{new}~\ident{series}\langl \tau_1, \tau_2 \rangl(v)\; \lsep n \lsep s \lsep D \\
-  e &=& \kvd{new}~\,C(e)\, \lsep \kvd{new}~\ident{series}\langl \tau_1, \tau_2 \rangl(e)\;\, \lsep x \lsep v \lsep e.N \lsep \ldots\\
-  E &=& \kvd{new}~C(E) \lsep \kvd{new}~\ident{series}\langl \tau_1, \tau_2 \rangl(E)\, \lsep E.N \\
+  v &=& C(v)\,\, \lsep \ident{series}\langl \tau_1, \tau_2 \rangl(v)\; \lsep n \lsep s \lsep D \\
+  e &=& C(e)\,\, \lsep \ident{series}\langl \tau_1, \tau_2 \rangl(e)\;\, \lsep x \lsep v \lsep e.N \lsep \ldots\\
+  E &=& C(E) \lsep \ident{series}\langl \tau_1, \tau_2 \rangl(E)\, \lsep E.N \\
     &|& \Pi_{f_1, \ldots, f_n}(E) \lsep \sigma_\varphi(E) \lsep \tau_{f_1, \ldots, f_n}(E) \lsep \Phi_{f_i, \rho_1/f_1', \ldots, \rho_m/f_m'} (E) \\
     \\
- \tau &=& C \lsep \ident{num} \lsep \ident{string} \lsep \ident{series}\langl \tau_1, \tau_2 \rangl \lsep \ident{Query}\\
+ \tau &=& C \lsep \kvd{num} \lsep \kvd{string} \lsep \ident{series}\langl \tau_1, \tau_2 \rangl \lsep \ident{Query}\\
  l &=& \kvd{type}~C(x:\tau) = \overline{m} \\
  m &=& \kvd{member}~N:\tau= e
 \end{array}
@@ -826,7 +833,7 @@ $\Sigma$ sums numerical values and $\Pi$ (a slight notation abuse) concatenates 
 \[
 \inference[(\emph{member})~]
 { L(C) = (\kvd{type}~C(x:\tau)= \ldots~\kvd{member}~N_i : \tau_i = e_i~\ldots), L'}
-{ (\kvd{new}~C(v)).N_i \leadsto_L e_i[x \leftarrow v] }\\
+{ (C(v)).N_i \leadsto_L e_i[x \leftarrow v] }\\
 \]
 \vspace{-2.5em}
 
@@ -911,32 +918,14 @@ that force the discovery of new classes are (\emph{new}) and (\emph{member}). In
 we perform a lookup using $L_2(C)$ which returns a class definition together with further classes
 $L$. We treat functions as sets and join $L_2$ with further classes defined by $L$ using $L_2 \cup L$.
 
-The rules for primitive types and variables are standard and do not affect the discovered classes.
-Input data (\emph{data}) is of type \ident{Query} and all the operations of relational algebra 
-take a value of type \ident{Query} and produce a result of type \ident{Query}. This is the 
-untyped (or one-typed) subset of the Foo calculus. A \ident{Query} value can be converted into a
-series type (\emph{series}) of any type\footnote{This can be seen as a boundary between static and
-dynamic typing in gradually typed languages [X,Y,Z].} -- in the pivot type provider, the 
-\ident{Query} type is always hidden and users can only work with type-safe series type.
-
-Finally, we also define a judgement $L_1 \vdash l; L_2$ which states that given known classes $L_1$,
-a class definition $l$ is well typed and produces known classes $L_2$. This checks the types of 
-bodies of all members of the class:
-%
-\begin{equation*}
-\inference
-  { L; \Gamma,x:\tau \vdash e_i : \tau_i; L_{i} & m_i = \kvd{member}~N_i:\tau_i= e_i }
-  { L \vdash \kvd{type}~C(x:\tau) = m_1\ldots m_n; L_1 \cup \ldots \cup L_n }
-\end{equation*}
-
 % --------------------------------------------------------------------------------------------------
 
 \begin{figure}[t]
 
 \[
-\inference[(\emph{int})~]{}{L; \Gamma \vdash n : \ident{int}; L }
+\inference[(\emph{num})~]{}{L; \Gamma \vdash n : \kvd{num}; L }
 \quad
-\inference[(\emph{string})~]{}{L; \Gamma \vdash s : \ident{string}; L}
+\inference[(\emph{string})~]{}{L; \Gamma \vdash s : \kvd{string}; L}
 \quad
 \inference[(\emph{var})~]{}{L; \Gamma, x:\tau\vdash x:\tau; L}
 \]
@@ -944,7 +933,7 @@ bodies of all members of the class:
 
 \[
 \inference[(\emph{data})~]
-  {L; \Gamma \vdash v_{i,j} : \tau;L \quad \tau \in \{ \ident{int}, \ident{string} \}}
+  {L; \Gamma \vdash v_{i,j} : \tau;L \quad \tau \in \{ \kvd{num}, \kvd{string} \}}
   {L; \Gamma \vdash \{f_1\mapsto \vect{v_{1,1},\ldots,v_{1,r}}, \ldots, f_n\mapsto \vect{v_{n,1},\ldots,v_{n,r}}\} : \ident{Query};L }
 \]
 \vspace{-2em}
@@ -972,14 +961,14 @@ bodies of all members of the class:
 \[
 \inference[(\emph{series})~]
   {L_1; \Gamma\vdash e : \ident{Query}; L_2}
-  {L_1; \Gamma\vdash \kvd{new}~\ident{series}\langl \tau_1, \tau_2 \rangl(e) : \ident{series}\langl \tau_1, \tau_2 \rangl; L_2}
+  {L_1; \Gamma\vdash \ident{series}\langl \tau_1, \tau_2 \rangl(e) : \ident{series}\langl \tau_1, \tau_2 \rangl; L_2}
 \]
 \vspace{-2em}
 
 \[
 \inference[(\emph{new})~]
   {L_1; \Gamma \vdash e : \tau, L_2 & L_2(C) = (\kvd{type}~C(x:\tau) = \ldots), L}
-  {L_1; \Gamma \vdash \kvd{new}~C(e) : C; L_2 \cup L}
+  {L_1; \Gamma \vdash C(e) : C; L_2 \cup L}
 \]
 \vspace{-2em}
 
@@ -988,138 +977,243 @@ bodies of all members of the class:
   {L_1; \Gamma \vdash e : C; L_2 \qquad L_2(C)=(\kvd{type}~C(x:\tau) = ..\;\kvd{member}~N_i : \tau_i = e_i\;..), L}
   {L_1; \Gamma \vdash e.N_i:\tau_i; L_2 \cup L}
 \]
+\vspace{-2em}
+
+\[
+\inference[(\emph{class})~]
+  { L; \Gamma,x:\tau \vdash e_i : \tau_i; L_{i} & m_i = \kvd{member}~N_i:\tau_i= e_i }
+  { L \vdash \kvd{type}~C(x:\tau) = m_1\ldots m_n; L_1 \cup \ldots \cup L_n }
+\]
 \caption{Type-checking of Foo expressions with lazy context}
 \label{fig:foo-typecheck}
 \end{figure}
 
 % --------------------------------------------------------------------------------------------------
 
+The rules for primitive types and variables are standard.
+Input data (\emph{data}) is of type \ident{Query} and all the operations of relational algebra 
+take a value of type \ident{Query} and produce a result of type \ident{Query}. This is the 
+untyped (or one-typed) subset of the Foo calculus. A \ident{Query} value can be converted into a
+series type (\emph{series}) of any type\footnote{This can be seen as a boundary between static and
+dynamic typing in gradually typed languages [X,Y,Z].} -- in the pivot type provider, the 
+\ident{Query} type is always hidden and users can only work with type-safe series type.
 
-\section{Pivot type provider}
-\label{sec:pivot}
+Finally, we also define a judgement $L_1 \vdash l; L_2$ which states that given known classes $L_1$,
+a class definition $l$ is well typed and produces known classes $L_2$. This is defined by the
+(\emph{class}) rule that checks the types of bodies of all members of the class.
 
-Omit paging, because it's boring
-
-
-Our formalization of the pivot type provider follows the style used by Petricek et al. \cite{fsdata}
-in their formalization of F\# Data. In our case, a type provider is a function that takes a schema
-$F$ (mapping from field names to field types) and produces a class $C$ together with collection 
-of other class defintins $L$ that are used by $C$:
-%
-\begin{equation*}
-\ident{provider}(F) = C, L    ~~\textnormal{where}~F=\{ f_1 \mapsto \tau_1, \ldots, f_n \mapsto \tau_n \}
-\end{equation*}
-%
-The provided class $C$ has a constructor taking \ident{Query}. It may be a class with further 
-members that allow refining the query or a class with a single member \ident{series} that returns
-a value of type $\ident{series}\langl \tau_1, \tau_2 \rangl$. In the second case, we can evaluate
-the provided transformation on input $R$ using an expression $(\kvd{new}~C(R)).\ident{series}$.
-
-\subparagraph{Top-level type.} The top-level type allows the user to select a transformation. The
-members return objects with members that allow specifying further properties of each transformation.
-
-
-
-
-\subparagraph{Sorting.} yadda
-
-\lipsum
-
+% --------------------------------------------------------------------------------------------------
 
 \begin{figure}
 \begin{equation*}
 \begin{array}{ll}
-\ident{main}(F) = C \mapsto (l, L_1 \cup \ldots \cup L_4)\\[0.5em]
+\ident{pivot}(F) = C, \{ C \mapsto (l, L_1 \cup \ldots \cup L_4) \}\qquad\ball{1}\\[0.5em]
 \quad l = \kvd{type}~C(x:\ident{Query}) = \\
 \qquad \qquad \kvd{member}~\qident{drop columns} : C_1 = C_1(x) &\textnormal{where}~C_1, L_1 = \ident{drop}(F)\\
 \qquad \qquad \kvd{member}~\qident{sort data} : C_2 = C_2(x) &\textnormal{where}~C_2, L_2 = \ident{sort}(F)\\
 \qquad \qquad \kvd{member}~\qident{group data} : C_3 = C_3(x) &\textnormal{where}~C_3, L_3 = \ident{group}(F)\\
 \qquad \qquad \kvd{member}~\qident{get series} : C_4 = C_4(x) &\textnormal{where}~C_4, L_4 = \ident{get-key}(F)\\
 \\
-\ident{drop}(F) = C, \{l\} \cup \bigcup L_f\\[0.5em]
-\quad l = \kvd{type}~C(x:\ident{Query}) = \\
-\qquad \qquad \kvd{member}~\ident{then} : C = C(x)                 &\textnormal{where}~C, L = \ident{main}(F)\\
-\qquad \qquad \kvd{member}~\qident{drop $f$} : C_f = &\forall f \in \dom(F)~\textnormal{where}~C_f, L_f = \ident{drop}(F')\\
-\qquad \qquad \qquad  C_f(\Pi_{\ident{dom}(F')}(x))& \quad\textnormal{and}~ F' = \{ f'\mapsto\tau'\in F, f' \neq f\}\\
-\end{array}
-\end{equation*}
-
-\caption{Foo}
-\label{fig:foo}
-\end{figure}
-
-\begin{figure}
-\begin{equation*}
-\begin{array}{ll}
-\ident{get-key}(F) = C, \{l\} \cup \bigcup L_f \\[0.25em]
+\ident{get-key}(F) = C, \{ C \mapsto (l, \bigcup L_f)\}\qquad\ball{2} \\[0.25em]
 \quad l = \kvd{type}~C(x:\ident{Query}) = &\forall f\in\dom(F)~\textnormal{where} \\
 \qquad \qquad \kvd{member}~\qident{with key $f$} : C_f = C_f(x) &\quad C_f, L_f = \ident{get-val}(F, f)\\
 \\
-\ident{get-val}(F, f_k) = C, \{l\} \cup \bigcup L_f \\[0.25em]
-\quad l = \kvd{type}~C(x:\ident{Query}) = &\forall f\in\dom(F)\setminus\{f\}~\textnormal{where} \\
-\qquad \qquad \kvd{member}~\qident{and value $f$} : C_f = C_f(\Pi_{f_k, f_v}(x)) &\quad  C_f~\textnormal{defined as below} \\
-\quad l_f = \kvd{type}~C_f(x:\ident{Query}) = &\quad\textnormal{and}~\tau_k, \tau_v~\textnormal{such that} \\
-\qquad \qquad \kvd{member}~\ident{series} : \ident{series}\langl\tau_k, \tau_v\rangl = x &\quad \tau_k = F(f_k), \tau_v = F(f) &\\
+\ident{get-val}(F, f_k) = \{ C \mapsto (l, \{\}) \}\qquad\ball{3} \\[0.25em]
+\quad l = \kvd{type}~C(x:\ident{Query}) = &\forall f\in\dom(F)\setminus\{f_k\}~\textnormal{where} \\
+\qquad \qquad \kvd{member}~\qident{and value $f$} : \ident{series}\langl\tau_k, \tau_v\rangl = &\quad  \tau_k = F(f_k),~ \tau_v = F(f) \\
+\qquad \qquad \quad \ident{series}\langl\tau_k, \tau_v\rangl(\Pi_{f_k, f}(x))\qquad\ball{4}
+\end{array}
+\end{equation*}
+\vspace{-1em}
+
+\caption{Pivot type provider -- providing entry-point type and accessing transformed data}
+\label{fig:tp-main}
+\end{figure}
+
+% ==================================================================================================
+
+\section{Pivot type provider}
+\label{sec:pivot}
+
+In an implementation, a type provider is an executable component that is called by the compiler
+and the editor to provide information about types on demand. In our formalization, we follow the 
+style used by Petricek et al. [X], but we add laziness as discussed in Section~\ref{sec:foo-foo}.
+We model the core operations (dropping columns, grouping and sorting) in Section~\ref{sec:pivot-core}
+and then refine the model to include filtering based on values Section~\ref{sec:pivot-filter}.
+We omit paging, as it does not affect the shape of data, but modelling it would require richer 
+host language.
+
+% --------------------------------------------------------------------------------------------------
+
+\subsection{Pivot type provider}
+\label{sec:pivot-core}
+
+A type provider is a function that takes static parameters, such as schema of the input data set, 
+and returns a class name $C$ together with a mapping that defines the body of the class, together 
+with definitions of associated classes $L$ that may be used by the members of the class $C$. 
+In our case, the schema $F$ is a mapping from field names to field types:
+%
+\begin{equation*}
+\begin{array}{l}
+\ident{pivot}(F) = C, \{ C \mapsto (\kvd{type}~C(x:\ident{Query}) = \ldots,L) \} \quad \textnormal{where}~F=\{ f_1 \mapsto \tau_1, \ldots, f_n \mapsto \tau_n \}
+\end{array}
+\end{equation*}
+%
+The class $C$ provided by the pivot tpe provider has a constructor taking \ident{Query}, which 
+represents the, possibly already partly transformed, input data set. It generates members that
+allow the user to refine the query and access the data. The type provider is defined using several
+helper functions discussed in the rest of this section.
+
+\subparagraph{Entry-point and data access.} Figure~\ref{fig:tp-main} shows three of the functions
+defining the pivot type provider. The \ident{pivot} function \ball{1} defines the entry-point type, 
+which lets the user choose which operation to perform before specifying parameters of the operation. 
+This is the type of \ident{olympics} in the examples throughout this paper. The definition generates 
+a new class $C$ with members that wrap the input data in further classes generated by other parts
+of the type provider. The result of \ident{pivot} is the class name $C$ together with definition of 
+the class and further generated types. The definition is a function that only needs to be evaluated 
+when a program accesses a member of the class $C$, modelling the laziness of the type provider.
+In the implementation, we return the name $C$, but only need to compute the definition when the 
+type checker needs to access the body.
+
+The \ident{get-key} \ball{2} and \ident{get-val} \ball{3} functions provide members that can be used 
+to choose two columns from the data set as keys and values and obtain the resulting data set as a 
+value of type $\ident{series}\langl \tau_1, \tau_2 \rangl$. For example, the following expression 
+has a type $\ident{series}\langl \kvd{string}, \kvd{num} \rangl$:
+%
+\begin{equation*}
+\begin{array}{l}
+\ident{olympics}.\qident{get series}.\qident{with key Athlete}.\qident{and value Year}
 \end{array}
 \end{equation*}
 
-\caption{Foo}
-\label{fig:foo}
-\end{figure}
+\noindent
+The \ident{get-key} function generates a class with one member for each field in the data set.
+The returned class $C_f$ is generated by \ident{get-val} and lets the user choose any of the 
+remaining fields as the value. The key and value columns are then selected using $\Pi_{f_k,f}$ \ball{4}.
+The series is then created with a data set containing only the key and value columns (we assume 
+the order of columns is preserved). Creating a series does not statically enforce that the 
+data set has the right structure, but the properties discussed in Section~\ref{sec:proofs} show 
+that series obtained from the pivot type provider is constructed correctly.
 
+% --------------------------------------------------------------------------------------------------
 
 \begin{figure}
 \begin{equation*}
 \begin{array}{ll}
-\ident{sort}(F) = C, \{l\} \cup \bigcup L_f \cup \bigcup L'_f\\[0.25em]
-\quad l = \kvd{type}~C(x:\ident{Query}) = &\forall f\in\dom(F)~\textnormal{where} \\
-\qquad \qquad \kvd{member}~\qident{by $f$ descending} : C_f = C_f(x) &\quad C_f, L_f = \ident{sort-and}(F, \{ f \mapsto \ident{desc} \})\\
-\qquad \qquad \kvd{member}~\qident{by $f$ ascending} : C'_f = C'_f(x) &\quad C'_f, L'_f = \ident{sort-and}(F, \{ f \mapsto \ident{asc} \})\\
+\ident{drop}(F) = C, \{ C \mapsto (l, L' \cup \bigcup L_f) \}\qquad\ball{1}\\[0.5em]
+~ l = \kvd{type}~C(x:\ident{Query}) = &\forall f \in \dom(F)~\textnormal{where}~C_f, L_f = \ident{drop}(F')\\
+\quad \qquad \kvd{member}~\qident{drop $f$} : C_f = C_f(\Pi_{\ident{dom}(F')}(x)) & \quad\textnormal{and}~ F' = \{ f'\mapsto\tau'\in F, f' \neq f\}\\
+\quad \qquad \kvd{member}~\ident{then} : C' = C'(x)\qquad\ball{2}                 &\textnormal{where}~C', L' = \ident{pivot}(F)\\
+\\
+\ident{sort}(F) = C, \{ C \mapsto (l, \bigcup L_f \cup \bigcup L'_f) \}\qquad\ball{3}\\[0.25em]
+~ l = \kvd{type}~C(x:\ident{Query}) = &\forall f\in\{f~|~f\mapsto\kvd{num}\in F\},~\textnormal{where} \\
+\quad \qquad \kvd{member}~\qident{by $f$ descending} : C_f = C_f(x) &\quad C_f, L_f = \ident{sort-and}(F, \vect{f \mapsto \ident{desc}})\\
+\quad \qquad \kvd{member}~\qident{by $f$ ascending} : C'_f = C'_f(x) &\quad C'_f, L'_f = \ident{sort-and}(F, \vect{f \mapsto \ident{asc}})\\
 \\[0.5em]
-\ident{sort-and}(F,S) = C, \{l\} \cup \bigcup L_f \cup \bigcup L'_f\\[0.25em]
-\quad l = \kvd{type}~C(x:\ident{Query}) = &\forall f\in\dom(F)\setminus\dom(S)~\textnormal{where} \\
-\qquad \qquad \kvd{member}~\qident{and $f$ descending} : C_f = C_f(x) &\quad C_f, L_f = \ident{sort-and}(F, S\cup\{ f \mapsto \ident{desc} \})\\
-\qquad \qquad \kvd{member}~\qident{and $f$ ascending} : C'_f = C'_f(x) &\quad C'_f, L'_f = \ident{sort-and}(F, S\cup\{ f \mapsto \ident{asc} \})\\
-\qquad \qquad \kvd{member}~\ident{then} : C = C(\tau_S(x))                 &\textnormal{where}~C, L = \ident{main}(F)\\
+\multicolumn{2}{l}{ \ident{sort-and}(F,\vect{s_1,\ldots,s_n}) = C, \{ C \mapsto (l, \bigcup L_f \cup \bigcup L'_f \cup L') \}\qquad\ball{4} }\\[0.25em]
+~ l = \kvd{type}~C(x:\ident{Query}) = &\hspace{-1em}\forall f\in\{f~|~f\mapsto\kvd{num}\in F, \,\nexists i.s_i=f'\mapsto\omega\wedge f'=f\}\\
+\quad \qquad \kvd{member}~\qident{and $f$ descending} : C_f = C_f(x) &\quad C_f, L_f = \ident{sort-and}(F, \vect{s_1,..,s_n, f \mapsto \ident{desc}})\\
+\quad \qquad \kvd{member}~\qident{and $f$ ascending} : C'_f = C'_f(x) &\quad C'_f, L'_f = \ident{sort-and}(F, \vect{s_1,..,s_n, f \mapsto \ident{asc}})\\
+\quad \qquad \kvd{member}~\ident{then} : C' = C'(\tau_{s_1,\ldots,s_n}(x))\quad~~\ball{5}           &\textnormal{where}~C', L' = \ident{pivot}(F)\\
 \end{array}
 \end{equation*}
-\caption{Foo bar}
-\label{fig:foobar}
+
+\caption{Pivot type provider -- dropping columns and sorting data}
+\label{fig:tp-ds}
 \end{figure}
+
+% --------------------------------------------------------------------------------------------------
+
+\subparagraph{Dropping columns and sorting.} Functions that provide types for the 
+\qident{drop columns} and \qident{sort data} members are defined in Figure~\ref{fig:tp-ds}.
+The \ident{drop} function \ball{1} builds a new type that lets the user drop any of the available columns.
+The resulting type $C_f$ is recursively generated by \ident{drop} so that multiple columns can 
+be dropped before completing the transformation using the \ident{then} operation \ball{2}, whose 
+return type is generated using the main \ident{pivot} function. Note that columns removed from the 
+schema $F'$ as the types are generated match the columns removed from the data set at runtime  
+using $\Pi_{\dom(F')}$.
+
+Types for defining the sorting transformation are split between two functions; \ident{sort}~\ball{3} 
+generates type for choosing the first sorting key and \ident{sort-and}~\ball{4} lets the user add more
+keys. The members are restricted to numerical columns (by checking $f\mapsto\kvd{num}\in F$).
+The sort keys are kept as a vector. The \ident{sort} operation creates a singleton vector;
+\ident{sort-and} appends a new key to the end and the \ident{then} member \ball{5} generates code 
+that passes the collected sort keys to the $\tau$ operation of the relational algebra.
+When generating members for adding further sort keys, we exclude the columns that are used
+already (by checking that the column $f$ does not match column name of any of the existing 
+keys $s_i = f'\mapsto\omega$). 
+
+% --------------------------------------------------------------------------------------------------
 
 \begin{figure}
+\vspace{-0.75em}
 \begin{equation*}
 \begin{array}{ll}
-\ident{group}(F) = C, \{l\} \cup \bigcup L_f \\[0.25em]
-\quad l = \kvd{type}~C(x:\ident{Query}) = &\forall f\in\dom(F)~\textnormal{where} \\
-\qquad \qquad \kvd{member}~\qident{by $f$} : C_f = C_f(x) &\quad C_f, L_f = \ident{agg}(F, \{ f \mapsto F(f) \}, \emptyset)\\
-\\[0.5em]
-\ident{agg}(F,S,G) = C, \{l\} \cup \bigcup L_f \cup \bigcup L'_f\\[0.25em]
-\quad l = \kvd{type}~C(x:\ident{Query}) = &\forall f\in\dom(F)\setminus\dom(S)~\textnormal{where} \\
-\qquad \qquad \kvd{member}~\qident{distinct $f$} : C_f = C_f(x) &\quad C_f, L_f = \ident{agg}(F, S\cup\{ f \mapsto \ident{num}, G\cup\{\ident{dist}~f\} \})\\
-\qquad \qquad \kvd{member}~\qident{sum $f$} : C'_f = C'_f(x) &\quad C'_f, L'_f = \ident{agg}(F, S\cup\{ f \mapsto \ident{num} \}, G\cup\{\ident{sum}~f\})\\
-\qquad \qquad \kvd{member}~\qident{concat $f$} : C'_f = C'_f(x) &\quad C'_f, L'_f = \ident{agg}(F, S\cup\{ f \mapsto \ident{string} \}, G\cup\{\ident{conc}~f\})\\
-\qquad \qquad \kvd{member}~\qident{count all} : C = C(\tau_S(x))                 &\textnormal{where}~C, L = \ident{main}(F)\\
-\qquad \qquad \kvd{member}~\ident{then} : C = C(\tau_S(x))                 &\textnormal{where}~C, L = \ident{main}(F)\\
+\ident{group}(F) = C, \{ C\mapsto (l, \bigcup L_f) \}\quad\ball{1} \\[0.25em]
+~ l = \kvd{type}~C(x:\ident{Query}) = &\forall f\in\dom(F)~\textnormal{where} \\
+\quad \qquad \kvd{member}~\qident{by $f$} : C_f = C_f(x) &\quad C_f, L_f = \ident{agg}(F, f, \{ f \mapsto F(f) \}, \emptyset)~~\ball{2}\\
+\\
+\multicolumn{2}{l}{ \ident{agg}(F,f,G,S) = C, \{C\mapsto (l, \bigcup L_f \cup \bigcup L'_f \cup\bigcup L''_f\cup L'\cup L'') \}\quad\ball{3}}\\[0.25em]
+~ l = \kvd{type}~C(x:\ident{Query}) = &\forall f\in\dom(F)\setminus\dom(S)\\
+\quad \qquad \kvd{member}~\qident{distinct $f$} : C_f = C_f(x)  \\
+\quad \qquad \kvd{member}~\qident{sum $f$} : C'_f = C'_f(x) & \quad \textnormal{when}~F(f)=\kvd{num}\quad\ball{4} \\
+\quad \qquad \kvd{member}~\qident{concat $f$} : C''_f = C''_f(x) & \quad \textnormal{when}~F(f)=\kvd{string}\quad\ball{5} \\
+\quad \qquad \kvd{member}~\qident{count all} : C' = C'(x) & \quad \textnormal{when}~\ident{Count}\notin G\quad\ball{6} \\
+\quad \qquad \kvd{member}~\ident{then} : C'' = C''(\Phi_{f, \rho_1/f_1, \ldots, \rho_n/f_n}(x)) &\quad\textnormal{where}~\{\rho_1/f_1,\ldots,\rho_n/f_n\}=S\quad\ball{7} \\[0.5em]
+\qquad  \textnormal{where}\\[0.5em]
+\multicolumn{2}{l}{
+~\,\qquad \begin{array}{l}
+ C_f, L_f = \ident{agg}(F,f, G\cup\{ f \mapsto \kvd{num}\}, S\cup\{\ident{dist}~f/f\} )\\
+ C'_f, L'_f = \ident{agg}(F,f, G\cup\{ f \mapsto \kvd{num} \}, S\cup\{\ident{sum}~f/f\})\\
+ C''_f, L''_f = \ident{agg}(F,f, G\cup\{ f \mapsto \kvd{string} \}, S\cup\{\ident{conc}~f/f\})\\
+ C', L' = \ident{agg}(F,f, G\cup\{ \ident{Count}\mapsto\kvd{int} \}, S\cup{\ident{count}/\ident{Count}})\\
+ C'', L'' = \ident{pivot}(G)
+\end{array} 
+}
 \end{array}
 \end{equation*}
-\caption{Foo bar 2}
-\label{fig:foobar2}
+\vspace{-1em}
+
+\caption{Pivot type provider -- grouping and aggregation}
+\label{fig:tp-group}
 \end{figure}
 
+% --------------------------------------------------------------------------------------------------
 
-!!
+\subparagraph{Grouping and aggregation.} The final part of the pivot type provider is defined in
+Figure~\ref{fig:tp-group}. The \ident{group} function \ball{1} generates a class that lets the user 
+select a column to use as the grouping key and \ident{agg} is used to provide aggregates that can be 
+calculated over grouped data. The \ident{agg} function \ball{3} takes the schema of the input data 
+set $F$, column $f$ to be used as the group key, a schema of the data set that will be produced as 
+the result $G$ and a set of aggregation operations collected so far $S$. Initially~\ball{2}, the 
+resulting schema contains only the column used as the key with its original type (which is always 
+generated by $\Phi$) and the set of aggregations to be calculated is empty. 
 
-TODO: Somehow delay $L$
+The \ident{agg} function is invoked recursively (similarly to \ident{drop} and \ident{sort-and})
+to add further aggregation operations, or until the user selects the \ident{then} member \ball{7}, 
+which applies the grouping using $\Phi$ and returns a class generated by the entry-point \ident{pivot}  
+function.
 
-!!
+When calculating an aggregate over a specific column, the type provider reuses the column name from
+the input data set in the resulting data set. Consequently, the \ident{agg} function offers 
+aggregation operations only using columns that have not been already used. This somewhat limits
+the expressivity, but it simplifies the programming model. Furthermore, \qident{sum $f$} \ball{4} 
+is only provided for columns of type \kvd{num} and \qident{concat $f$} \ball{5} is only provided 
+for strings. Finally, the \qident{count all} aggregation \ball{6} is not related to a specific 
+field and is exposed once, adding a column \ident{Count} to the schema of the resulting data set.
 
-We only generate sorting methods for fields not used yet
+% --------------------------------------------------------------------------------------------------
 
-Helper \ident{sort-and} also takes sorting keys already used
+\subsection{Filtering}
+\label{sec:pivot-filter}
+\newpage
+
+% ==================================================================================================
 
 \section{Properties}
 \label{sec:proofs}
+
+% ==================================================================================================
 
 \section{Implementation}
 \label{sec:impl}
