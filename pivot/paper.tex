@@ -192,7 +192,7 @@ a case study (Section~\ref{sec:impl}). Our contributions are:
 
 \item We formalize the language (Section~\ref{sec:foo}) and the type provider for data exploration
   (Section~\ref{sec:pivot}) and show that queries constructed using the type provider are valid
-  (Section~\ref{sec:proofs}). Our formalization also covers the laziness of type providers, which
+  (Section~\ref{sec:pivot-prop}). Our formalization also covers the laziness of type providers, which
   is an important aspect not covered in the existing literature.
 \end{itemize}
 
@@ -664,7 +664,7 @@ with members. Provided class definitions consist of a constructor and members:
 \end{equation*}
 
 \noindent
-During type-checking, the type system keeps track of a list of provided class definitions $L$. 
+During type checking, the type system keeps track of a list of provided class definitions $L$. 
 Checking member access is then just a matter of finding the corresponding class definition and
 finding the member type:
 %
@@ -694,7 +694,7 @@ provided by the pivot type provider then $\ident{fields}(C) = \{ f_1\mapsto\tau_
 
 \noindent
 In the following two sections, we focus on formalizing the pivot type provider and the nominally 
-typed host language. We define the \ident{fields} predicate in Section~\ref{sec:proofs} and use it 
+typed host language. We define the \ident{fields} predicate in Section~\ref{sec:pivot-prop} and use it 
 to prove properties of the pivot type provider.
 
 We do not fully develop the type system based on fancy types sketched in Section~\ref{sec:columns-row}.
@@ -816,33 +816,33 @@ $\Sigma$ sums numerical values and $\Pi$ (a slight notation abuse) concatenates 
 % --------------------------------------------------------------------------------------------------
 
 \begin{figure}
+\vspace{-1em}
 \begin{equation*}
 \begin{array}{rcl}
   v &=& C(v)\,\, \lsep \ident{series}\langl \tau_1, \tau_2 \rangl(v)\; \lsep n \lsep s \lsep D \\
   e &=& C(e)\,\, \lsep \ident{series}\langl \tau_1, \tau_2 \rangl(e)\;\, \lsep x \lsep v \lsep e.N \lsep \ldots\\
   E &=& C(E) \lsep \ident{series}\langl \tau_1, \tau_2 \rangl(E)\, \lsep E.N \\
-    &|& \Pi_{f_1, \ldots, f_n}(E) \lsep \sigma_\varphi(E) \lsep \tau_{f_1, \ldots, f_n}(E) \lsep \Phi_{f_i, \rho_1/f_1', \ldots, \rho_m/f_m'} (E) \\
+    &|& \Pi_{f_1, \ldots, f_n}(E) \lsep \sigma_\varphi(E) \lsep \tau_{f_1, \ldots, f_n}(E) \lsep \Phi_{f, \rho_1/f_1, \ldots, \rho_m/f_m} (E) \\
     \\
  \tau &=& C \lsep \kvd{num} \lsep \kvd{string} \lsep \ident{series}\langl \tau_1, \tau_2 \rangl \lsep \ident{Query}\\
  l &=& \kvd{type}~C(x:\tau) = \overline{m} \\
  m &=& \kvd{member}~N:\tau= e
 \end{array}
 \end{equation*}
-\vspace{-1em}
+\vspace{-1.5em}
 
 \[
 \inference[(\emph{member})~]
 { L(C) = (\kvd{type}~C(x:\tau)= \ldots~\kvd{member}~N_i : \tau_i = e_i~\ldots), L'}
 { (C(v)).N_i \leadsto_L e_i[x \leftarrow v] }\\
 \]
-\vspace{-2.5em}
+\vspace{-3em}
 
 \[
 \inference[(\emph{context})~]
 {e \leadsto_L e'}
 {E[e] \leadsto_L E[e']}
 \]
-
 \caption{Syntax and remaining reduction rules of the Foo calculus}
 \label{fig:foo-syntax}
 \end{figure}
@@ -863,12 +863,12 @@ constructed using the relational algebra. The type $\ident{series}\langl \tau_1,
 models a data series mapping keys of type $\tau_1$ to values of type $\tau_2$. A series is created 
 as a result of a query written using the pivot type provider. In the actual implementation, a series 
 can be passed to a charting library. A series is a statically-typed wrapper over a \ident{Query} 
-value and the proofs in Section~\ref{sec:proofs} show that a series obtained from the pivot type 
-provider contains keys and values of matching types.
+value and the proofs in Section~\ref{sec:pivot-prop} show that a series obtained from the pivot type 
+provider contains keys and values of matching~types.
 
 \subparagraph{Reduction rules.} The reduction relation $\leadsto_L$ is prameterized by a function
 $L$ that maps class names to class definitions, together with nested classes associated with the
-class definition (used during type-checking as discussed below). The map is not used in the 
+class definition (used during type checking as discussed below). The map is not used in the 
 reduction rules for the relational algebra, given in Figure~\ref{fig:foo-relsem} and so it was 
 omitted there.
 
@@ -878,7 +878,7 @@ it reduces member access by substituting the evaluated constructor argument $v$ 
 We assume standard capture-avoiding substitution $[x\leftarrow v]$. The rule ignores the nested 
 class definitions $L'$. The (\emph{context}) rule performs reduction in an evaluation context $E$.
 
-\subparagraph{Type checking.} One interesting aspect of type-checking with type providers is that
+\subparagraph{Type checking.} One interesting aspect of type checking with type providers is that
 type providers can provide potentially infinite number of types. In F\#, the types are provided 
 lazily as the type checker explores parts of the type space used by the program [X]. Consider:
 %
@@ -900,28 +900,34 @@ L_1; \Gamma \vdash e : \tau; L_2
 
 \noindent
 The judgement states that given class definitions $L_1$ and a variable context $\Gamma$, the type
-of expression $e$ is $\tau$ and the type checking evaluated further class definitions that are
-now included in $L_2$. The structure of class definitions $L_1$ is a function mapping a class name 
+of expression $e$ is $\tau$ and the type checking evaluated class definitions that are
+now included in~$L_2$. The structure of class definitions $L_1$ is a function mapping a class name 
 $C$ to a pair consisting of the definition and a function that provides definitions of 
-further classes: 
+delayed classes: 
 %
 \begin{equation*}
-L_1(C) = \kvd{type}~C(x:\tau) = \overline{m}, L'
+L_1(C) = \kvd{type}~C(x:\tau) = \overline{m}, L
 \end{equation*}
 
 \noindent
-The types of members of the class $C$ may be already known classes defined by $L_1$, but also classes 
-defined by $L'$. This models laziness as $L'$ is a function that may never be evaluated. 
+The class $C$ may use classes defined in $L_1$, but also delayed classes from $L$. This models 
+laziness as $L$ is a function that may never be evaluated. Since $L$ is potentially infinite, we 
+cannot check class definitions upfront as in typical object calculi [X]. Instead, we check that 
+that members are well typed as they appear in the source code, which matches the behaviour of F\# 
+type providers. In general, this means that $L$ may contain classes with incorrectly typed 
+members. We prove that this is not the case for the pivot type provider (Section~\ref{sec:pivot-prop}).
 
-The rules that define type-checking are shown in Figure~\ref{fig:foo-typecheck}. The two rules
-that force the discovery of new classes are (\emph{new}) and (\emph{member}). In both cases,
-we perform a lookup using $L_2(C)$ which returns a class definition together with further classes
-$L$. We treat functions as sets and join $L_2$ with further classes defined by $L$ using $L_2 \cup L$.
+The rules that define type checking are shown in Figure~\ref{fig:foo-typecheck}. The two rules
+that force the discovery of new classes are (\emph{new}) and (\emph{member}). In (\emph{new}), we
+find the class definition and delayed classes using $L_2(C)$. We treat functions as sets and 
+join $L_2$ with delayed classes defined by $L$ using $L_2 \cup L$. In (\emph{member}), we obtain
+the class definition and discover delayed classes in the same way, but we also check that the body
+of the member is well-typed.
 
 % --------------------------------------------------------------------------------------------------
 
 \begin{figure}[t]
-
+\vspace{-1em}
 \[
 \inference[(\emph{num})~]{}{L; \Gamma \vdash n : \kvd{num}; L }
 \quad
@@ -967,40 +973,31 @@ $L$. We treat functions as sets and join $L_2$ with further classes defined by $
 
 \[
 \inference[(\emph{new})~]
-  {L_1; \Gamma \vdash e : \tau, L_2 & L_2(C) = (\kvd{type}~C(x:\tau) = \ldots), L}
+  {L_1; \Gamma \vdash e : \tau, L_2 & L_2(C) = (\kvd{type}~C(x:\tau) = \ldots),L}
   {L_1; \Gamma \vdash C(e) : C; L_2 \cup L}
 \]
 \vspace{-2em}
 
 \[
 \inference[(\emph{member})~]
-  {L_1; \Gamma \vdash e : C; L_2 \qquad L_2(C)=(\kvd{type}~C(x:\tau) = ..\;\kvd{member}~N_i : \tau_i = e_i\;..), L}
-  {L_1; \Gamma \vdash e.N_i:\tau_i; L_2 \cup L}
+  {L_1; \Gamma \vdash e : C; L_2 \qquad L_2\cup L; \Gamma,x:\tau \vdash e_i : \tau_i; L_3 \\
+   L_2(C)=(\kvd{type}~C(x:\tau) = ..\;\kvd{member}~N_i : \tau_i = e_i\;..), L }
+  {L_1; \Gamma \vdash e.N_i:\tau_i; L_3}
 \]
-\vspace{-2em}
-
-\[
-\inference[(\emph{class})~]
-  { L; \Gamma,x:\tau \vdash e_i : \tau_i; L_{i} & m_i = \kvd{member}~N_i:\tau_i= e_i }
-  { L \vdash \kvd{type}~C(x:\tau) = m_1\ldots m_n; L_1 \cup \ldots \cup L_n }
-\]
+\vspace{-1em}
 \caption{Type-checking of Foo expressions with lazy context}
 \label{fig:foo-typecheck}
 \end{figure}
 
 % --------------------------------------------------------------------------------------------------
 
-The rules for primitive types and variables are standard.
-Input data (\emph{data}) is of type \ident{Query} and all the operations of relational algebra 
-take a value of type \ident{Query} and produce a result of type \ident{Query}. This is the 
-untyped (or one-typed) subset of the Foo calculus. A \ident{Query} value can be converted into a
-series type (\emph{series}) of any type\footnote{This can be seen as a boundary between static and
-dynamic typing in gradually typed languages [X,Y,Z].} -- in the pivot type provider, the 
-\ident{Query} type is always hidden and users can only work with type-safe series type.
-
-Finally, we also define a judgement $L_1 \vdash l; L_2$ which states that given known classes $L_1$,
-a class definition $l$ is well typed and produces known classes $L_2$. This is defined by the
-(\emph{class}) rule that checks the types of bodies of all members of the class.
+The rules for primitive types and variables are standard. Input data (\emph{data}) is of type 
+\ident{Query} and all the operations of relational algebra take a value of type \ident{Query} and 
+produce a result of type \ident{Query}. An untyped \ident{Query} value can be converted into a 
+series type (\emph{series}) of any type -- in the pivot type provider, the \ident{Query} type is 
+always hidden and users can only work with type-safe series type. The bridging of typed and 
+untyped parts of the language resembles the boundary between static and dynamic typing in 
+gradually typed languages.% [X,Y,Z].
 
 % --------------------------------------------------------------------------------------------------
 
@@ -1018,21 +1015,20 @@ a class definition $l$ is well typed and produces known classes $L_2$. This is d
 \quad l = \kvd{type}~C(x:\ident{Query}) = &\forall f\in\dom(F)~\textnormal{where} \\
 \qquad \qquad \kvd{member}~\qident{with key $f$} : C_f = C_f(x) &\quad C_f, L_f = \ident{get-val}(F, f)\\
 \\
-\ident{get-val}(F, f_k) = \{ C \mapsto (l, \{\}) \}\qquad\ball{3} \\[0.25em]
+\ident{get-val}(F, f_k) = C, \{ C \mapsto (l, \{\}) \}\qquad\ball{3} \\[0.25em]
 \quad l = \kvd{type}~C(x:\ident{Query}) = &\forall f\in\dom(F)\setminus\{f_k\}~\textnormal{where} \\
 \qquad \qquad \kvd{member}~\qident{and value $f$} : \ident{series}\langl\tau_k, \tau_v\rangl = &\quad  \tau_k = F(f_k),~ \tau_v = F(f) \\
 \qquad \qquad \quad \ident{series}\langl\tau_k, \tau_v\rangl(\Pi_{f_k, f}(x))\qquad\ball{4}
 \end{array}
 \end{equation*}
-\vspace{-1em}
 
-\caption{Pivot type provider -- providing entry-point type and accessing transformed data}
+\caption{Pivot type provider -- entry-point type and accessing transformed data}
 \label{fig:tp-main}
 \end{figure}
 
 % ==================================================================================================
 
-\section{Pivot type provider}
+\section{Formalising the pivot type provider}
 \label{sec:pivot}
 
 In an implementation, a type provider is an executable component that is called by the compiler
@@ -1068,9 +1064,9 @@ helper functions discussed in the rest of this section.
 defining the pivot type provider. The \ident{pivot} function \ball{1} defines the entry-point type, 
 which lets the user choose which operation to perform before specifying parameters of the operation. 
 This is the type of \ident{olympics} in the examples throughout this paper. The definition generates 
-a new class $C$ with members that wrap the input data in further classes generated by other parts
+a new class $C$ with members that wrap the input data in delayed classes generated by other parts
 of the type provider. The result of \ident{pivot} is the class name $C$ together with definition of 
-the class and further generated types. The definition is a function that only needs to be evaluated 
+the class and delayed generated types. The definition is a function that only needs to be evaluated 
 when a program accesses a member of the class $C$, modelling the laziness of the type provider.
 In the implementation, we return the name $C$, but only need to compute the definition when the 
 type checker needs to access the body.
@@ -1092,7 +1088,7 @@ The returned class $C_f$ is generated by \ident{get-val} and lets the user choos
 remaining fields as the value. The key and value columns are then selected using $\Pi_{f_k,f}$ \ball{4}.
 The series is then created with a data set containing only the key and value columns (we assume 
 the order of columns is preserved). Creating a series does not statically enforce that the 
-data set has the right structure, but the properties discussed in Section~\ref{sec:proofs} show 
+data set has the right structure, but the properties discussed in Section~\ref{sec:pivot-prop} show 
 that series obtained from the pivot type provider is constructed correctly.
 
 % --------------------------------------------------------------------------------------------------
@@ -1146,7 +1142,6 @@ keys $s_i = f'\mapsto\omega$).
 % --------------------------------------------------------------------------------------------------
 
 \begin{figure}
-\vspace{-0.75em}
 \begin{equation*}
 \begin{array}{ll}
 \ident{group}(F) = C, \{ C\mapsto (l, \bigcup L_f) \}\quad\ball{1} \\[0.25em]
@@ -1155,11 +1150,11 @@ keys $s_i = f'\mapsto\omega$).
 \\
 \multicolumn{2}{l}{ \ident{agg}(F,f,G,S) = C, \{C\mapsto (l, \bigcup L_f \cup \bigcup L'_f \cup\bigcup L''_f\cup L'\cup L'') \}\quad\ball{3}}\\[0.25em]
 ~ l = \kvd{type}~C(x:\ident{Query}) = &\forall f\in\dom(F)\setminus\dom(S)\\
-\quad \qquad \kvd{member}~\qident{distinct $f$} : C_f = C_f(x)  \\
 \quad \qquad \kvd{member}~\qident{sum $f$} : C'_f = C'_f(x) & \quad \textnormal{when}~F(f)=\kvd{num}\quad\ball{4} \\
 \quad \qquad \kvd{member}~\qident{concat $f$} : C''_f = C''_f(x) & \quad \textnormal{when}~F(f)=\kvd{string}\quad\ball{5} \\
 \quad \qquad \kvd{member}~\qident{count all} : C' = C'(x) & \quad \textnormal{when}~\ident{Count}\notin G\quad\ball{6} \\
-\quad \qquad \kvd{member}~\ident{then} : C'' = C''(\Phi_{f, \rho_1/f_1, \ldots, \rho_n/f_n}(x)) &\quad\textnormal{where}~\{\rho_1/f_1,\ldots,\rho_n/f_n\}=S\quad\ball{7} \\[0.5em]
+\quad \qquad \kvd{member}~\qident{distinct $f$} : C_f = C_f(x)  \\
+\quad \qquad \kvd{member}~\ident{then} : C'' = C''(\Phi_{f, \rho_1/f_1, \ldots, \rho_n/f_n}(x)) &\textnormal{where}~\{\rho_1/f_1,\ldots,\rho_n/f_n\}=S\quad\ball{7} \\[0.5em]
 \qquad  \textnormal{where}\\[0.5em]
 \multicolumn{2}{l}{
 ~\,\qquad \begin{array}{l}
@@ -1172,7 +1167,6 @@ keys $s_i = f'\mapsto\omega$).
 }
 \end{array}
 \end{equation*}
-\vspace{-1em}
 
 \caption{Pivot type provider -- grouping and aggregation}
 \label{fig:tp-group}
@@ -1204,16 +1198,204 @@ field and is exposed once, adding a column \ident{Count} to the schema of the re
 
 % --------------------------------------------------------------------------------------------------
 
-\subsection{Filtering}
-\label{sec:pivot-filter}
 \newpage
 
+\subsection{Properties of the pivot type provider}
+\label{sec:pivot-prop}
+
+If we were using the relational algebra formalised in Section~\ref{sec:foo-rel} to construct 
+queries, we can obtain an invalid program, e.g.~by attempting to select
+a column $f$ using $\Pi_{f}$ from a data set that does not contain the column. This is not an issue 
+when using the pivot type provider, because the provided types allow the user to construct only 
+correct data transformations. 
+
+To formalise this, we prove partial soundness of the Foo calculus (Theorem~\ref{thm:foo-sound}),
+which characterises the invalid programs that can be written using the \ident{Query}-typed 
+expressions and then prove safety of the pivot type provider (Theorem~\ref{thm:pivot-safe}),
+which shows that such errors do not occur when using the provided types. 
+
+\subparagraph{Foo calculus.} The Foo calculus consists of the relational algebra and simple object
+calculus where objects can be constructed and their members accessed. It permits recursion as a
+member can invoke itself on a new object instance. To accommodate this, we formalise soundness 
+using progress (Lemma~\ref{thm:foo-progress}) and preservation (Lemma~\ref{thm:foo-pres}). 
+
+The soundness is partial because the evaluation can get stuck when an operation of the relational 
+algebra on a given data set is undefined. 
+
+\begin{theorem}[Partial soundness]
+\label{thm:foo-sound}
+For all $L_0, e, e'$, if $L_0, \emptyset \vdash e : \tau, L_1$ and $e\leadsto_{L_1}^{*} e'$ 
+then either $e'$ is a value, or there exists $e''$ such that $e'\leadsto_{L_1}^{*} e''$, or
+$e'$ has one of the following forms:
+$E[\Pi_{f_1, \ldots, f_n}(D)]$, $E[\sigma_\varphi(D)]$, $\tau_{f_1, \ldots, f_n}(D)]$ or 
+$E[\Phi_{f, \rho_1/f_1, \ldots, \rho_m/f_m} (D)]$ for some $E, D$.
+\end{theorem}
+\begin{proof}
+Direct consequence of Lemma~\ref{thm:foo-progress} and Lemma~\ref{thm:foo-pres}.
+\end{proof}
+
+\begin{lemma}[Partial progress]
+\label{thm:foo-progress}
+For all $L_0, e$ such that $L_0, \emptyset \vdash e : \tau, L_1$ then either, $e$ is a value,
+there exists $e'$ such that $e\leadsto_{L_1} e'$ or $e$ has one of
+the following forms: $E[\Pi_{f_1, \ldots, f_n}(D)]$, $E[\sigma_\varphi(D)]$, $\tau_{f_1, \ldots, f_n}(D)]$ 
+or $E[\Phi_{f, \rho_1/f_1, \ldots, \rho_m/f_m} (D)]$ for some $E$ and $D$.
+\end{lemma}
+\begin{proof}
+By induction over $\vdash$. For data, strings and numbers, the expression is always a value. 
+For relational algebra operations, the expression can either be reduced or has one of the required 
+forms. For (\emph{member}) the expression can always be reduced.
+\end{proof}
+
+\begin{lemma}[Type preservation]
+\label{thm:foo-pres}
+For all $L_0, e, e'$ such that $L_0, \emptyset \vdash e : \tau, L_1$ and $e\leadsto_{L_1} e'$ then
+$L_1, \emptyset \vdash e' : \tau, L_2$ for some $L_2$.
+\end{lemma}
+\begin{proof}
+By induction over $\leadsto_{L_1}$. Cases for relational algebra operations and for (\emph{context})
+are straightforward. The (\emph{member}) case follows from a standard substitution lemma and the 
+fact that type checking of member access also type checks the body of the member.
+\end{proof}
+
+\subparagraph{Correctness of the pivot provider.} 
+The pivot type provider defined by \ident{pivot} defines an entry-point class and a context $L$ 
+containing delayed classes. The type system cannot check type definitions in $L$ upfront, but 
+we prove that the body of all provided members is well-typed. Furthermore, type checking could fail
+if a delayed class was not discovered before it is needed in the (\emph{new}) and (\emph{member}) 
+typing rules (Figure~\ref{fig:foo-typecheck}). We show that this cannot happen for the context
+constructed by the \ident{pivot} function. To avoid operating over potentially infinite contexts,
+we first define an expansion operation $\downarrow_n L$ that evaluates the first $n$ levels of the 
+nested context $L$ and flattens it.
+
+\begin{definition}[Expansion]
+\label{thm:pivot-well}
+Given a context $L$, we define $n^{\textnormal{th}}$ expansion of $L$, written 
+$\downarrow_n L$:
+\begin{itemize}
+\item $\downarrow_n L = \downarrow_{n-1} L \cup \bigcup L_n$ assuming that $\downarrow_{n-1} L = \{ C_0\mapsto(l_0, L_0),\ldots,C_n\mapsto(l_n, L_n) \}$
+\item $\downarrow_0 L = L$  
+\end{itemize}
+\end{definition}
+
+\begin{theorem}[Correctness of lazy contexts]
+\label{thm:pivot-lazy}
+Given $C,L=\ident{pivot}(F)$ then for any $e$ if there exists $i, \tau$ such that 
+$\downarrow_i L; \emptyset \vdash e : \tau; L'$ then also
+$L; \emptyset \vdash e : \tau; L''$.
+\end{theorem}
+\begin{proof}
+Assume there exists $F,e,i$ such that $\downarrow_i L; \emptyset \vdash e : \tau; L'$ but
+not $L; \emptyset \vdash e : \tau; L''$. This is a contradiction as (\emph{new}) and (\emph{member})
+typing rules expand $L$ defined by \ident{pivot} sufficiently to discover all types that may have
+been used in the type-checking of $e$ using $\downarrow_i L$.
+\end{proof}
+
+\begin{theorem}[Correctness of provided types]
+\label{thm:pivot-well}
+For all $F,n$ let $C_0,L_0=\ident{pivot}(F)$ and assume that $C \in \dom(\downarrow_{n} L)$ 
+where $\downarrow_{n} L(C) = (\kvd{type}~C(x:\tau) = ..\;\kvd{member}~N_i:\tau_i= e_i\;..), L'$.
+It holds that for all $i$ the body of $N_i$ is well-typed, i.e.~
+$L \cup L'; x:\tau \vdash e_i : \tau_i; L''$.
+\end{theorem}
+\begin{proof}
+By examination of the functions defining the type provider; the expressions $e_i$ are well-typed
+and use only types defined in $L\cup L'$.
+\end{proof}
+
+\subparagraph{Safety of provided transformations.}
+The two properties discussed above ensure that the types provided by the pivot type provider can 
+be used to type check expressions constructed by the users of the type provider in the expected
+way. An expression will not fail to type check because of an error in the provided types. 
+
+Now we can turn to the key theorem of the paper, which states that any expression constructed 
+using (just) the provided types can be evaluated to a value of correct type. For simplicity, we
+only assume expressions that access a series using the \qident{get series} member. However, this
+covers all data transformations that can be constructed using the type provider.
+
+\begin{theorem}[Safety of pivot type provider]
+\label{thm:pivot-safe}
+Given a schema $F=\{f_1\mapsto\tau_1, \ldots, f_n\mapsto\tau_n \}$, let $C,L=\ident{pivot}(F)$ then for any 
+expression $e$ that does not contain relational algebra operations or $\ident{Query}$-typed values as sub-expression, 
+if $L;x\!:\!C \vdash e : \ident{series}\langl\tau_1,\tau_2\rangl; L'$ then for all $D = 
+\{ f_1\mapsto\vect{v_{1,1},\ldots,v_{1,m}}, \ldots, f_n\mapsto\vect{v_{n,1},\ldots,v_{n,m}} \}$
+such that $\vdash v_{i, j} : \tau_i$ it holds that $e[x\leftarrow C(D)]\leadsto_{L'}^{*} 
+  \ident{series}\langl\tau_k,\tau_v\rangl(\{ f_k\mapsto{k_1,\ldots,k_r}, f_v\mapsto{v_1,\ldots,v_r} \})$
+  such that for all $j$ $\vdash k_j : \tau_k$ and $\vdash v_j : \tau_v$.
+\end{theorem}
+\begin{proof}
+Define a mapping $\ident{fields}(C)$ that returns the fields expected in the data set passed to a 
+class $C$ provided by the pivot type provider. Let $\ident{fields}(C) = F$ for $C$ provided using:
+\begin{equation*}
+\begin{array}{l}
+\begin{array}{lcl}
+\ident{pivot}(F) = C, L &&
+\ident{get-key}(F) = C, L \\
+\ident{drop}(F) = C, L &&
+\ident{get-val}(F, f_k) = C, L\\
+\end{array}
+\quad\begin{array}{l}
+\ident{sort}(F) = C, L\\
+\ident{sort-and}(F,\vect{s_1,\ldots,s_n}) = C, L\\
+\end{array}\\[-0.1em]
+\;\, \ident{group}(F) = C, L \;\;\,\quad \ident{agg}(F,f,G,S) = C, L
+\end{array}
+\end{equation*}
+
+\noindent
+By induction over $\leadsto_{L'}$, show that when $C(v).N_i$ is reduced using (\emph{member}) then 
+$v$ is a value $\{ f_1\mapsto\vect{v_{1,1},\ldots,v_{1,m}}, \ldots, f_n\mapsto\vect{v_{n,1},\ldots,v_{n,m}} \}$
+s.t. $\ident{fields}(C)=\{f_1\mapsto\tau_1, \ldots, f_n\mapsto\tau_n \}$ and 
+$\vdash v_{i, j} : \tau_i$. Thus the class provided by \ident{get-val} is constructed with 
+a data set containing the required columns of corresponding types.
+\end{proof}
+
+% --------------------------------------------------------------------------------------------------
+
+\begin{figure}[t]
+\begin{equation*}
+\begin{array}{ll}
+  \ident{pivot}(F, D) = C, \{ C \mapsto (l, L_1 \cup L_2 \cup \ldots  \}\quad \ball{1}\\[0.5em]
+  ~ l = \kvd{type}~C(x:\ident{Query}) = \\
+  \quad \qquad \kvd{member}~\qident{drop columns} : C_1 = C_1(x) &\textnormal{where}~C_1, L_1 = \ident{drop}(F, D)\\
+  \quad \qquad \kvd{member}~\qident{filter data} : C_2 = C_2(x) &\textnormal{where}~C_2, L_2 = \ident{filter}(F, D)\\
+  \quad \qquad (\ldots)\\
+\\
+\ident{drop}(F, D) = C, \{ C \mapsto (l, L' \cup \bigcup L_f) \}\\[0.5em]
+~ l = \kvd{type}~C(x:\ident{Query}) = & \forall f \in \dom(F)~\\
+\quad \qquad \kvd{member}~\qident{drop $f$} : C_f =  & \quad\textnormal{where}~ F' = \{ f'\mapsto\tau'\in F, f' \neq f\}\\
+\quad \qquad \quad C_f(\Pi_{\ident{dom}(F')}(x)) &\quad\textnormal{and}~C_f, L_f = \ident{drop}(F', \Pi_{\ident{dom}(F')}(D))\quad\ball{2}\\
+\quad \qquad \kvd{member}~\ident{then} : C' = C'(x)                 &\textnormal{where}~C', L' = \ident{pivot}(F, D)\\
+\\
+\ident{filter}(F, D) = C, \{ C \mapsto (l, L' \cup \bigcup L_f) \}\\[0.5em]
+~ l = \kvd{type}~C(x:\ident{Query}) = & \forall f \in \dom(F)~\\
+\quad \qquad \kvd{member}~\qident{$f$ is} : C_f = C_f(x) & \quad\textnormal{where}~C_f, L_f = \ident{filter-val}(F, f, D)\quad\ball{3}\\
+\quad \qquad \kvd{member}~\ident{then} : C' = C'(x)                 &\textnormal{where}~C', L' = \ident{pivot}(F, D)\\
+\\
+\ident{filter-val}(F, f, D) = C, \{ C \mapsto (l, \cup \bigcup L_v) \}&\textnormal{where}~D=\{ f\mapsto\vect{v_1, \ldots, v_n}, \ldots \}\quad\ball{4} \\[0.5em]
+~ l = \kvd{type}~C(x:\ident{Query}) = & \forall v \in \{v_1, \ldots, v_n \} \\
+\quad \qquad \kvd{member}~\qident{$\,v\,$} : C_v =  & \quad\textnormal{where}~C_v, L_v = \ident{filter}(F, \sigma_{\varphi_v}(D))\\
+\quad \qquad \quad C_v(\sigma_{\varphi_v}(x)) &\quad\textnormal{and}~ \varphi_v (r) = r(f) = v \quad \ball{5}
+\end{array}
+\end{equation*}
+
+\caption{Pivot type provider -- grouping and aggregation}
+\label{fig:tp-group}
+\end{figure}
+
+% --------------------------------------------------------------------------------------------------
+
+\subsection{Adding the filtering operation}
+\label{sec:pivot-filter}
+
+Add $D$ representing input data (in reality, we do not need all of it; just a function)
+
+zz
+
+
 % ==================================================================================================
 
-\section{Properties}
-\label{sec:proofs}
-
-% ==================================================================================================
+\newpage
 
 \section{Implementation}
 \label{sec:impl}
