@@ -1361,26 +1361,26 @@ a data set containing the required columns of corresponding types.
   \quad \qquad \kvd{member}~\qident{filter data} : C_2 = C_2(x) &\textnormal{where}~C_2, L_2 = \ident{filter}(F, D)\\
   \quad \qquad (\ldots)\\
 \\
-\ident{drop}(F, D) = C, \{ C \mapsto (l, L' \cup \bigcup L_f) \}\\[0.5em]
+\ident{drop}(F, D) = C, \{ C \mapsto (l, L' \cup \bigcup L_f) \}\quad\ball{2}\\[0.5em]
 ~ l = \kvd{type}~C(x:\ident{Query}) = & \forall f \in \dom(F)~\\
 \quad \qquad \kvd{member}~\qident{drop $f$} : C_f =  & \quad\textnormal{where}~ F' = \{ f'\mapsto\tau'\in F, f' \neq f\}\\
-\quad \qquad \quad C_f(\Pi_{\ident{dom}(F')}(x)) &\quad\textnormal{and}~C_f, L_f = \ident{drop}(F', \Pi_{\ident{dom}(F')}(D))\quad\ball{2}\\
+\quad \qquad \quad C_f(\Pi_{\ident{dom}(F')}(x)) &\quad\textnormal{and}~C_f, L_f = \ident{drop}(F', \Pi_{\ident{dom}(F')}(D))\quad\ball{3}\\
 \quad \qquad \kvd{member}~\ident{then} : C' = C'(x)                 &\textnormal{where}~C', L' = \ident{pivot}(F, D)\\
 \\
 \ident{filter}(F, D) = C, \{ C \mapsto (l, L' \cup \bigcup L_f) \}\\[0.5em]
 ~ l = \kvd{type}~C(x:\ident{Query}) = & \forall f \in \dom(F)~\\
-\quad \qquad \kvd{member}~\qident{$f$ is} : C_f = C_f(x) & \quad\textnormal{where}~C_f, L_f = \ident{filter-val}(F, f, D)\quad\ball{3}\\
+\quad \qquad \kvd{member}~\qident{$f$ is} : C_f = C_f(x) & \quad\textnormal{where}~C_f, L_f = \ident{filter-val}(F, f, D)\quad\ball{4}\\
 \quad \qquad \kvd{member}~\ident{then} : C' = C'(x)                 &\textnormal{where}~C', L' = \ident{pivot}(F, D)\\
 \\
-\ident{filter-val}(F, f, D) = C, \{ C \mapsto (l, \cup \bigcup L_v) \}&\textnormal{where}~D=\{ f\mapsto\vect{v_1, \ldots, v_n}, \ldots \}\quad\ball{4} \\[0.5em]
+\ident{filter-val}(F, f, D) = C, \{ C \mapsto (l, \cup \bigcup L_v) \}&\textnormal{where}~D=\{ f\mapsto\vect{v_1, \ldots, v_n}, \ldots \}\quad\ball{5} \\[0.5em]
 ~ l = \kvd{type}~C(x:\ident{Query}) = & \forall v \in \{v_1, \ldots, v_n \} \\
 \quad \qquad \kvd{member}~\qident{$\,v\,$} : C_v =  & \quad\textnormal{where}~C_v, L_v = \ident{filter}(F, \sigma_{\varphi_v}(D))\\
-\quad \qquad \quad C_v(\sigma_{\varphi_v}(x)) &\quad\textnormal{and}~ \varphi_v (r) = r(f) = v \quad \ball{5}
+\quad \qquad \quad C_v(\sigma_{\varphi_v}(x)) &\quad\textnormal{and}~ \varphi_v (r) = r(f) = v \quad \ball{6}
 \end{array}
 \end{equation*}
 
 \caption{Pivot type provider -- grouping and aggregation}
-\label{fig:tp-group}
+\label{fig:tp-filter}
 \end{figure}
 
 % --------------------------------------------------------------------------------------------------
@@ -1388,14 +1388,83 @@ a data set containing the required columns of corresponding types.
 \subsection{Adding the filtering operation}
 \label{sec:pivot-filter}
 
-Add $D$ representing input data (in reality, we do not need all of it; just a function)
+The example given in Section~\ref{sec:intro} obtained top 8 athletes based on the number
+of gold medals from Rio 2016. It used two operations that were omitted in the formalisation in
+Section~\ref{sec:pivot-core}. We omitted paging to keep the host language simple, but we also
+omitted filtering, which lets us write $\qident{filter data}.\qident{Games is}.\qident{Rio (2016)}$.
+This operation is worth further discussion. To support it, the type provider needs not only the
+schema of the data set, but also sample data set that is used to offer the available values such 
+as $\qident{Rio (2016)}$.
 
-zz
+\noindent
+In the revised model, the \ident{pivot} function which models the type provider takes the schema
+$F$ together with sample data $D$ and provides the type with class context:
+%
+\begin{equation*}
+\begin{array}{l}
+\ident{pivot}(F, D) = C, L \quad \textnormal{where}\\
+\qquad F=\{ f_1 \mapsto \tau_1, \ldots, f_n \mapsto \tau_n \}\\
+\qquad D=\{ f_1\mapsto \vect{v_{1,1},\ldots,v_{1,r}}, \ldots, f_n\mapsto \vect{v_{n,1},\ldots,v_{n,r}}\} 
+\end{array}
+\end{equation*}
 
+\noindent
+In prior work on type providers [X], the actual input value is not available when writing the code
+and so the schema is inferred from a representative sample value. In exploratory data analysis, the 
+data set is often available at the time of writing the code and so $D$ can be the actual data set.
+However, it could equally be a sample or representative subset of the data.
+
+The Figure~\ref{fig:tp-filter} shows a revised version of the \ident{pivot} function \ball{1} 
+together with one of the operations discussed before and the newly added \ident{filter} function. 
+
+As members members performing data transformations are generated, the provider applies the same
+transformation on the sample data. For example, the revised \ident{drop} function \ball{2} takes
+the sample data set $D$; when calling \ident{drop} recursively to generate nested class after
+dropping a column \ball{3}, it removes the column from the schema (as before), but it also removes
+the column from the sample dataset. This means that as nested types are provided, the sample data
+used is always representative of data what will be passed to the class at runtime. 
+
+After choosing the \qident{filter data} member, the class provided by \ident{filter} lets the 
+user select one of the columns \ball{4} based on the schema. The \ident{filter-val} function then 
+generates a class with members based on the available values for the specified column in the data 
+$D$ \ball{5}. The predicate that filters data based on the value \ball{6} is used both in the 
+provided runtime code and also when restricting the sample data set using $\sigma_{\varphi_v}(D)$ 
+before providing further filtering by recursively calling \ident{filter}.
+
+The fact that we transform the sample data when providing types is important for two reasons.
+It makes it possible to apply filtering after aggregation (which changes the format of data)
+and it means that more appropriate values are provided for faceted data. For example,
+Figure~\ref{fig:pivot-filter} shows some of the provided members when filtering data by medal,
+team and individual athlete. Once we refine the team using $\qident{Team is}.\ident{Mongolia}$
+and attempt to filter by athlete using \qident{Athlete is}, the type provider offers only the
+names of Mongolian athletes.
+
+% --------------------------------------------------------------------------------------------------
+ 
+\begin{figure}
+\begin{equation*}
+\hspace{-1em}
+\begin{array}{l}
+\ident{olympics}.\qident{filter data}.\qident{Medal is}.\ident{Gold}.\qident{Team is}\\[0.25em]
+\quad\begin{array}{l}
+\rightarrow \qident{Czech Republic}.\qident{Athlete is}\\[0.25em]
+\qquad \rightarrow \qident{Barbora Spotakova}\\
+\qquad \rightarrow \qident{David Kostelecky}\\
+\qquad \rightarrow \qident{David Svoboda}\\
+\end{array}\qquad
+\begin{array}{l}
+\rightarrow \ident{Mongolia}.\qident{Athlete is}\\[0.25em]
+\qquad \rightarrow \qident{Badar-Uugan Enkhbat}\\
+\qquad \rightarrow \qident{Tuvshinbayar Naidan}\\
+\\
+\end{array}
+\end{array}
+\end{equation*}
+\caption{Subset of members provided by the filtering operation}
+\label{fig:pivot-filter}
+\end{figure}
 
 % ==================================================================================================
-
-\newpage
 
 \section{Implementation}
 \label{sec:impl}
