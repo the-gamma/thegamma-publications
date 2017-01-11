@@ -332,7 +332,7 @@ pivot type provider (Section~\ref{sec:columns}).
 
 \begin{figure}
 \begin{center}
-\includegraphics[scale=0.35,trim=0mm 0mm 0mm 0mm,clip]{filter.png} % left bottom right top
+\includegraphics[scale=0.35,trim=0mm 0mm 0mm 0mm,clip]{images/filter.png} % left bottom right top
 \end{center}
 \caption{Auto-completion offering the available values of the athlete name column}
 \label{fig:dot-driven}
@@ -1466,25 +1466,152 @@ names of Mongolian athletes.
 
 % ==================================================================================================
 
-\section{Implementation}
+\begin{figure}[b]
+\begin{center}
+\includegraphics[scale=0.30,trim=0mm 0mm 0mm 0mm,clip]{images/table.png} % left bottom right top
+\end{center}
+\caption{Athletes by the number of medals over the enitre history of Olympic games}
+\label{fig:case-table}
+\end{figure}
+
+% --------------------------------------------------------------------------------------------------
+
+\section{Case study: Visualizing Olympic medalists}
 \label{sec:impl}
 
-Rio case study
+We used The Gamma script with the pivot type provider to build an interactive web site 
+(\url{rio2016.thegamma.net}) that visualizes a number of facts about Olympic medalists 
+using the data set discussed in Appendix~\ref{app:olympics-csv} and used throughout this paper.
+The web site lets the readers view and modify the source code and we also developed a number of
+tools that make working with the source code easier, going beyond the basic auto-completion tooling
+to enable dot-driven development as discussed in Section~\ref{sec:analysis-auto}. In this section,
+we reivew our experience and outline some of the additional tools (available at 
+\url{github.com/the-gamma}).
 
+\subparagraph{Building tables and charts.} 
+Building rich visualizations with the simplicity of the pivot type provider was left for future
+work -- we provided functions for building basic kinds of visualizations (table, column chart, 
+pie chart and timeline) and we extended the host language with more advanced features that can
+be used to customize the displays. Figure~\ref{fig:case-table} shows a sample table, listing
+top athletes over the entire history of Olympic games.
 
+The data transformation used to construct the table uses the operations discussed in this paper
+together with paging functionality and \qident{get the data} which returns the entire data set
+of type \ident{Query}, as opposed to extracting a series with keys and values:
+%
 \begin{equation*}
 \begin{array}{l}
-\ident{olympics}\\
-\quad.\qident{filter data}.\qident{Games is}.\qident{Rio (2016)}.\ident{then}\\
-\quad.\qident{group data}.\qident{by Athlete}.\qident{sum Gold}.\ident{then}\\
-\quad.\qident{sort data}.\qident{by Gold descending}.\ident{then}\\
-\quad.\qident{paging}.\ident{take}(8)\\
-\quad.\qident{get series}.\qident{with key Athlete}.\qident{and value Gold}
+\kvd{let}~\ident{data}~=~\ident{olympics}\\
+\quad .\qident{group data}.\qident{by Athlete}\\
+\qquad .\qident{sum Gold}.\qident{sum Silver}.\qident{sum Bronze}.\qident{concat Team}.\ident{then}\\
+\quad .\qident{sort data}.\qident{by Gold descending}\\
+\qquad .\qident{and by Silver descending}.\qident{and by Bronze descending}.\ident{then}\\
+\quad .\ident{paging}.\ident{take}(10).\qident{get the data}\\[0.5em]
+\ident{table.create}(\ident{data})
 \end{array}
 \end{equation*}
 
-~
-\newpage
+\noindent
+The $\ident{table.create}$ operation on the last line generates a table based on the columns 
+available in the data set. We omit the additional customization which specifies that medals should
+be rendered as images. For most visualizations we built, the pivot type provider was expressive
+enough to capture the core logic of the operation, but further joining of data was sometimes
+needed. Possible extensions that would allow capturing those are discussed in 
+Section~\ref{sec:further}.
+
+% --------------------------------------------------------------------------------------------------
+
+\begin{figure}[t]
+\begin{center}
+\includegraphics[scale=0.32,trim=0mm 0mm 0mm 0mm,clip]{images/options.png} % left bottom right top
+\end{center}
+\caption{User interface with automatically provided grouping and sorting options}
+\label{fig:case-opts}
+\end{figure}
+
+% --------------------------------------------------------------------------------------------------
+
+\subparagraph{Generating interactive user interfaces.}
+Although the pivot type provider simplifies code needed for data exploration, not every reader will 
+be able to write or modify it. The simplicity of the host language makes it possible to easily 
+generate user interface that allows changing of some of the parameters of the program. 
+Figure~\ref{fig:case-opts} shows an example for the above code snippet that we implemented as 
+part of the visualization. 
+
+The user interface lets the user choose aggregations to be caluclated over a group and select 
+columns used for sorting. It is generated automatically by looking for specific pattern in the 
+chain of member accesses -- we annotate members with annotations denoting whether a member is 
+start of a list, list item or end of a list. The editor then looks for parts of the chain of the
+form $\qident{list start}.\qident{list item 1}.\qident{list item 2}.\qident{list end}$ and generates
+a control that lets the user remove or add list items. An item cannot be removed if the operation
+caused the code to break (e.g.~when it adds a member that is needed later) and items to be added
+are chosen using available members (as in the standard auto-complete). The header
+shown in Figure~\ref{fig:case-opts} are provided as additional annotations attached to 
+\qident{list start}.
+
+
+% --------------------------------------------------------------------------------------------------
+
+\begin{figure}[t]
+\begin{center}
+\includegraphics[scale=0.31,trim=0mm 0mm 0mm 0mm,clip]{images/pivot.png} % left bottom right top
+\end{center}
+\caption{Auto-completion offering the available values of the athlete name column}
+\label{fig:case-ed}
+\end{figure}
+
+% --------------------------------------------------------------------------------------------------
+
+\subparagraph{Spreadsheet-inspired live editor.}
+The third editor extension that we developed for the pivot type provider aims to bridge the gap 
+between code and user interface. This is done through a direct manipulation interface [X] inspired
+by spreadsheet applications. When exploring data in a spreadsheet, the user can always see the 
+data they work with and the results of an action will be immediately visible. For queries written
+using the pivot type provider, the results can also be calculated immediately using the sample 
+data set provided when using the refined version of the type provider as discussed in 
+Section~\ref{sec:pivot-filter}. 
+
+The Figure~\ref{fig:case-ed} shows the sample expression (discussed above) in the live 
+editor\footnote{The live editor can be tested live as part of the documentation for the 
+JavaScript package at \url{thegamma.net}}.
+Note that the selected part of code is the \qident{by Gold descending} identifier and so the 
+preview shows data available at that point of the query evaluation. Athletes with largest number
+of gold medals appear first, but silver or bronze medals are not used as secondary sorting keys yet.
+As the user moves through the code, or writes the code, the live preview is updated accordingly.
+Finally, the editor also makes it possible to modify the code through the user interface -- the
+``x'' buttons can be used to remove sort keys or transformations and ``+'' buttons (on the right)
+can be used to add more transformations or parameters.
+
+Unlike the user interface for specifying lists, the live editor has been implemented specifically
+for the pivot type provider, but it still heavily relies on the simple structure provided by the 
+fact that entire transformation can be written as a single chain of member accesses. In particular,
+we identify individual transformations (\qident{group by}, \qident{sort by}, etc.) and then 
+generate different user interface for specifying parameters. For sorting, as shown in 
+Figure~\ref{fig:case-ed}, the second level lets the user add or remove members. For grouping or
+paging, the second level looks different and lets the user choose the key and the number of 
+elements to take, respectively.
+
+% ==================================================================================================
+
+\section{Discussion and related work}
+
+a
+
+b
+
+c
+
+
+\subsection{Further work}
+\label{sec:further}
+
+\subsection{Related work}
+
+visual query systems
+
+https://people.csail.mit.edu/ebakke/research/sieuferd_sigmod2016.pdf
+
+\subsection{Conclusions}
 
 \subparagraph*{Acknowledgements.}
 
@@ -1505,7 +1632,6 @@ I want to thank \dots
 \ident{Athens (1896)},\num{1896},\ident{Swimming},\ident{Spiridon Chasapis},\kvd{GRE},\ident{Men},\ident{100m freestyle for sailors men},\ident{Silver},\num{0},\num{1},\num{0}\\
 \end{array}
 \end{equation*} }
-
 
 %%
 %% Bibliography
