@@ -32,8 +32,8 @@
 \EventEditors{John Q. Open and Joan R. Acces}
 \EventNoEds{2}
 \EventLongTitle{42nd Conference on Very Important Topics (CVIT 2016)}
-\EventShortTitle{CVIT 2016}
-\EventAcronym{CVIT}
+\EventShortTitle{DRAFT}
+\EventAcronym{DRAFT}
 \EventYear{2016}
 \EventDate{December 24--27, 2016}
 \EventLocation{Little Whinging, United Kingdom}
@@ -118,7 +118,7 @@ facts in a transparent way.
 Spreadsheets made data exploration accessible to a large number of people, but operations 
 performed on spreadsheets cannot be reproduced or replicated with different input parameters.
 The manual mode of interaction is not repeatable and it breaks the link with the original data 
-source, making spreadsheets error-prone [X]. The answer to this problem is to explore data 
+source, making spreadsheets error-prone \cite{exceldep}. The answer to this problem is to explore data 
 programmatically. A program can be run repeatedly and its parameters can be modified.
 
 However, even with the programming tools generally accepted as simple, exploring data is 
@@ -181,7 +181,7 @@ a case study (Section~\ref{sec:impl}). Our contributions are:
   provides types with members that can be used for composing queries, making it possible to perform
   entire date exploration through single programming mechanism (Section~\ref{sec:analysis-dot}).  
 
-\item Our mechanism illustrates how to embed fancy types [X] into a simple nominally-typed programming  
+\item Our mechanism illustrates how to embed fancy types \cite{fancytypes} into a simple nominally-typed programming  
   language (Section~\ref{sec:columns}). We track names and types of available columns of the 
   manipulated data set (using a mechanism akin to row types), but the same mechanism can be used for 
   embedding other advanced typing schemes into any Java-like language.
@@ -208,12 +208,12 @@ and explains what is new about the pivot type provider.
 
 \subparagraph{Information-rich programming.} Type providers were first presented as a mechanism
 for providing type-safe access to rich information sources. A type provider is a compile-time 
-component that imports external information source into a programming language [X]. It provides two 
+component that imports external information source into a programming language \cite{inforich}. It provides two 
 things to the compiler or editor hosting it: a type signature that models the external source 
 using structures understood by the host language (e.g.~types) and an implementation for the 
 signatures which accesses data from the external source.
 
-For example, the World Bank type provider [X] provides a fine-grained access to development 
+For example, the World Bank type provider \cite{ageweb} provides a fine-grained access to development 
 indicators about countries. The following accesses CO2 emissions by~country~in~2010:
 %
 \begin{equation*}
@@ -242,10 +242,10 @@ The type provider provides a type-safe access to known indicators, which exist o
 the compiled code, increasing safety and making data access easier thanks to auto-completion 
 (which offers a list of available indicators).
 
-\subparagraph{Types from data.} Recent work on the F\# Data library [X] uses type providers for 
+\subparagraph{Types from data.} Recent work on the F\# Data library \cite{fsdata} uses type providers for 
 accessing data in structured formats such as XML, CSV and JSON. This is done by inferring the 
 structure of the data from a sample document, provided as a static parameter to a type provider.
-In the following example, adapted from [X], a sample URL is passed to \ident{JsonProvider}:
+In the following example, adapted from \cite{fsdata}, a sample URL is passed to \ident{JsonProvider}:
 %
 \begin{equation*}
 \begin{array}{l}
@@ -459,10 +459,10 @@ that we (equally semi-seriously) adopt in this paper.
 Type providers in F\# rely on dot-driven development when navigating through data. When writing code 
 to access current temperature $\ident{ldn.Main.Temp}$ in Section~\ref{sec:tps}, the auto-completion
 offers various available properties, such as \ident{Wind} and \ident{Clouds} once ``dot'' is typed
-after $\ident{ldn.Main}$. Other type providers [X] follow a similar pattern. It is worth noting
+after $\ident{ldn.Main}$. Other type providers \cite{inforich} follow a similar pattern. It is worth noting
 that despite the use of nominal typing, the names of types rarely explicitly appear in code -- we
 do not need to know the name of the type of $\ident{ldn.Main}$, but we need to know its members.
-Thus the type name can be arbitrary [X] and is used more as a lookup key.
+Thus the type name can be arbitrary \cite{fsdata} and is used more as a lookup key.
 
 The pivot type provider presented in this paper uses dot-driven development for suggesting 
 transformations as well as possible values of parameters. This is illustrated in Figure~\ref{fig:dot-driven}
@@ -481,7 +481,7 @@ As the Figure~\ref{fig:dot-driven} illustrates, the pivot type provider sometime
 distinction between values and (members of) types. In the example in Section~\ref{sec:intro},
 \str{Rio (2016)} is a string value in Python, but a statically-typed member \qident{Rio (2016)}
 when using pivot type provider. This is a recurring theme in type provider development\footnote{The
-\ident{Individuals} property in the Freebase type provider [X] imports values into types in a similar way.}.
+\ident{Individuals} property in the Freebase type provider \cite{inforich} imports values into types in a similar way.}.
 
 Our language supports method calls such as $\ident{head}(\num{8})$ and an alternative design for
 filtering would be to provide a method such as $\qident{Games is}(\str{Rio (2016)})$. However,
@@ -491,7 +491,7 @@ common case when the user is interested in one of the known values.
 Unlike in traditional development, a data scientist doing data exploration often has the entire 
 data set available. The pivot type provider uses this when offering possible values for filtering
 (Section~X), but all other operations (Section~Y) require only meta-data (names and types of 
-columns). Following the example of type providers for structured data formats [X], the schema could
+columns). Following the example of type providers for structured data formats \cite{fsdata}, the schema could
 be inferred from a representative sample.
 
 % --------------------------------------------------------------------------------------------------
@@ -545,9 +545,7 @@ aggregation. In the above example \ball{1}, the resulting data set will have col
 (the grouping key) together with Gold, Silver and Team (based on the aggregated columns).
 The user cannot currently rename the columns.
 
-% https://github.com/fsharp/fslang-design/blob/master/FSharp-4.0/StaticMethodArgumentsDesignAndSpec.md
-
-In F\# type providers, this could be done using methods with static parameters [X] by writing, 
+In F\# type providers, this could be done using methods with static parameters \cite{staticpar} by writing, 
 for example, $\ident{g}.\qident{sum Gold as}\langl\str{Total Gold}\rangl()$. In F\#, the value of 
 the static parameter (here, \str{Total Gold}) is passed to the type provider, which can use it to
 generate the type signature of the method and the return type with member name according to the
@@ -615,8 +613,8 @@ drop games and year as follows:
 \end{equation*}
 
 \noindent
-Operations on the type of rows in the data set can be captured using row types [X]. In addition, 
-we need to annotate type with a form of type state [Y] to restrict what operations are available. 
+Operations on the type of rows in the data set can be captured using row types \cite{rowtypes}. 
+In addition, we need to annotate type with a form of type state \cite{typestate} to restrict what operations are available. 
 When dropping columns, we first access the \qident{drop columns} member, which sets the state to
 a state where we can drop individual columns using \qident{drop $f$}. The \ident{then} member can 
 then be used to complete the operation and choose another transformation.
@@ -675,7 +673,7 @@ finding the member type:
 \end{equation*}
 
 \noindent
-The rule, adapted from [X], does not capture laziness of type providers that is 
+The rule, adapted from \cite{fsdata}, does not capture laziness of type providers that is 
 important for the pivot type provider (where the number of provided classes is potentially 
 infinite). We discuss this aspect in Section~\ref{sec:foo}.
 
@@ -701,7 +699,7 @@ We do not fully develop the type system based on fancy types sketched in Section
 However, the remark illustrates one interesting aspect of our work -- the type provider 
 mechanism makes it possible to express safety guarantees that would normally require row types and 
 type state in a simple nominally typed language. In a similar way, type providers have been used
-to encode session types [X], suggesting that this is a generally useful approach.
+to encode session types \cite{sessiontp}, suggesting that this is a generally useful approach.
 
 % ==================================================================================================
 
@@ -786,7 +784,7 @@ Section~\ref{sec:foo-rel}, together with the object-based host language in Secti
 \label{sec:foo-rel}
 
 The focus of our work is on data aggregation and so we use a form of relational algebra with 
-extensions for grouping and sorting [X,Y,Z]. The syntax is defined in Figure~\ref{fig:foo-rel}.
+extensions for grouping and sorting \cite{relalg,dbsys}. The syntax is defined in Figure~\ref{fig:foo-rel}.
 We write $f$ for column (field) names and we include definition of a data value $D$, which maps
 columns to vectors of length $r$ storing the data (values $v$ are defined below).
 Aside from standard projection $\Pi$ and selection $\sigma$, our algebra includes sorting 
@@ -852,7 +850,7 @@ $\Sigma$ sums numerical values and $\Pi$ (a slight notation abuse) concatenates 
 \subsection{Foo calculus with lazy context}
 \label{sec:foo-foo}
 
-We model the host language using a variant of the Foo calculus [X]. The core of the calculus models
+We model the host language using a variant of the Foo calculus \cite{fsdata}. The core of the calculus models
 a simple object-based language with objects and members. The syntax of the language is shown in
 Figure~\ref{fig:foo-syntax}. The relational algebra defined in Figure~\ref{fig:foo-rel} is included
 in the Foo calculus as a model of the runtime components of the pivot type provider -- the values
@@ -880,7 +878,8 @@ class definitions $L'$. The (\emph{context}) rule performs reduction in an evalu
 
 \subparagraph{Type checking.} One interesting aspect of type checking with type providers is that
 type providers can provide potentially infinite number of types. In F\#, the types are provided 
-lazily as the type checker explores parts of the type space used by the program [X]. Consider:
+lazily as the type checker explores parts of the type space used by the program \cite{inforich}. 
+Consider:
 %
 \begin{equation*}
 \ident{olympics}.\qident{group data}.\qident{by Athlete}.\qident{sum Gold}.\ident{then}
@@ -891,7 +890,7 @@ The type checker initially knows the type of $\ident{olympics}$ is a class $C_1$
 $\qident{group data}$ and it knows that the type of this member is $C_2$. However, it only needs to 
 obtain full definition of $C_2$ when checking the member $\qident{by Athlete}$. Types of other 
 member of $C_1$ remain unevaluated when they do not appear in the source code. This aspect of type
-providers have been omitted in previous work [X,Y], but it is necessary for the pivot type provider.
+providers have been omitted in previous work \cite{fsdata,liteq}, but it is necessary for the pivot type provider.
 The typing rules given are written using the following judgement:
 %
 \begin{equation*}
@@ -912,7 +911,7 @@ L_1(C) = \kvd{type}~C(x:\tau) = \overline{m}, L
 \noindent
 The class $C$ may use classes defined in $L_1$, but also delayed classes from $L$. This models 
 laziness as $L$ is a function that may never be evaluated. Since $L$ is potentially infinite, we 
-cannot check class definitions upfront as in typical object calculi [X]. Instead, we check that 
+cannot check class definitions upfront as in typical object calculi \cite{objects}. Instead, we check that 
 that members are well typed as they appear in the source code, which matches the behaviour of F\# 
 type providers. In general, this means that $L$ may contain classes with incorrectly typed 
 members. We prove that this is not the case for the pivot type provider (Section~\ref{sec:pivot-prop}).
@@ -997,7 +996,7 @@ produce a result of type \ident{Query}. An untyped \ident{Query} value can be co
 series type (\emph{series}) of any type -- in the pivot type provider, the \ident{Query} type is 
 always hidden and users can only work with type-safe series type. The bridging of typed and 
 untyped parts of the language resembles the boundary between static and dynamic typing in 
-gradually typed languages.% [X,Y,Z].
+gradually typed languages~\cite{gradual}.
 
 % --------------------------------------------------------------------------------------------------
 
@@ -1033,7 +1032,7 @@ gradually typed languages.% [X,Y,Z].
 
 In an implementation, a type provider is an executable component that is called by the compiler
 and the editor to provide information about types on demand. In our formalization, we follow the 
-style used by Petricek et al. [X], but we add laziness as discussed in Section~\ref{sec:foo-foo}.
+style used by Petricek et al. \cite{fsdata}, but we add laziness as discussed in Section~\ref{sec:foo-foo}.
 We model the core operations (dropping columns, grouping and sorting) in Section~\ref{sec:pivot-core}
 and then refine the model to include filtering based on values Section~\ref{sec:pivot-filter}.
 We omit paging, as it does not affect the shape of data, but modelling it would require richer 
@@ -1409,7 +1408,7 @@ $F$ together with sample data $D$ and provides the type with class context:
 \end{equation*}
 
 \noindent
-In prior work on type providers [X], the actual input value is not available when writing the code
+In prior work on type providers \cite{fsdata}, the actual input value is not available when writing the code
 and so the schema is inferred from a representative sample value. In exploratory data analysis, the 
 data set is often available at the time of writing the code and so $D$ can be the actual data set.
 However, it could equally be a sample or representative subset of the data.
@@ -1564,8 +1563,8 @@ shown in Figure~\ref{fig:case-opts} are provided as additional annotations attac
 
 \subparagraph{Spreadsheet-inspired live editor.}
 The third editor extension that we developed for the pivot type provider aims to bridge the gap 
-between code and user interface. This is done through a direct manipulation interface [X] inspired
-by spreadsheet applications. When exploring data in a spreadsheet, the user can always see the 
+between code and user interface. This is done through a direct manipulation interface \cite{directman} 
+inspired by spreadsheet applications. When exploring data in a spreadsheet, the user can always see the 
 data they work with and the results of an action will be immediately visible. For queries written
 using the pivot type provider, the results can also be calculated immediately using the sample 
 data set provided when using the refined version of the type provider as discussed in 
@@ -1582,40 +1581,79 @@ Finally, the editor also makes it possible to modify the code through the user i
 ``x'' buttons can be used to remove sort keys or transformations and ``+'' buttons (on the right)
 can be used to add more transformations or parameters.
 
-Unlike the user interface for specifying lists, the live editor has been implemented specifically
-for the pivot type provider, but it still heavily relies on the simple structure provided by the 
-fact that entire transformation can be written as a single chain of member accesses. In particular,
-we identify individual transformations (\qident{group by}, \qident{sort by}, etc.) and then 
-generate different user interface for specifying parameters. For sorting, as shown in 
-Figure~\ref{fig:case-ed}, the second level lets the user add or remove members. For grouping or
-paging, the second level looks different and lets the user choose the key and the number of 
+Unlike the user interface for modifying lists, the live editor works specifically with the pivot 
+type provider. It still relies on the simple structure provided by the fact that entire 
+transformation can be written as a single chain of member accesses. In particular,
+we identify individual transformations (\qident{group by}, \qident{sort by}, etc.) and 
+generate different user interface for specifying parameters of each transformation. For sorting, as 
+shown in Figure~\ref{fig:case-ed}, the user can add or remove sort keys. For grouping 
+or paging, the user interface lets the user choose the grouping key and the number of 
 elements to take, respectively.
 
 % ==================================================================================================
 
 \section{Discussion and related work}
 
-a
+Although the technical focus of this paper is on the programming language theory behind the pivot type
+provider (Section~\ref{sec:pivot}), the paper also outlines interesting human-computer interaction 
+aspects (Section~\ref{sec:impl}). We discuss further related directions in this
+section before~concluding.
 
-b
-
-c
-
-
-\subsection{Further work}
+\subsection{Related and further work}
 \label{sec:further}
 
-\subsection{Related work}
+\subparagraph{Type providers.}
+Type providers have been pioneered in F\# \cite{inforich}. They can be seen as a form of dependent 
+typing \cite{idris-tp}; we take the opposite perspective and use type providers as a mechanism for 
+implementing other type system features. Our focus on using type providers for describing 
+computations is different from other type provider work \cite{fsdata,liteq,ageweb}, which focuses 
+on mapping of external data into types.
 
-visual query systems
+\subparagraph{Fancy types.}
+The pivot type provider makes data exploration safer as it does not allow construction of invalid
+queries. Alternative approach would be to use fancy types \cite{fancytypes}. This can be done
+using using row types and typestate or phantom types \cite{rowtypes,typestate,phanty} as sketched
+in in Section~\ref{sec:columns-row}. The idea of using type providers in this way has also been
+explored for session types \cite{sessionty,sessiontp} and it would be interesting to see whether
+our approach can be applied in other areas such as web development \cite{urweb}.
 
-https://people.csail.mit.edu/ebakke/research/sieuferd_sigmod2016.pdf
+\subparagraph{Human-computer intercation.}
+We discussed how the pivot type provider simplifies the programming model (Section~\ref{sec:analysis}),
+but it would be interesting to explore this aspect empirically through the perspective of HCI. 
+The live editor shown in Section~\ref{sec:impl} offers a form of direct manipulation 
+\cite{directman,directman2,dynamicq}. Unlike spreadsheets, we construct a transformation rather than
+actually transforming data, which makes it more related to systems for query construction
+\cite{spreadsheetalgebra,querydirect}. We also see code as equally important to the direct 
+manipulation interface.
+
+\subparagraph{Relational algebra.}
+Our operational semantics used to model data transformations (Section~\ref{sec:foo}) was based on 
+relational algebra \cite{relalg,dbsys}, although our focus was on aggregation, which has been 
+added to the core algebra in a number of different ways \cite{sumtables,datacube,relalg-alpha,relalg-sparql}.
+The pivot type provider does not provide operations for joining data sets, which is an interesting
+problem for further work as it requires extensions to the type provider mechanism -- the join
+operation is parameterized by two data sets that are being combined.
 
 \subsection{Conclusions}
+There is lots of data (big data), but using them is hard (post-truth).
+We want to make it easier to explore data without sacrificing reproducibility 
+and other good things we get from having source code.
 
-\subparagraph*{Acknowledgements.}
+In this paper, we focus on making the language as simple as possible. We unify many different
+PL concepts using member access as the primary programming mechanism thanks to type providers.
+This makes programming easier through auto-completed, but we also explored other tooling ranging
+from simple interactive UIs to direct manipulation tools.
 
-I want to thank \dots
+The pivot type provider provides a safe and easy to use layer over an underlying 
+relational algebra. We formalize the host language and the type provider and we prove
+that queries constructed using the type provider are correct.
+
+TL;DR - better toools to democratize data stuff.
+
+
+
+
+\bibliography{paper}
 
 \appendix
 \section{Sample of the Olympic medals data set}
@@ -1639,7 +1677,6 @@ I want to thank \dots
 
 %% Either use bibtex (recommended), 
 
-\bibliography{lipics-v2016-sample-article}
 
 %% .. or use the thebibliography environment explicitely
 

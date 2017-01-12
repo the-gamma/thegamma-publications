@@ -6,3 +6,5 @@ pivot/packages
 *.log
 *.out
 *.vtc
+*.bbl
+*.blg
