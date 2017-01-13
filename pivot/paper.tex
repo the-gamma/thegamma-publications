@@ -274,7 +274,7 @@ users compose type-safe queries over the data source.
 This means that our use of type providers is more akin to meta-programming or code generation with
 one important difference -- the schema provided by the pivot type provider is potentially infinite
 (as there are always more operations that can be applied). The implementation relies on the fact 
-that type providers are integrated into the type system and types can be provided lazilly. This is 
+that type providers are integrated into the type system and types can be provided lazily. This is 
 also a new aspect of our formalization in Section~\ref{sec:foo}.
 
 % ==================================================================================================
@@ -297,7 +297,7 @@ inform our alternative design as discussed in the rest of this section.
 \item The filtering operation is written using indexing $[\ldots]$ while all other operations are
   written using member invocation with (optionally named) parameters. In the first case, we write
   an expression $\ident{olympics}[\str{Games}]==\str{Rio (2016)}$ returning a vector of Booleans
-  while in the other, we specify a column name using $\ident{by}=\str{Gold}$. In other languges,
+  while in the other, we specify a column name using $\ident{by}=\str{Gold}$. In other languages,
   a parameter can also be a lambda function specifying a predicate or a transformation.
   
 \item The aggregation operation takes a dictionary $\left\{\ldots\right\}$, which is yet another
@@ -345,7 +345,7 @@ in the pivot type provider (Section~\ref{sec:columns}).
 \label{sec:analysis-dot}
 
 LISP is perhaps the best example of a language that unifies many distinct constructs using a single
-form. In LISP, everything is an s-experssion, that is, either a list or a symbol. In contrast, 
+form. In LISP, everything is an s-expression, that is, either a list or a symbol. In contrast, 
 a typical data processing language uses a number of distinct constructs including indexers (for 
 range selection and filtering), method calls (for transformations) and named parameters (for further 
 configuration). Consider filtering and sorting:
@@ -388,7 +388,7 @@ When sorting \ball{1} the member that specifies how sorting is done includes the
 column. This is possible because the pivot type provider tracks the column names (see 
 Section~\ref{sec:columns}) and provides members based on the available columns suitable
 for use as sort keys. When filtering \ball{2}, the member \qident{Rio (2016)} is provided based
-on the values in the data source (we discuss this furter in Section~\ref{sec:pivot-filter}).
+on the values in the data source (we discuss this further in Section~\ref{sec:pivot-filter}).
 
 These two examples illustrate that member access can be expressive, but it requires huge number
 of types with huge number of members. Type providers address this by integration with the type
@@ -396,7 +396,7 @@ system (formalized in Section~\ref{sec:foo}) that discovers members lazily. This
 approaches based on code generation or pre-processors would not be viable.
 
 Using descriptive member names is only possible when the names are discoverable. The above
-code could be executed in a dynamically-typed languge that allows custom message-not-understood
+code could be executed in a dynamically-typed language that allows custom message-not-understood
 handlers, but it would be impossible to get the name right when writing it. Our approach 
 relies on discovering names through auto-completion as discussed in Section~\ref{sec:analysis-auto}.
 
@@ -451,7 +451,7 @@ names from which the user can choose (as in web directories).
 \subsection{Tooling and dot-driven development}
 \label{sec:analysis-auto}
 
-Source code editors for object-based languages with nominal type sytems often provide 
+Source code editors for object-based languages with nominal type systems often provide 
 auto-completion for members of objects. This combination works extremely well in practice; the
 member list is a complete list of what might follow after typing ``dot'' and it can be easily
 obtained for an instance of known type. The fact that developers can often rely on just typing
@@ -475,7 +475,7 @@ In Figure~\ref{fig:pivot-members}, we list a subset of the provided members that
 example in Section~\ref{sec:intro}. After choosing \qident{sort data}, the user is offered 
 the possible sorting keys and directions. After choosing \qident{group data}, the user first 
 selects the grouping key and then can choose one or more aggregations that can be applied on
-other columns of the group. Thus an enitre data transformation (such as choosing top 8 athletes
+other columns of the group. Thus an entire data transformation (such as choosing top 8 athletes
 by the number of gold medals) can be constructed using dot-driven development.
   
 \subparagraph{Values vs. types.}
@@ -529,7 +529,7 @@ medals and then silver medals (within a group with the same number of gold medal
 
 \subparagraph{The ``then'' pattern.}
 Nesting is an essential programming construct and it may be desirable to support it directly in 
-the language, but the ``then'' pattern lets us express nesting without langauge support. In both 
+the language, but the ``then'' pattern lets us express nesting without language support. In both 
 of the cases above, the nested structure is specified by selecting one or more members and then 
 ending the nested structure using the \ident{then} member.
 
@@ -618,7 +618,7 @@ Other data transformations could be type checked in a similar way, but there are
 First, row types and typestate (although relatively straightforward) make the host language more
 complex. Second, rules such as (\emph{drop-col}) make auto-completion more difficult, because the
 editor needs to understand the rules and calculate what members may be invoked. This is a distinct
-operation from type checking and type infernece (which operate on complete programs) that needs 
+operation from type checking and type inference (which operate on complete programs) that needs 
 to be formalized and implemented.
 
 % --------------------------------------------------------------------------------------------------
@@ -722,7 +722,7 @@ to encode session types \cite{sessiontp}, suggesting that this is a generally us
   \rho & = & \ident{count}  &&\textnormal{Count number of rows in the group}\\
    & \lsep & \ident{sum}~f  &&\textnormal{Sum numerical values of the column $f$}\\
    & \lsep & \ident{dist}~f &&\textnormal{Count number of distinct values of the column $f$}\\
-   & \lsep & \ident{conc}~f &&\textnormal{Concatenat string values of the column $f$}\\
+   & \lsep & \ident{conc}~f &&\textnormal{Concatenate string values of the column $f$}\\
 \\
 \end{array} 
 \end{equation*}
@@ -796,7 +796,7 @@ $\tau$ which takes one or more columns forming the sort key (with sort order $\o
 and aggregation $\Phi$, which requires a single grouping key and several aggregations together with 
 names of the new columns to be returned.
 
-The semantics of the algbra is given in Figure~\ref{fig:foo-relsem}. We use vector-based semantics
+The semantics of the algebra is given in Figure~\ref{fig:foo-relsem}. We use vector-based semantics
 to support sorting and duplicate entries, but otherwise the formalization captures the usual
 behaviour. In projection and sorting, we write $f_{p(1)}, \ldots, f_{p(m)}$ to refer to a selection
 of fields from $f_1, \ldots, f_n$. Assuming $m\leq n$, $p$ can be seen as a mapping from $\{1\ldots m\}$
@@ -808,7 +808,7 @@ is required.
 
 The most complex operation is grouping. We need to group data by the value of the column $f_i$ and
 then apply aggregations $\rho_1,\ldots,\rho_m$. To do this, we first obtain a set of groups $g_1,\ldots, g_s$
-where each group represents a set of indicies of rows belonging to each group. For a given group 
+where each group represents a set of indices of rows belonging to each group. For a given group 
 $g_i$ we can then obtain values of column $j$ for rows in the group as $\{v_{j,k}\,|\, k\in g_i\}$.
 This is used to calculate the resulting data set -- the field $f_i$ becomes a new column formed
 by the group keys (obtained by picking one of the indices from $g_j$ for each group); other fields
@@ -867,7 +867,7 @@ can be used, for example, as input for a charting library. A series is a typed w
 \indet{Query} value and the proofs in Section~\ref{sec:pivot-prop} show that a series obtained 
 from the pivot type provider contains keys and values of matching~types.
 
-\subparagraph{Reduction rules.} The reduction relation $\leadsto_L$ is prameterized by a function
+\subparagraph{Reduction rules.} The reduction relation $\leadsto_L$ is parameterized by a function
 $L$ that maps class names to class definitions, together with nested classes associated with the
 class definition (used during type checking as discussed below). The map is not used in the 
 reduction rules for the relational algebra, given in Figure~\ref{fig:foo-relsem} and so it was 
@@ -1037,7 +1037,7 @@ the operation produces series with values of correct~types.
 \label{sec:pivot}
 
 A type provider is an executable component called by the compiler and the editor to 
-provide information about types on demand. In our formalisation, we follow the 
+provide information about types on demand. In our formalization, we follow the 
 style of Petricek et al. \cite{fsdata}, but we add laziness as discussed in Section~\ref{sec:foo-foo}.
 We model the core operations (dropping columns, grouping and sorting) in Section~\ref{sec:pivot-core}
 and refine the model to include filtering Section~\ref{sec:pivot-filter}.
@@ -1059,7 +1059,7 @@ In our case, the schema $F$ is a mapping from field names to field types:
 \end{array}
 \end{equation*}
 %
-The class $C$ provided by the pivot tpe provider has a constructor taking \ident{Query}, which 
+The class $C$ provided by the pivot type provider has a constructor taking \ident{Query}, which 
 represents the, possibly already partly transformed, input data set. It generates members that
 allow the user to refine the query and access the data. The type provider is defined using several
 helper functions discussed in the rest of this section.
@@ -1206,20 +1206,20 @@ field and is exposed once, adding a column \ident{Count} to the schema of the re
 \subsection{Properties of the pivot type provider}
 \label{sec:pivot-prop}
 
-If we were using the relational algebra formalised in Section~\ref{sec:foo-rel} to construct 
+If we were using the relational algebra formalized in Section~\ref{sec:foo-rel} to construct 
 queries, we can write an invalid program, e.g.~by attempting to select
 a column $f$ using $\Pi_{f}$ from a data set that does not contain the column. This is not an issue 
 when using the pivot type provider, because the provided types allow the user to construct only 
 correct data transformations. 
 
-To formalise this, we prove partial soundness of the Foo calculus (Theorem~\ref{thm:foo-sound}),
-which characterises the invalid programs that can be written using the \ident{Query}-typed 
+To formalize this, we prove partial soundness of the Foo calculus (Theorem~\ref{thm:foo-sound}),
+which characterizes the invalid programs that can be written using the \ident{Query}-typed 
 expressions and then prove safety of the pivot type provider (Theorem~\ref{thm:pivot-safe}),
 which shows that such errors do not occur when using the provided types. 
 
 \subparagraph{Foo calculus.} The Foo calculus consists of the relational algebra and simple object
 calculus where objects can be constructed and their members accessed. It permits recursion as a
-member can invoke itself on a new object instance. To accommodate this, we formalise soundness 
+member can invoke itself on a new object instance. To accommodate this, we formalize soundness 
 using progress (Lemma~\ref{thm:foo-progress}) and preservation (Lemma~\ref{thm:foo-pres}). 
 
 The soundness is partial because the evaluation can get stuck when an operation of the relational 
@@ -1392,14 +1392,14 @@ a data set containing the required columns of corresponding types.
 \label{sec:pivot-filter}
 
 The example given in Section~\ref{sec:intro} obtained top 8 athletes based on the number
-of gold medals from Rio 2016. It used two operations that were omitted in the formalisation in
+of gold medals from Rio 2016. It used two operations that were omitted in the formalization in
 Section~\ref{sec:pivot-core}. We omitted paging to keep the host language simple, but we also
 omitted filtering, which lets us write $\qident{filter data}.\qident{Games is}.\qident{Rio (2016)}$.
 This operation is worth further discussion. To support it, the type provider needs not only the
 schema of the data set, but also sample data set that is used to offer the available values such 
 as $\qident{Rio (2016)}$.
 
-In the revised formalisation, the \ident{pivot} function which models the type provider takes the schema
+In the revised formalization, the \ident{pivot} function which models the type provider takes the schema
 $F$ together with sample data $D$ and provides the type with class context:
 %
 \begin{equation*}
@@ -1470,7 +1470,7 @@ names of Mongolian athletes.
 \begin{center}
 \includegraphics[scale=0.30,trim=0mm 0mm 0mm 0mm,clip]{images/table.png} % left bottom right top
 \end{center}
-\caption{Athletes by the number of medals over the enitre history of Olympic games}
+\caption{Athletes by the number of medals over the entire history of Olympic games}
 \label{fig:case-table}
 \end{figure}
 
@@ -1485,7 +1485,7 @@ using the data set discussed in Appendix~\ref{app:olympics-csv} and used through
 The web site lets the readers view and modify the source code and we also developed a number of
 tools that make working with the source code easier, going beyond the basic auto-completion tooling
 to enable dot-driven development as discussed in Section~\ref{sec:analysis-auto}. In this section,
-we reivew our experience and outline some of the additional tools (available at 
+we review our experience and outline some of the additional tools (available at 
 \url{github.com/the-gamma}).
 
 \subparagraph{Building tables and charts.} 
@@ -1538,7 +1538,7 @@ automatically generate user interface that allows changing of some of the parame
 Figure~\ref{fig:case-opts} shows an example for the above code snippet that we implemented as 
 part of the visualization. 
 
-The user interface lets the user choose aggregations to be caluclated over a group and select 
+The user interface lets the user choose aggregations to be calculate over a group and select 
 columns used for sorting. It is generated automatically by looking for specific pattern in the 
 chain of member accesses -- we annotate members with annotations denoting whether a member is 
 start of a list, list item or an end of a list. The editor then looks for parts of the chain of the
@@ -1565,7 +1565,7 @@ editor\footnote{The live editor can be tested live as part of the documentation 
 JavaScript package at \url{thegamma.net}}.
 Note that the selected part of code is the \qident{by Gold descending} identifier and so the 
 preview shows results as computed at that point of the query evaluation. Athletes with largest number
-of gold medals appear first, but silver or bronze medals are not yed used as secondary sorting keys.
+of gold medals appear first, but silver or bronze medals are not yet used as secondary sorting keys.
 As the user moves through the code, or writes the code, the live preview is updated accordingly.
 
 Finally, the editor also makes it possible to modify the code through the user interface. The
@@ -1619,7 +1619,7 @@ The approach sketched in Section~\ref{sec:columns-row} used row types and typest
 explored for session types \cite{sessionty,sessiontp} and it would be interesting to see whether
 our approach can be applied in other areas such as web development \cite{urweb}.
 
-\subparagraph{Human-computer intercation.}
+\subparagraph{Human-computer interaction.}
 We discussed how the pivot type provider simplifies the programming model (Section~\ref{sec:analysis}),
 but it would be interesting to explore this aspect empirically through the perspective of HCI. 
 The live editor shown in Section~\ref{sec:impl} offers a form of direct manipulation 
@@ -1653,8 +1653,8 @@ simple interactive user interfaces to direct manipulation~tools.
 
 The pivot type provider offers a safe and easy to use layer over an underlying relational algebra 
 that we use to model data transformations. As a key technical contribution of this paper, we 
-formalise the type provider and prove that queries constructed using the types it provides are 
-correct. Achieving this property by ohter means would require a language with complex
+formalize the type provider and prove that queries constructed using the types it provides are 
+correct. Achieving this property by other means would require a language with complex
 type system features such as typestate and row types.
 
 We believe that the simple programming model for data exploration presented in this paper can
@@ -1668,7 +1668,7 @@ programmer to build a transparent visualization using facts that matter to you!
 \label{app:olympics-csv}
 
 The data set used as an example in the case study discussed in Section~\ref{sec:impl} as well as
-in the examples disussed throughout the paper is a single CSV file listing the entire history of
+in the examples discussed throughout the paper is a single CSV file listing the entire history of
 Olympic medals awarded since 1896. The data set can be found at \url{https://github.com/the-gamma/workyard}
 together with scripts used to obtain it. The following is a representative example listing the
 first 5 rows:
