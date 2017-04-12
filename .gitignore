@@ -1,6 +1,6 @@
 paket.exe
 paket.targets
-pivot/packages
+ecoop-2017/packages
 *.aux
 *.dvi
 *.log
