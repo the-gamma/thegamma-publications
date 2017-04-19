@@ -15,6 +15,33 @@ open System.Diagnostics
 // Watch the current directory for changes
 // --------------------------------------------------------------------------------------
 
+Target "artifact" (fun _ ->
+  let path = __SOURCE_DIRECTORY__
+  let fsw = new FileSystemWatcher(path,"*.tex")
+  fsw.Changed.Add(fun _ ->
+    fsw.EnableRaisingEvents <- false
+    let ps =
+      ProcessStartInfo
+        ( FileName = @"C:\Programs\Publishing\MiKTeX 2.9\miktex\bin\x64\pdflatex.exe",
+          Arguments = "-interaction=nonstopmode artifact.tex",
+          WorkingDirectory = path,
+          UseShellExecute = false,
+          CreateNoWindow = true )
+    let p = Process.Start(ps)
+    p.WaitForExit()
+    fsw.EnableRaisingEvents <- true )
+
+  fsw.EnableRaisingEvents <- true
+
+  let ps =
+    ProcessStartInfo
+      ( FileName = @"C:\Programs\Publishing\SumatraPDF\SumatraPDF.exe",
+        Arguments = "\"" + __SOURCE_DIRECTORY__ + "\\artifact.pdf\"",
+        WorkingDirectory = path )
+  let p = Process.Start(ps)  
+  System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite)
+)
+
 Target "run" (fun _ ->
   let path = __SOURCE_DIRECTORY__
   let fsw = new FileSystemWatcher(path,"*.tex")
@@ -38,8 +65,7 @@ Target "run" (fun _ ->
       ( FileName = @"C:\Programs\Publishing\SumatraPDF\SumatraPDF.exe",
         Arguments = "\"" + __SOURCE_DIRECTORY__ + "\\paper.pdf\"",
         WorkingDirectory = path )
-  let p = Process.Start(ps)
-  
+  let p = Process.Start(ps)  
   System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite)
 )
 

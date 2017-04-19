@@ -1,0 +1,243 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+  <meta name=viewport content="width=device-width, initial-scale=1">
+  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet"
+    integrity="sha384-T8Gy5hrqNKT+hzMclPo118YTQO6cYprQmhrYwIiQ/3axmI1hQomh7Ud2hPOy8SP1" crossorigin="anonymous">
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" 
+    integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+  <meta name="theme-color" content="#F4C300">    
+
+  <link href="/lib/thegamma/thegamma.css" rel="stylesheet">
+  <link href="/lib/custom.css" rel="stylesheet">
+  <title>The Gamma: ECOOP 2017 Paper Artifact</title>
+</head>
+<body>
+<div id="sizer"></div>
+<article>
+  <div class="container">
+    <div class="row">
+    <div class="col-sm-12">
+      <a href="/"><h1><span><strong>The Gamma</strong>: ECOOP 2017 Paper Artifact</span></h1></a>
+    </div>
+    </div>
+    <div class="row">
+    <div class="col-md-8 col-sm-12">
+      <p>This is a minimal sample page that demonstrates the pivot type provider from
+        <a href="https://thegamma.net">The Gamma</a> project, which was presented in the
+        <a href="http://tomasp.net/academic/papers/pivot/">Data exploration through dot-driven development</a>
+        paper at ECOOP 2017. This page lets you explore and modify a number of sample snippets
+        written using the pivot type provider. The language that hosts the pivot type provider is a simple
+        object-based language with support for the type provider mechanism. The source code 
+        behind the project is available under the MIT License and can be found on The Gamma 
+        <a href="https://github.com/the-gamma">Github repository</a>.          
+       </p>        
+    </div>
+    </div>
+
+    <div class="row">
+    <div class="col-md-8 col-sm-12 rowspace">
+      <a class="nolink"><h2><span>Top medalists from Rio 2016</span></h2></a>
+      <p>The following snippet is used as a motivating example in the first
+        section of the paper. It groups medals from Rio 2016 by athlete 
+        and counts the total number of gold medals per individual athlete.
+        In the following longer demo, we also invoke <a href="https://developers.google.com/chart/">Google Charts</a>
+        to display the results as a column chart.
+      </p>
+    </div>
+    </div>
+    <div class="row">
+    <div class="col-sm-12 thegamma">
+      <div id="out1" class="output">
+        <div class="placeholder">
+          Loading the visualization...
+        </div>
+      </div>
+    </div>
+    </div>  
+    <div class="row">
+    <div class="col-md-8 col-sm-12 rowspace">
+      <pre id="demo1">let data =
+  olympics
+    .'filter data'.'Games is'.'Rio (2016)'.then
+    .'group data'.'by Athlete'.'sum Gold'.then
+    .'sort data'.'by Gold descending'.then
+    .paging.take(8)
+    .'get series'.'with key Athlete'.'and value Gold'
+
+chart.column(data).legend(position="none")
+  .set(fontName="Roboto", fontSize=12, colors=["#F4C300"],
+    title="Top medalists (by number of gold medals) at Rio 2016")</pre>
+      <button class="btn btn-success" id="editbtn1">Edit source code</button>
+    </div>
+    </div>
+    
+    <div class="row">
+    <div class="col-md-8 col-sm-12 rowspace">
+      <a class="nolink"><h2><span>All time medalists table</span></h2></a>
+      <p>The following snippet is shown in Figure 13 in the paper. It creates
+        a table of top medallists sorted by the number of gold, bronze and silver
+        medals. The example then takes the first 10 athletes and invokes an
+        external JavaScript library to create a table.
+      </p>
+    </div>
+    </div>
+    <div class="row">
+    <div class="col-sm-12 thegamma">
+      <div id="out2" class="output">
+        <div class="placeholder">
+          Loading the visualization...
+        </div>
+      </div>
+    </div>
+    </div>  
+    <div class="row">
+    <div class="col-md-8 col-sm-12 rowspace">
+      <pre id="demo2">let data =
+  olympics
+    .'group data'.'by Athlete'
+      .'sum Gold'.'sum Silver'.'sum Bronze'
+      .'concatenate values of Team'.then
+    .'sort data'
+      .'by Gold descending'.'and by Silver descending'
+      .'and by Bronze descending'.then
+    .paging
+      .take(10)
+    .'get the data'
+
+table.create(data)</pre>
+      <button class="btn btn-success" id="editbtn2">Edit source code</button>
+    </div>
+    </div>
+
+    <div class="row">
+    <div class="col-md-8 col-sm-12 rowspace">
+      <a class="nolink"><h2><span>Timeline of teams in Olympics</span></h2></a>
+      <p>As an additional example of the pivot type provider, the following snippet
+        builds a chart that shows how the number of distinct teams competing in
+        Olympic games has been changing over the last 100 years. The snippet follows
+        previous examples - it groups the data before sorting it and obtaining the
+        resulting data series.        
+      </p>
+    </div>
+    </div>
+    <div class="row">
+    <div class="col-sm-12 thegamma">
+      <div id="out3" class="output">
+        <div class="placeholder">
+          Loading the visualization...
+        </div>
+      </div>
+    </div>
+    </div>  
+    <div class="row">
+    <div class="col-md-8 col-sm-12 rowspace">
+      <pre id="demo3">let data =
+  olympics
+    .'group data'.'by Games'.'count distinct Team'.'average Year'.then
+    .'sort data'.'by Year'.then
+    .'get series'.'with key Year'.'and value Team'
+
+chart.area(data).legend(position="none")
+  .set(fontName="Roboto", fontSize=12, colors=["#F4C300"],
+    title="Growing number of countries competing in Olympic games")</pre>
+      <button class="btn btn-success" id="editbtn3">Edit source code</button>
+    </div>
+    </div>
+    
+  </div>
+</article>
+            
+  <div class="modal fade" id="editor" tabindex="-1" role="dialog">
+    <div class="modal-dialog" style="width:80vw; max-width:1000px">
+      <div class="modal-content" style="height:90vh">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+          <h4 class="modal-title">Editor</h4>
+        </div>
+        <div class="modal-body thegamma">
+          <div id="ed1"></div>
+          <div id="ed1-errors" class="errors2"></div>
+          <button class="btn btn-success" id="okbtn">Update page</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.6.15/browser-polyfill.min.js"></script>
+  <script src="https://code.jquery.com/jquery-2.1.4.js" 
+    integrity="sha256-siFczlgw4jULnUICcdm9gjQPZkw/YPDqhQ9+nAOScE4=" crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"
+    integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>  
+  <script src="lib/thegamma/babel.min.js"></script>
+  <script src="lib/thegamma/require.js"></script>
+  <script>
+    require.config({
+      paths:{'vs':'lib/thegamma/vs'},
+      map:{ "*":{"monaco":"vs/editor/editor.main"}}
+    });
+    require(["vs/editor/editor.main", "lib/thegamma/thegamma.js"], function (_, g) {      
+      // Configure type providers available in The Gamma
+      var services = window.location.origin;      
+      var providers = 
+        g.providers.createProviders({ 
+          "libraries": g.providers.library("lib/thegamma/libraries.json"),
+          "olympics": g.providers.pivot(services + "/olympics") });
+          
+      // Create context which is used to create editor & run code
+      // When errors are reported, display the errors in modal dialog (while editting)
+      var ctx = g.gamma.createContext(providers);
+      ctx.errorsReported(function (errs) { 
+        var lis = errs.slice(0, 5).map(function (e) { 
+          return $("<li>")
+            .append($("<span class='err'>error " + e.number + "<span>"))
+            .append($("<span class='loc'>at line " + e.startLine + " col " + e.startColumn + "</span>"))
+            .append(": " + e.message);          
+        });        
+        var ul = $("<ul>").append(lis);
+        $("#ed1-errors").empty().append(ul);
+      });
+
+      // We create editor lazily when the "Edit source code" button is clicked the first time
+      var editor = null;
+      var okbtn = document.getElementById("okbtn");
+      
+      // Options passed to the editor - specify size & configuration function
+      // that sets properties directly for the Monaco editor
+      var opts =
+        { height: document.getElementById("sizer").clientHeight - 150,
+          width: document.getElementById("sizer").clientWidth - 40,
+          monacoOptions: function(m) {
+            m.fontFamily = "Inconsolata";
+            m.fontSize = 15;
+            m.lineHeight = 20;
+            m.lineNumbers = false;
+          } };
+      
+      for(var i=1; i<=3; i++) (function(index) {
+        // Get sample code and run it; use the '#out1' element for outputs
+        var code = document.getElementById("demo" + index).innerHTML;
+        ctx.evaluate(code, "out" + index);
+        var editbtn = document.getElementById("editbtn" + index);
+        
+        // Create editor if it is not created yet
+        editbtn.onclick = function() {
+          $('#editor').modal();
+          if (!editor) editor = ctx.createEditor("ed1", code, opts);
+          editor.setValue(code);
+          okbtn.onclick = function() { 
+            $('#editor').modal('hide');
+            code = editor.getValue();
+            var code = document.getElementById("demo" + index).innerHTML = code;
+            ctx.evaluate(code, "out" + index);
+          };
+        };
+      })(i);
+    });
+  </script>
+
+  <!-- More fancy libraries -->
+  <script type="text/javascript" src="//www.google.com/jsapi"></script>
+</body>
+</html>

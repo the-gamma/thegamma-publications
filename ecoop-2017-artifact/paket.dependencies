@@ -1,0 +1,5 @@
+framework: >= net40
+source https://nuget.org/api/v2
+
+nuget Suave
+nuget FSharp.Data
