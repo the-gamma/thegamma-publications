@@ -1,0 +1,21 @@
+\RequirePackage{ifxetex,ifluatex,ifthen}
+\IfFileExists{latexrelease.sty}%
+   {\RequirePackage[latest]{latexrelease}}%
+   {\RequirePackage{fixltx2e}}%
+
+\ifthenelse{\boolean{xetex}\OR\boolean{luatex}}{}%
+  {\IfFileExists{inputenx.sty}%
+     {\RequirePackage[utf8]{inputenx}
+       \input{ix-utf8enc.dfu}}%
+     {\RequirePackage[utf8]{inputenc}}
+%   \RequirePackage{alphabeta}
+   \input glyphtounicode
+   \pdfgentounicode=1}
+\RequirePackage{textcomp,url}
+
+\RequirePackage{babel,csquotes}
+\urlstyle{sf}
+\AtEndPreamble{\RequirePackage{hyperref}}
+%%% Local Variables:
+%%% mode: latex
+%%% End:
