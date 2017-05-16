@@ -113,9 +113,8 @@ understand in order to write scripts for exploring data.
 
 The rise of big data and open data initiatives means that there is an increasing amount of raw data 
 available. At the same time, the fact that ``post-truth'' was chosen as the word of 2016 \cite{posttruth} 
-suggests that there has never been a greater need for increasing data literacy and building tools that let 
-anyone -- including journalists and interested citizens -- explore such data and use it to make
-transparent factual claims.
+suggests that there has never been a greater need for increasing data literacy and tools that let 
+anyone explore such data and use it to make transparent factual claims.
 
 Spreadsheets made data exploration accessible to a large number of people, but operations 
 performed on spreadsheets cannot be reproduced or replicated with different input parameters.
@@ -473,9 +472,9 @@ transformations as well as possible values of parameters. This is illustrated in
 where the user wants to obtain medals of a specific athlete and is offered a list of possible 
 names. The editor filters the list as the user starts typing the required name. 
 
-In Figure~\ref{fig:pivot-members}, we list a subset of the provided members that were used in the
+Figure~\ref{fig:pivot-members} lists a subset of the members from the
 example in Section~\ref{sec:intro}. After choosing \qident{sort data}, the user is offered 
-the possible sorting keys and directions. After choosing \qident{group data}, the user first 
+the possible sorting keys. After choosing \qident{group data}, the user first 
 selects the grouping key and then can choose one or more aggregations that can be applied on
 other columns of the group. Thus an entire data transformation (such as choosing top 8 athletes
 by the number of gold medals) can be constructed using dot-driven development.
@@ -487,9 +486,11 @@ distinction between values and types. In the example in Section~\ref{sec:intro},
 when using the pivot type provider. This is a recurring theme in type provider development\footnote{The
 \ident{Individuals} property in the Freebase type provider \cite{inforich} imports values into types in a similar way.}.
 
-Our language supports method calls such as $\ident{head}(\num{8})$ and an alternative design for
-filtering would be to provide a method such as $\qident{Games is}(\str{Rio (2016)})$. However,
-the fact that we can offer possible values largely simplifies writing of the script for the most 
+
+Our language supports method calls and so some of the opertaions that are currently exposed as
+member access could equally be provided as methods. For example, filtering could be written as 
+$\qident{Games is}(\str{Rio (2016)})$. However, the fact that we can offer possible values when
+filtering largely simplifies writing of the script for the most 
 common case when the user is interested in one of the known values.
 
 Unlike in traditional development, a data scientist doing data exploration often has the entire 
@@ -525,8 +526,8 @@ aggregations and then sorts data by multiple keys:
 \end{equation*}
 
 \noindent
-When grouping, we sum the number of gold and silver medals and concatenates team names~\ball{1}. 
-Then we sort the grouped data using multiple sorting keys \ball{2} -- first by the number of gold 
+When grouping, we sum the number of gold and silver medals and concatenates distinct team names~\ball{1}. 
+Then we sort the grouped data using two sorting keys \ball{2} -- first by the number of gold 
 medals and then silver medals (within a group with the same number of gold medals). 
 
 \subparagraph{The ``then'' pattern.}
@@ -549,7 +550,7 @@ aggregation. In the above example \ball{1}, the resulting data set will have col
 (the grouping key) together with Gold, Silver and Team (based on the aggregated columns).
 The user cannot currently rename the columns.
 
-In type providers for F\#, this could be done using methods with static parameters \cite{staticpar} by writing, 
+In type providers for F\#, renaming of columns could be encoded using methods with static parameters \cite{staticpar} by writing, 
 for example, $\ident{g}.\qident{sum Gold as}\langl\str{Total Gold}\rangl()$. In F\#, the value of 
 the static parameter (here, \str{Total Gold}) is passed to the type provider, which can use it to
 generate the type signature of the method and the return type with member name according to the
@@ -591,6 +592,8 @@ can drop \ident{Games} and \ident{Year} columns as follows:
 
 \noindent
 Operations that change the type of rows in the data set can be captured using row types~\cite{rowtypes}. 
+Row types make it possible to statically track operations on records that add or remove fields
+and so they can be used for the typing of operations such as $\qident{drop Year}$.
 In addition, we need to annotate type with a form of typestate \cite{typestate} to restrict what operations are available. 
 When dropping columns, we first access the \qident{drop columns} member, which sets the state to
 a state where we can drop individual columns using \qident{drop $f$}. The \ident{then} member can 
@@ -833,14 +836,14 @@ $\Sigma$ sums numerical values and $\Pi$ (a slight notation abuse) concatenates 
  m &=& \kvd{member}~N:\tau= e
 \end{array}
 \end{equation*}
-\vspace{-1.5em}
+\vspace{-1.85em}
 
 \[
 \inference[(\emph{member})~]
 { L(C) = (\kvd{type}~C(x:\tau)= \ldots~\kvd{member}~N_i : \tau_i = e_i~\ldots), L'}
 { (C(v)).N_i \leadsto_L e_i[x \leftarrow v] }\\
 \]
-\vspace{-3em}
+\vspace{-3.15em}
 
 \[
 \inference[(\emph{context})~]
@@ -866,7 +869,7 @@ The Foo calculus includes two special types. \ident{Query} is a type of data and
 constructed using the relational algebra. The type $\ident{series}\langl \tau_1, \tau_2 \rangl$ 
 models a type-safe data series mapping keys of type $\tau_1$ to values of type $\tau_2$ that
 can be used, for example, as input for a charting library. A series is a typed wrapper over a 
-\indet{Query} value and the proofs in Section~\ref{sec:pivot-prop} show that a series obtained 
+\ident{Query} value and the proofs in Section~\ref{sec:pivot-prop} show that a series obtained 
 from the pivot type provider contains keys and values of matching~types.
 
 \subparagraph{Reduction rules.} The reduction relation $\leadsto_L$ is parameterized by a function
@@ -894,9 +897,9 @@ Consider:
 The type checker initially knows the type of $\ident{olympics}$ is a class $C_1$ with member 
 $\qident{group data}$ and it knows that the type of this member is $C_2$. However, it only needs to 
 obtain full definition of $C_2$ when checking the member $\qident{by Athlete}$. Types of other 
-members of $C_1$ remain unevaluated when they do not appear in the source code. This aspect of type
+members of $C_1$ remain unevaluated. This aspect of type
 providers have been omitted in previous work \cite{fsdata,liteq}, but it is necessary for the pivot type provider.
-The typing rules given are written using the following judgement:
+The typing rules given are written as:
 %
 \begin{equation*}
 L_1; \Gamma \vdash e : \tau; L_2
@@ -934,7 +937,7 @@ of the member is well-typed.
 % --------------------------------------------------------------------------------------------------
 
 \begin{figure}[t]
-\vspace{-1.5em}
+\vspace{-0.5em}
 \[
 \inference[(\emph{num})~]{}{L; \Gamma \vdash n : \kvd{num}; L }
 \quad
@@ -942,14 +945,14 @@ of the member is well-typed.
 \quad
 \inference[(\emph{var})~]{}{L; \Gamma, x:\tau\vdash x:\tau; L}
 \]
-\vspace{-2.25em}
+\vspace{-1.75em}
 
 \[
 \inference[(\emph{data})~]
   {L; \Gamma \vdash v_{i,j} : \tau;L \quad \tau \in \{ \kvd{num}, \kvd{string} \}}
   {L; \Gamma \vdash \{f_1\mapsto \vect{v_{1,1},\ldots,v_{1,r}}, \ldots, f_n\mapsto \vect{v_{n,1},\ldots,v_{n,r}}\} : \ident{Query};L }
 \]
-\vspace{-2.25em}
+\vspace{-1.75em}
 
 \[
 \inference[(\emph{proj})~]
@@ -969,21 +972,21 @@ of the member is well-typed.
   {L_1; \Gamma\vdash e : \ident{Query}; L_2}
   {L_1; \Gamma\vdash \Phi_{f, \rho_1/f_1, \ldots, \rho_n/f_n}(e): \ident{Query}; L_2}
 \]
-\vspace{-2.25em}
+\vspace{-1.75em}
 
 \[
 \inference[(\emph{series})~]
   {L_1; \Gamma\vdash e : \ident{Query}; L_2}
   {L_1; \Gamma\vdash \ident{series}\langl \tau_1, \tau_2 \rangl(e) : \ident{series}\langl \tau_1, \tau_2 \rangl; L_2}
 \]
-\vspace{-2.25em}
+\vspace{-1.75em}
 
 \[
 \inference[(\emph{new})~]
   {L_1; \Gamma \vdash e : \tau, L_2 & L_2(C) = (\kvd{type}~C(x:\tau) = \ldots),L}
   {L_1; \Gamma \vdash C(e) : C; L_2 \cup L}
 \]
-\vspace{-2.25em}
+\vspace{-1.75em}
 
 \[
 \inference[(\emph{member})~]
@@ -993,7 +996,6 @@ of the member is well-typed.
 \]
 \vspace{-0.5em}
 \caption{Type-checking of Foo expressions with lazy context}
-\vspace{-0.5em}
 \label{fig:foo-typecheck}
 \end{figure}
 
@@ -1100,19 +1102,18 @@ that series obtained from the pivot type provider is constructed correctly.
 % --------------------------------------------------------------------------------------------------
 
 \begin{figure}
-\vspace{-1em}
 \begin{equation*}
 \begin{array}{ll}
 \ident{drop}(F) = C, \{ C \mapsto (l, L' \cup \bigcup L_f) \}\qquad\ball{1}\\[0.5em]
 ~ l = \kvd{type}~C(x:\ident{Query}) = &\forall f \in \dom(F)~\textnormal{where}~C_f, L_f = \ident{drop}(F')\\
 \quad \qquad \kvd{member}~\qident{drop $f$} : C_f = C_f(\Pi_{\ident{dom}(F')}(x)) & \quad\textnormal{and}~ F' = \{ f'\mapsto\tau'\in F, f' \neq f\}\\
 \quad \qquad \kvd{member}~\ident{then} : C' = C'(x)\qquad\ball{2}                 &\textnormal{where}~C', L' = \ident{pivot}(F)\\
-\\
+\\[0.5em]
 \ident{sort}(F) = C, \{ C \mapsto (l, \bigcup L_f \cup \bigcup L'_f) \}\qquad\ball{3}\\[0.25em]
 ~ l = \kvd{type}~C(x:\ident{Query}) = &\forall f\in\{f~|~F(f)=\kvd{num} \},~\textnormal{where} \\
 \quad \qquad \kvd{member}~\qident{by $f$ descending} : C_f = C_f(x) &\quad C_f, L_f = \ident{sort-and}(F, \vect{f \mapsto \ident{desc}})\\
 \quad \qquad \kvd{member}~\qident{by $f$ ascending} : C'_f = C'_f(x) &\quad C'_f, L'_f = \ident{sort-and}(F, \vect{f \mapsto \ident{asc}})\\
-\\[0.5em]
+\\[1em]
 \multicolumn{2}{l}{ \ident{sort-and}(F,\vect{s_1,\ldots,s_n}) = C, \{ C \mapsto (l, \bigcup L_f \cup \bigcup L'_f \cup L') \}\qquad\ball{4} }\\[0.25em]
 ~ l = \kvd{type}~C(x:\ident{Query}) = &\hspace{-1em}\forall f\in\{f~|~F(f)=\kvd{num}, \,\nexists i.s_i=f'\mapsto\omega\wedge f'=f\}\\
 \quad \qquad \kvd{member}~\qident{and $f$ descending} : C_f = C_f(x) &\quad C_f, L_f = \ident{sort-and}(F, \vect{s_1,..,s_n, f \mapsto \ident{desc}})\\
@@ -1154,7 +1155,7 @@ keys $\nexists i.\,s_i = f'\mapsto\omega$).
 \ident{group}(F) = C, \{ C\mapsto (l, \bigcup L_f) \}\quad\ball{1} \\[0.25em]
 ~ l = \kvd{type}~C(x:\ident{Query}) = &\forall f\in\dom(F)~\textnormal{where} \\
 \quad \qquad \kvd{member}~\qident{by $f$} : C_f = C_f(x) &\quad C_f, L_f = \ident{agg}(F, f, \{ f \mapsto F(f) \}, \emptyset)~~\ball{2}\\
-\\
+\\[0.5em]
 \multicolumn{2}{l}{ \ident{agg}(F,f,G,S) = C, \{C\mapsto (l, \bigcup L_f \cup \bigcup L'_f \cup\bigcup L''_f\cup L'\cup L'') \}\quad\ball{3}}\\[0.25em]
 ~ l = \kvd{type}~C(x:\ident{Query}) = &\forall f\in\dom(F)\setminus\dom(S)\\
 \quad \qquad \kvd{member}~\qident{sum $f$} : C'_f = C'_f(x) & \quad \textnormal{when}~F(f)=\kvd{num}\quad\ball{4} \\
@@ -1202,6 +1203,8 @@ the expressivity, but it simplifies the programming model. Furthermore, \qident{
 is only provided for columns of type \kvd{num} and \qident{concat $f$} \ball{5} is only provided 
 for strings. Finally, the \qident{count all} aggregation \ball{6} is not related to a specific 
 field and is exposed once, adding a column \ident{Count} to the schema of the resulting data set.
+
+\newpage
 
 % --------------------------------------------------------------------------------------------------
 
@@ -1358,6 +1361,7 @@ a data set containing the required columns of corresponding types.
 % --------------------------------------------------------------------------------------------------
 
 \begin{figure}[t]
+\vspace{-1em}
 \begin{equation*}
 \begin{array}{ll}
   \ident{pivot}(F, D) = C, \{ C \mapsto (l, L_1 \cup L_2 \cup \ldots  \}\quad \ball{1}\\[0.5em]
@@ -1445,7 +1449,6 @@ names of Mongolian athletes.
  
 \begin{figure}
 \begin{equation*}
-\hspace{-1em}
 \begin{array}{l}
 \ident{olympics}.\qident{filter data}.\qident{Medal is}.\ident{Gold}.\qident{Team is}\\[0.25em]
 \quad\begin{array}{l}
@@ -1469,8 +1472,9 @@ names of Mongolian athletes.
 % ==================================================================================================
 
 \begin{figure}[b]
+\vspace{1em}
 \begin{center}
-\includegraphics[scale=0.30,trim=0mm 0mm 0mm 0mm,clip]{images/table.png} % left bottom right top
+\includegraphics[scale=0.42,trim=0mm 0mm 0mm 0mm,clip]{images/table2.png} % left bottom right top
 \end{center}
 \caption{Athletes by the number of medals over the entire history of Olympic games}
 \label{fig:case-table}
@@ -1540,8 +1544,8 @@ automatically generate user interface that allows changing of some of the parame
 Figure~\ref{fig:case-opts} shows an example for the above code snippet that we implemented as 
 part of the visualization. 
 
-The user interface lets the user choose aggregations to be calculate over a group and select 
-columns used for sorting. It is generated automatically by looking for specific pattern in the 
+The user interface lets the user choose aggregations to be calculated over a group and select 
+columns used for sorting. It is generated automatically by looking for a specific pattern in the 
 chain of member accesses -- we annotate members with annotations denoting whether a member is 
 start of a list, list item or an end of a list. The editor then looks for parts of the chain of the
 form $\qident{list start}.\qident{list item 1}.\qident{list item 2}.\qident{list end}$ and generates
@@ -1557,22 +1561,24 @@ shown in Figure~\ref{fig:case-opts} are provided as additional annotations attac
 The third editor extension that we developed for the pivot type provider aims to bridge the gap 
 between code and user interfaces. This is done through a direct manipulation editor \cite{directman} 
 inspired by spreadsheet applications. When exploring data in a spreadsheet, the user can always see the 
-data they work with and the results of an action will be immediately visible. When exploring data
-using the pivot type provider, the intermediate results can be calculated immediately using the 
-sample data set provided when instantiating the refined version of the type provider with filtering
-support (Section~\ref{sec:pivot-filter}). 
+data they work with and the results of an action will be immediately visible. This is not usually 
+the case when writing code in text editor. However, when exploring data using the pivot type 
+provider, the intermediate results can be calculated immediately using the sample data set provided 
+when instantiating the refined version of the type provider with filtering support (Section~\ref{sec:pivot-filter}). 
 
 The Figure~\ref{fig:case-ed} shows the sample expression (discussed above) in the live 
 editor\footnote{The live editor can be tested live as part of the documentation for the 
 JavaScript package at \url{thegamma.net}}.
 Note that the selected part of code is the \qident{by Gold descending} identifier and so the 
 preview shows results as computed at that point of the query evaluation. Athletes with largest number
-of gold medals appear first, but silver or bronze medals are not yet used as secondary sorting keys.
+of gold medals appear first, but silver or bronze medals are not yet used as secondary sorting keys
+and so the secondary ordering is arbitrary.
 As the user moves through the code, or writes the code, the live preview is updated accordingly.
 
 Finally, the editor also makes it possible to modify the code through the user interface. The
 ``x'' buttons can be used to remove sort keys or transformations and ``+'' buttons (on the right)
-can be used to add more transformations or parameters.
+can be used to add more transformations or to specify additional parameters within the ``then'' 
+pattern. In case of sorting, this allows adding further sorting keys.
 
 Unlike the user interface for modifying lists, the live editor works specifically with the pivot 
 type provider. However, it still relies on the simple structure provided by the fact that entire 
@@ -1583,11 +1589,13 @@ shown in Figure~\ref{fig:case-ed}, the user can add or remove sort keys. For gro
 or paging, the user interface lets the user choose the grouping key and the number of 
 elements to take, respectively.
 
+~
+
 % --------------------------------------------------------------------------------------------------
 
 \begin{figure}[t]
 \begin{center}
-\includegraphics[scale=0.31,trim=0mm 0mm 0mm 0mm,clip]{images/pivot.png} % left bottom right top
+\includegraphics[scale=0.35,trim=0mm 0mm 0mm 0mm,clip]{images/pivot.png} % left bottom right top
 \end{center}
 \caption{Spreadsheet-inspired live editor for the pivot type provider}
 \label{fig:case-ed}
@@ -1596,22 +1604,60 @@ elements to take, respectively.
 
 % ==================================================================================================
 
-\section{Discussion and related work}
+\section{Related and further work}
 
-Although the technical focus of this paper is on the programming language theory behind the pivot type
-provider (Section~\ref{sec:pivot}), the paper also outlines interesting human-computer interaction 
+The technical focus of this paper is on the programming language theory behind the pivot type
+provider (Section~\ref{sec:pivot}), but the paper also outlines interesting human-computer interaction 
 aspects (Section~\ref{sec:impl}). We discuss further related directions in this
-section before~concluding.
+section before concluding.
 
-\subsection{Related and further work}
+\subsection{Further  work}
 \label{sec:further}
 
+The pivot type provider shows the feasibility of using dot-driven development as a mechanism behind 
+simple programming tools for data exploration. Extending the mechanism to handle large and dirty 
+datasets poses a number of interesting challenges.
+
+\vspace{-0.25em}
+\subparagraph{Scalability.} A benefit of our approach based on relational algebra, is that the 
+query constructed by the pivot type provider can be translated to SQL and executed by a database 
+engine. This means that evaluating the query over large data sets does not pose a problem. However,
+the completion lists generated from data when filtering may require further consideration.
+
+We plan to explore a number of possibilities such as grouping the values by a prefix (e.g.
+\qident{starting with LO}.\ident{London} and \qident{starting with CA}.\ident{Cambridge})
+or grouping the values by their frequency (for example, \qident{occurring less than 100 
+times}.\ident{Grantchester} and \qident{occurring more than 10000 times}.\ident{London}). 
+Such encoding makes it possible to scale to an arbitrary data size, provided that the backing 
+data storage is equipped with an appropriate index.
+
+\vspace{-0.25em}
+\subparagraph{Expressivity.} 
+The case studies presented in the paper show that the pivot type provider is practically useful in 
+its current form, but we acknowledge that its expressivity is limited to simple queries.
+Making the tool more expressive to allow tasks such as denormalisation, handling of missing values 
+and dirty data is an important problem. 
+Unlike data querying (which is captured by the relational algebra), there is no generally accepted 
+``algebra of data cleaning'' and so more foundational work is needed, possibly building on 
+from tools such as Wrangler \cite{wrangler} and PADS \cite{pads}. We believe that the 
+``dot-driven development'' methodology can support richer languages and we intend to explore this
+direction in the future.
+
+\subsection{Related work}
+\label{sec:further}
+
+Our work builds on type providers, which have been pioneered in F\# \cite{inforich}.
+The technical contributions are related to several works on type systems. This section
+also gives an  overview of related work on human-computer interaction and commercial tools
+for data visualization.
+
 \subparagraph{Type providers.}
-Type providers have been pioneered in F\# \cite{inforich}. They can be seen as a form of dependent 
+Type providers first appeared in F\# \cite{inforich} and can also be seen as a form of dependent 
 typing \cite{idris-tp}; we take the opposite perspective and use type providers as a mechanism for 
 implementing other type system features. Our focus on using type providers for describing 
 computations is different from other type provider work \cite{fsdata,liteq,ageweb}, which focuses 
-on mapping of external data into types.
+on mapping of external data into types. To our best knowledge, the Azure type provider \cite{azureprov} 
+is the first type provider that provides members for specifying a restricted form of queries.
 
 \subparagraph{Fancy types.}
 The pivot type provider makes data exploration safer as it does not allow construction of invalid
@@ -1630,6 +1676,7 @@ actually transforming data, which makes it more related to systems for query con
 \cite{spreadsheetalgebra,querydirect}. Our approach is somewhat different in that we see code 
 as equally important to the direct manipulation interface.
 
+\vspace{-0.25em}
 \subparagraph{Relational algebra.}
 Our operational semantics used to model data transformations (Section~\ref{sec:foo}) was based on 
 relational algebra \cite{relalg,dbsys}, although our focus was on aggregation, which has been 
@@ -1638,9 +1685,19 @@ The pivot type provider does not provide operations for joining data sets, which
 problem for further work as it requires extensions to the type provider mechanism -- the join
 operation is parameterized by two data sets that are being combined.
 
-\subsection{Conclusions}
+\vspace{-0.25em}
+\subparagraph{Commercial tools.}
+There is a wide range of commercial tools for building dashboards and data visualizations such as
+Microsoft Power BI \cite{powerbi}, Tableau \cite{tableau} and Qlik \cite{qlik}. Those allow users
+to build data visualizations through a user interface and embedded scripting capabilities. 
+The main difference from the pivot type provider is that none of these tools treats source code
+as primary and so they do not provide the same level of reproducibility as scripts written using
+the pivot type provider.
+
+
+\section{Conclusions}
 In this paper, we presented a simple programming language for data exploration. The language 
-addresses two problems with the current tooling for data science. One one hand, spreadsheets are 
+addresses two problems with the current tooling for data science. On one hand, spreadsheets are 
 easy to use, but are error-prone and do not lead to reproducible scripts that could be modified
 or checked for correctness. On the other hand, even simple data exploration libraries require 
 the user to understand non-trivial programming concepts and offer only little help when writing 
@@ -1662,6 +1719,13 @@ type system features such as typestate and row types.
 We believe that the simple programming model for data exploration presented in this paper can
 contribute to democratization of data exploration -- you should not need to be an experienced 
 programmer to build a transparent visualization using facts that matter to you!
+
+\vspace{-0.25em}
+\subparagraph{Acknowledgements.}
+The author is grateful to Don Syme for numerous discussions about type providers, James
+Geddes and Kenji Takeda for suggestions and useful references and to Mariana Marasoiu and
+Alan Blackwell for ideas on human-computer interaction aspects of the work. Finally, thanks
+to the anonymous reviewers for useful suggestions and corrections.
 
 \bibliography{paper}
 
