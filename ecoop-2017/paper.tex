@@ -1111,14 +1111,14 @@ that series obtained from the pivot type provider is constructed correctly.
 \\[0.5em]
 \ident{sort}(F) = C, \{ C \mapsto (l, \bigcup L_f \cup \bigcup L'_f) \}\qquad\ball{3}\\[0.25em]
 ~ l = \kvd{type}~C(x:\ident{Query}) = &\forall f\in\{f~|~F(f)=\kvd{num} \},~\textnormal{where} \\
-\quad \qquad \kvd{member}~\qident{by $f$ descending} : C_f = C_f(x) &\quad C_f, L_f = \ident{sort-and}(F, \vect{f \mapsto \ident{desc}})\\
-\quad \qquad \kvd{member}~\qident{by $f$ ascending} : C'_f = C'_f(x) &\quad C'_f, L'_f = \ident{sort-and}(F, \vect{f \mapsto \ident{asc}})\\
+\quad \qquad \kvd{member}~\qident{by $f$ desc} : C_f = C_f(x) &\quad C_f, L_f = \ident{sort-and}(F, \vect{f \mapsto \ident{desc}})\\
+\quad \qquad \kvd{member}~\qident{by $f$ asc} : C'_f = C'_f(x) &\quad C'_f, L'_f = \ident{sort-and}(F, \vect{f \mapsto \ident{asc}})\\
 \\[1em]
 \multicolumn{2}{l}{ \ident{sort-and}(F,\vect{s_1,\ldots,s_n}) = C, \{ C \mapsto (l, \bigcup L_f \cup \bigcup L'_f \cup L') \}\qquad\ball{4} }\\[0.25em]
-~ l = \kvd{type}~C(x:\ident{Query}) = &\hspace{-1em}\forall f\in\{f~|~F(f)=\kvd{num}, \,\nexists i.s_i=f'\mapsto\omega\wedge f'=f\}\\
-\quad \qquad \kvd{member}~\qident{and $f$ descending} : C_f = C_f(x) &\quad C_f, L_f = \ident{sort-and}(F, \vect{s_1,..,s_n, f \mapsto \ident{desc}})\\
-\quad \qquad \kvd{member}~\qident{and $f$ ascending} : C'_f = C'_f(x) &\quad C'_f, L'_f = \ident{sort-and}(F, \vect{s_1,..,s_n, f \mapsto \ident{asc}})\\
-\quad \qquad \kvd{member}~\ident{then} : C' = C'(\tau_{s_1,\ldots,s_n}(x))\quad~~\ball{5}           &\textnormal{where}~C', L' = \ident{pivot}(F)\\
+~ l = \kvd{type}~C(x:\ident{Query}) = &\hspace{-4em}\forall f\in\{f~|~F(f)=\kvd{num}, \,\nexists i.s_i=f'\mapsto\omega\wedge f'=f\}\\
+\quad \qquad \kvd{member}~\qident{$f$ desc} : C_f = C_f(x) &\hspace{-2em} C_f, L_f = \ident{sort-and}(F, \vect{s_1,..,s_n, f \mapsto \ident{desc}})\\
+\quad \qquad \kvd{member}~\qident{$f$ asc} : C'_f = C'_f(x) &\hspace{-2em} C'_f, L'_f = \ident{sort-and}(F, \vect{s_1,..,s_n, f \mapsto \ident{asc}})\\
+\quad \qquad \kvd{member}~\ident{then} : C' = C'(\tau_{s_1,\ldots,s_n}(x))  &\hspace{-2em}\textnormal{where}~C', L' = \ident{pivot}(F)\qquad ~~\ball{5}\\
 \end{array}
 \end{equation*}
 
@@ -1139,7 +1139,11 @@ using $\Pi_{\dom(F')}$.
 
 Types for defining the sorting transformation are split between two functions; \ident{sort}~\ball{3} 
 generates type for choosing the first sorting key and \ident{sort-and}~\ball{4} lets the user add more
-keys. The members are restricted to numerical columns (by checking $F(f)=\kvd{num}$).
+keys. For space reasons, we abbreviate \ident{ascending} and \ident{descending} as \ident{asc} and
+\ident{desc} in the generated member names and we omit \ident{and} in name of further keys such as 
+\qident{and Gold descending}.
+
+The members are restricted to numerical columns (by checking $F(f)=\kvd{num}$).
 The sort keys are kept as a vector. The \ident{sort} operation creates a singleton vector;
 \ident{sort-and} appends a new key to the end and the \ident{then} member \ball{5} generates code 
 that passes the collected sort keys to the $\tau$ operation of the relational algebra.
@@ -1151,10 +1155,11 @@ keys $\nexists i.\,s_i = f'\mapsto\omega$).
 
 \begin{figure}
 \begin{equation*}
+\hspace{-1.5em}
 \begin{array}{ll}
 \ident{group}(F) = C, \{ C\mapsto (l, \bigcup L_f) \}\quad\ball{1} \\[0.25em]
-~ l = \kvd{type}~C(x:\ident{Query}) = &\forall f\in\dom(F)~\textnormal{where} \\
-\quad \qquad \kvd{member}~\qident{by $f$} : C_f = C_f(x) &\quad C_f, L_f = \ident{agg}(F, f, \{ f \mapsto F(f) \}, \emptyset)~~\ball{2}\\
+~ l = \kvd{type}~C(x:\ident{Query}) = &\hspace{-2.5em}\forall f\in\dom(F)~\textnormal{where} \\
+\quad \qquad \kvd{member}~\qident{by $f$} : C_f = C_f(x) &\hspace{-2.5em}\quad C_f, L_f = \ident{agg}(F, f, \{ f \mapsto F(f) \}, \emptyset)~~\ball{2}\\
 \\[0.5em]
 \multicolumn{2}{l}{ \ident{agg}(F,f,G,S) = C, \{C\mapsto (l, \bigcup L_f \cup \bigcup L'_f \cup\bigcup L''_f\cup L'\cup L'') \}\quad\ball{3}}\\[0.25em]
 ~ l = \kvd{type}~C(x:\ident{Query}) = &\forall f\in\dom(F)\setminus\dom(S)\\
@@ -1279,7 +1284,7 @@ we first define an expansion operation $\downarrow_n L$ that evaluates the first
 nested context $L$ and flattens it.
 
 \begin{definition}[Expansion]
-\label{thm:pivot-well}
+\label{thm:pivot-expand}
 Given a context $L$, we define $n^{\textnormal{th}}$ expansion of $L$, written 
 $\downarrow_n L$ such that
 $\downarrow_{n+1} L = \downarrow_{n} L \cup \bigcup L_n$ where $\downarrow_{n} L = \{ C_0\mapsto(l_0, L_0),\ldots,C_n\mapsto(l_n, L_n) \}$
@@ -1644,7 +1649,7 @@ from tools such as Wrangler \cite{wrangler} and PADS \cite{pads}. We believe tha
 direction in the future.
 
 \subsection{Related work}
-\label{sec:further}
+\label{sec:related}
 
 Our work builds on type providers, which have been pioneered in F\# \cite{inforich}.
 The technical contributions are related to several works on type systems. This section
