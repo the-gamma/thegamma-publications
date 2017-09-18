@@ -140,6 +140,7 @@ but for R or Python.
 % ==================================================================================================
 
 \section{Formalising live coding environment}
+\label{sec:formal}
 
 In this section, we present a formalisation of a live coding environment for a small,
 expression-based programming language that supports \kvd{let} binding, member invocations
@@ -213,6 +214,7 @@ friendly fucntions in Section~Y.
 % --------------------------------------------------------------------------------------------------
 
 \subsection{Maintaining dependency graph}
+\label{sec:formal-deps}
 
 The key idea behind our implementation is to maintain a dependency graph with nodes 
 representing individual operations of the computation that can be partially evaluated
@@ -277,47 +279,50 @@ dependencies.
 % --------------------------------------------------------------------------------------------------
 
 \begin{figure*}[t]
+\vspace{-0.5em}
 \begin{equation*}
-\begin{array}{l}
-\ident{bind}_{\Gamma, \Delta}(e_0.m(e_1, \ldots, e_n)) = \\ 
+\begin{array}{ll}
+\ident{bind}_{\Gamma, \Delta}(e_0.m(e_1, \ldots, e_n)) = &(1)~~\\ 
 \qquad \bndclr{v}, (\{\bndclr{v}\} \cup V_0 \cup \ldots \cup V_n, E \cup E_0 \cup \ldots \cup E_n)\\
 \quad \textnormal{when}~\bndclr{v_i}, (V_i, E_i) = \ident{bind}_{\Gamma, \Delta}(e_i)\\
-\quad \textnormal{and}~(\bknd{mem}(m),[(\bndclr{v_0}, \blbl{arg}(0)), \ldots, (\bndclr{v_n}, \blbl{arg}(n))]) \notin \ident{dom}(\Delta)\\
+\quad \textnormal{and}~\bndclr{v} = \Delta(\bknd{mem}(m),[(\bndclr{v_0}, \blbl{arg}(0)), \ldots, (\bndclr{v_n}, \blbl{arg}(n))])\\
+\quad \textnormal{let}~E = \{ (\bndclr{v}, \bndclr{v_0}, \blbl{arg}(0)), \ldots, (\bndclr{v}, \bndclr{v_n}, \blbl{arg}(n))\}
+\\[0.75em]
+\ident{bind}_{\Gamma, \Delta}(e_0.m(e_1, \ldots, e_n)) = &(2)\\ 
+\qquad \bndclr{v}, (\{\bndclr{v}\} \cup V_0 \cup \ldots \cup V_n, E \cup E_0 \cup \ldots \cup E_n)\\
+\quad \textnormal{when}~\bndclr{v_i}, (V_i, E_i) = \ident{bind}_{\Gamma, \Delta}(e_i)\\
+\quad \textnormal{and}~(\bknd{mem}(m),[(\bndclr{v_0}, \blbl{arg}(0)), \ldots, (\bndclr{v_n}, \blbl{arg}(n))]) \notin \ident{dom}(\Delta)\hspace{-200em}.\\
 \quad \textnormal{let}~\bndclr{v} = \bnd{mem}(m, s), s~\textnormal{fresh}\\
 \quad \textnormal{let}~E = \{ (\bndclr{v}, \bndclr{v_0}, \blbl{arg}(0)), \ldots, (\bndclr{v},\bndclr{v_n}, \blbl{arg}(n)) \}
 \\[0.75em]
-\ident{bind}_{\Gamma, \Delta}(\lambda x \rightarrow e) = \bndclr{v}, (\{\bndclr{v}\} \cup V, \{e\} \cup E)\\
-\quad \textnormal{when}~\bndclr{v_0}, (V, E) = \ident{bind}_{\Gamma, \Delta}(e)\\
-\quad \textnormal{and}~\bndclr{v} = X(\bknd{fun}(x),[(\bndclr{v_0}, \blbl{body})])\\
-\quad \textnormal{let}~e = (\bndclr{v}, \bndclr{v_0}, \blbl{body}) 
-\\[0.75em]
-\ident{bind}_{\Gamma, \Delta}(n) = \bnd{val}(n), (\{ \bnd{val}(n) \}, \emptyset) }
-\\[0.5em]
-\ident{bind}_{\Gamma, \Delta}(x) = \bnd{var}(x), (\{ \bnd{var}(x) \}, \emptyset) }\quad \textnormal{when}~x \notin \ident{dom}(\Gamma)
-\\[0.5em]
-\ident{bind}_{\Gamma, \Delta}(x) = \bndclr{v}, (\{ \bndclr{v} \}, \emptyset)\quad \textnormal{when}~\bndclr{v} = \Gamma(x)
-\\[0.5em]
-\end{array}
-\begin{array}{l}
-\ident{bind}_{\Gamma, \Delta}(e_0.m(e_1, \ldots, e_n)) = \\ 
-\qquad \bndclr{v}, (\{\bndclr{v}\} \cup V_0 \cup \ldots \cup V_n, E \cup E_0 \cup \ldots \cup E_n)\\
-\quad \textnormal{when}~\bndclr{v_i}, (V_i, E_i) = \ident{bind}_{\Gamma, \Delta}(e_i)\\
-\quad \textnormal{and}~(\bknd{mem}(m),[(\bndclr{v_0}, \blbl{arg}(0)), \ldots, (\bndclr{v_n}, \blbl{arg}(n))]) \notin \ident{dom}(\Delta)\\
-\quad \textnormal{let}~\bndclr{v} = \bnd{mem}(m, s), s~\textnormal{fresh}\\
-\quad \textnormal{let}~E = \{ (\bndclr{v}, \bndclr{v_0}, \blbl{arg}(0)), \ldots, (\bndclr{v},\bndclr{v_n}, \blbl{arg}(n)) \}
-\\[0.75em]
-\ident{bind}_{\Gamma, \Delta}(\lambda x \rightarrow e) = \bndclr{v}, (\{\bndclr{v}\} \cup V, \{e\} \cup E)\\
-\quad \textnormal{when}~\bndclr{v_0}, (V, E) = \ident{bind}_{\Gamma, \Delta}(e)\\
-\quad \textnormal{and}~\bndclr{v} = X(\bknd{fun}(x),[(\bndclr{v_0}, \blbl{body})])\\
-\quad \textnormal{let}~e = (\bndclr{v}, \bndclr{v_0}, \blbl{body}) 
-\\[0.75em]
-\ident{bind}_{\Gamma, \Delta}(\kvd{let}~x=e_1~\kvd{in}~e_2) = \bndclr{v}, (\{\bndclr{v}\} \cup V \cup V_1, E \cup E_1)\\
+\ident{bind}_{\Gamma, \Delta}(\kvd{let}~x=e_1~\kvd{in}~e_2) = \bndclr{v}, (\{\bndclr{v}\} \cup V \cup V_1, E \cup E_1)&(3)\\
 \quad \textnormal{let}~\bndclr{v_1}, (V_1,E_1) = \ident{bind}_{\Gamma,\Delta}(e_1)\\
 \quad \textnormal{let}~\Gamma_1 = \Gamma \cup \{(x,\bndclr{v_1})\} \\
-\quad \textnormal{let}~\bndclr{v}, (V, E) = \ident{bind}_{\Gamma, \Delta}(e_2)
+\quad \textnormal{let}~\bndclr{v}, (V, E) = \ident{bind}_{\Gamma_1, \Delta}(e_2)
+\end{array}
+\begin{array}{ll}
+\ident{bind}_{\Gamma, \Delta}(n) = \bnd{val}(n), (\{ \bnd{val}(n) \}, \emptyset) }&(4)
+\\[0.75em]
+\ident{bind}_{\Gamma, \Delta}(x) = \bndclr{v}, (\{ \bndclr{v} \}, \emptyset)\quad \textnormal{when}~\bndclr{v} = \Gamma(x)&(6)
+\\[1em]
+\ident{bind}_{\Gamma, \Delta}(\lambda x \rightarrow e) = \bndclr{v}, (\{\bndclr{v}\} \cup V, \{e\} \cup E)&(7)\\
+\quad \textnormal{when}~\Gamma_1 = \Gamma \cup \{ x, \bnd{var}(x) \}\\
+\quad \textnormal{and}~\bndclr{v_0}, (V, E) = \ident{bind}_{\Gamma_1, \Delta}(e)\\
+\quad \textnormal{and}~\bndclr{v} = \Delta(\bknd{fun}(x),[(\bndclr{v_0}, \blbl{body})])\\
+\quad \textnormal{let}~e = (\bndclr{v}, \bndclr{v_0}, \blbl{body}) 
+\\[1em]
+\ident{bind}_{\Gamma, \Delta}(\lambda x \rightarrow e) = \bndclr{v}, (\{\bndclr{v}\} \cup V, \{e\} \cup E)&(8)\\
+\quad \textnormal{when}~\Gamma_1 = \Gamma \cup \{ x, \bnd{var}(x) \}\\
+\quad \textnormal{and}~\bndclr{v_0}, (V, E) = \ident{bind}_{\Gamma_1, \Delta}(e)\\
+\quad \textnormal{and}~(\bknd{fun}(x),[(\bndclr{v_0}, \blbl{body})])\notin \ident{dom}(\Delta)\\
+\quad \textnormal{let}~\bndclr{v} = \bnd{fun}(s, x), s~\textnormal{fresh}\\
+\quad \textnormal{let}~e = (\bndclr{v},\bndclr{v_0},\blbl{body}) 
+\\[0.5em]
 \end{array}
 \end{equation*}
-\caption{Binding}
+\vspace{-0.5em}
+\caption{Rules of the binding process, whic constructs a dependency graph for an expression.}
+\label{fig:binding-rules}
 \end{figure*}
 
 % --------------------------------------------------------------------------------------------------
@@ -333,19 +338,19 @@ disambiguation) together with a list of dependencies. A node kind is a member ac
 \end{array}
 \end{equation*}
 %
-Given a lookup table $X$, we write $X(\bkndclr{k}, [(\bndclr{n_1},\blblclr{l_1}), \ldots,
+Given a lookup table $\Delta$, we write $\Delta(\bkndclr{k}, [(\bndclr{n_1},\blblclr{l_1}), \ldots,
 (\bndclr{v_n},\blblclr{l_n})])$ to perform a lookup for a node of a kind $\bkndclr{k}$ that has dependencies
 $\bndclr{v_1}, \ldots, \bndclr{v_n}$ labelled with labels $\blblclr{l_1}, \ldots, \blblclr{l_n}$.
 
 For example, when creating the graph in Figure~\ref{fig:dep-graph} (b), we perform the following
 lookup for the \ident{skip} member access:
 %
-\[ X(\bknd{mem}(\ident{skip}), [(\bnd{var}(\ident{data}),\blbl{arg}(0)), (\bnd{val}(\num{10}), \blbl{arg}(1))]) \]
+\[ \Delta(\bknd{mem}(\ident{skip}), [(\bnd{var}(\ident{data}),\blbl{arg}(0)), (\bnd{val}(\num{10}), \blbl{arg}(1))]) \]
 %
 The lookup returns the node $\bnd{mem}(\ident{skip}, s_0)$ known from the previous step. We then perform
 the following lookup for the \ident{take} member access:
 %
-\[ X(\bknd{mem}(\ident{take}), [(\bnd{mem}(\ident{skip}, s_0),\blbl{arg}(0)), (\bnd{val}(\num{10}), \blbl{arg}(1))]) \]
+\[ \Delta(\bknd{mem}(\ident{take}), [(\bnd{mem}(\ident{skip}, s_0),\blbl{arg}(0)), (\bnd{val}(\num{10}), \blbl{arg}(1))]) \]
 %
 In the previous graph, the argument of \ident{take} was $\num{15}$ rather than $\num{10}$ and so
 this lookup fails. We then construct a new node $\bnd{mem}(\ident{take}, s_2)$ using a fresh
@@ -353,30 +358,96 @@ symbol $s_2$.
 
 % --------------------------------------------------------------------------------------------------
 
-\subsection{Binding expressions to a graph}
-Some simple definitions -- $s$ is a unique symbol, the rest is as before
+\subsection{Binding an expressions to a graph}
+\label{sec:formal-bind}
 
-We represent graph as (V, E) where E = (v1, v2, lbl), rather than having a function on the side
+When constructing the dependency graph, our implementation annotates the nodes of the 
+abstract syntax tree with the nodes of the dependency graph, forming a mapping
+$e \rightarrow \bndclr{v}$. For this reason, we call the process \emph{binding}.
 
-\vspace{1em}
-\noindent
-Then we define binding function such that
+The process of binding is defined by the rules in Figure~\ref{fig:binding-rules}.
+The \ident{bind} function is annotated with a lookup table $\Delta$ discussed in 
+Section~\ref{sec:formal-deps} and a variable context $\Gamma$. The variable context 
+is a map from variable names to dependency graph nodes and is used for variables bound
+using \kvd{let} binding.
 
+When applied on an expression $e$, binding $\ident{bind}_{\Gamma,\Delta}(e)$ returns a
+dependency graph $(V, E)$ paired with a node $\bndclr{v}$ corresponding to the expression $e$.
+In the graph, $V$ is a set of nodes $\bndclr{v}$ and $E$ is a set of labelled edges
+$(\bndclr{v_1}, \bndclr{v_2}, \blblclr{l})$. We attach the label directly to the edge rather than
+keeping a separate colouring function as this makes the formalisation simpler.
+
+\paragraph{Binding member access.} In all rules, we recursively bind sub-expressions to get
+a dependency graph for each sub-expression and a graph node that represents it. The nodes 
+representing sub-expressions are then used as dependencies for lookup into $\Delta$, together
+with their labels. When binding a member access, we reuse an existing node if it is defined by 
+$\Delta$ (1) or we create a new node containing a fresh symbol when the domain of $\Delta$ does 
+not contain a key describing the current member access~(2). 
+
+\paragraph{Binding let binding.} For \kvd{let} binding (3), we first bind the expression $e_1$ assigned
+to the variable to obtain a graph node $\bndclr{v_1}$. We then bind the body expression $e_2$,
+but using a variable context $\Gamma_1$ that maps the value of the variable to the graph node
+$\bndclr{v_1}$. The variable context is used when binding a variable (6) and so all variables 
+declared using \kvd{let} binding will be bound to a graph node representing the value assinged 
+to the variable. The node bound to the overall \kvd{let} expression is then the graph node bound
+to the body expression.
+
+\paragraph{Binding function values.} If a function value uses its argument, we will not be able
+to evaluate its body. In this case, the graph node bound to a function will depend on a synthetic
+node $\bnd{var}(x)$ that represents the variable with no value. When binding a function, we 
+create the synthetic variable and add it to the variable context $\Gamma_1$ before binding the
+body. As with member access, the node representing a function may (7) or may not (8) be already 
+present in the lookup table.
+
+% --------------------------------------------------------------------------------------------------
+
+\begin{figure}[!b]
 \begin{equation*}
-\ident{bind}_{\Gamma, \Delta}(e) = (V, E), v
+\begin{array}{l}
+\Delta_{i}(\bknd{mem}(m), [(\bndclr{v_0},\blbl{arg}(0)),\ldots, (\bndclr{v_n},\blbl{arg}(n))]) = \bndclr{v}\\
+\quad \textnormal{for all}~\bnd{mem}(m, s) \in V\\
+\quad \textnormal{such that}~(\bnd{mem}(m, s), \bndclr{v_i}, \blbl{arg}(i)) \in E~\textnormal{for}~i\in 0,..,n
+\\[0.75em]
+\Delta_{i}(\bknd{fun}(x), [(\bndclr{v_1},\blbl{body})]) = \bndclr{v}\\
+\quad \textnormal{for all}~\bnd{fun}(x, s) \in V\\
+\quad \textnormal{such that}~(\bnd{fun}(x, s), \bndclr{v_1}, \blbl{body}) \in E
+\\[0.75em]
+\Delta_{i}(\bkndclr{v}) = \Delta_{i-1}(\bkndclr{v})\quad \textnormal{(otherwise)}
+\end{array}
 \end{equation*}
+\caption{Updating the node cache after binding a new graph}
+\label{fig:loop}
+\end{figure}
 
-\vspace{1em}
-\noindent
-Here, $X$ is a mapping from a pair of vertex kind and a list of vertices 
-to a vertext with a set of edges leading from it i.e. 
-$(K, [v_1, \ldots, v_n]) = v, E$. Then, the $\ident{bind}_{\Gamma, \Delta}$ function
-takes an expression and returns a dependency graph for the expression
-together with the vertex representing the expression. The vertices of the 
-graph are formed by $V$ and the edges are labelled by labels $L$.
 
+\subsection{Edit and rebind loop}
+
+The binding process formalised in Section~\ref{sec:formal-bind} specifies how to update the 
+dependency graph after updated program text is parsed. During live coding, this is done 
+repeatedly as the programmer edits code. Throughout the process, we maintain a series of 
+lookup table states $\Delta_0, \Delta_1, \Delta_2, \ldots$. Initially, the lookup table is 
+empty, i.e.~$\Delta_0 = \emptyset$.
+
+At a step $i$, we parse an expression $e_i$ and calculate the new dependency graph and a node
+bound to the top-level expression using the previous $\Delta$:
+%
+\begin{equation*}
+\bndclr{v}, (V, E) = \ident{bind}_{\emptyset, \Delta_{i-1}}(e_i)
+\end{equation*}
+%
+The new state of the node cache is then computed by adding newly created nodes from the graph
+$(V, E)$ to the previous cache $\Delta_{i-1}$. This is done for function and member nodes that
+contain unique symbols as defined in Figure~\ref{fig:loop}. We do not need to cache nodes
+representing primitive values and variables as those do not contain symbols and will remain the
+same due to the way they are constructed.
+
+% ==================================================================================================
+
+\section{Evaluating previews}
 \newpage
 
+\section{Properties}
+\newpage
 
 % --------------------------------------------------------------------------------------------------
 
