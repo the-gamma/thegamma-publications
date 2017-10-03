@@ -8,6 +8,16 @@
 \usepackage{booktabs} 
 \usepackage{subcaption}
 
+\newcounter{thc}
+\newcounter{dfc}
+
+\theoremstyle{plain}
+\newtheorem{theorem}[thc]{Theorem}
+\newtheorem{lemma}[thc]{Lemma}
+
+\theoremstyle{definition}
+\newtheorem{definition}[dfc]{Definition}
+
 \acmConference[PL'17]{ACM SIGPLAN Conference on Programming Languages}{January 01--03, 2017}{New York, NY, USA}
 \acmYear{2017}
 \acmISBN{} % \acmISBN{978-x-xxxx-xxxx-x/YY/MM}
@@ -622,8 +632,91 @@ operation of a comonad and would be explicitly written as $\llbracket A \rrbrack
 
 % ==================================================================================================
 
-\section{Properties}
 \newpage
+\section{Properties}
+
+
+\subsection{Host language}
+
+We require that the host language allows eliminating let bindings without changing the meaning
+of the program. That is
+
+\begin{definition}[Host language reduction]
+The reduction $\rightsquigarrow$ reduces host language expression such that:
+\begin{itemize}
+\item  
+Given an expression $e$ and $e'$ such that $e'$ is obtained from $e$
+by replacing any sub-expression $\kvd{let}~x=e_1~\kvd{in}~e_2$ with the expression 
+$e_2[x\leftarrow e_1]$, written as $e\rightsquigarrow_\ident{let}e'$, then if $e \rightsquigarrow e''$ then also $e' \rightsquigarrow e''$.
+
+\item 
+Compositionality, i.e. if $e \rightsquigarrow e'$ and $C[e] \rightsquigarrow e''$ then also
+  $C[e'] \rightsquigarrow e''$.
+\end{itemize}
+\end{definition}
+
+We don't care about non-termination here.
+(so, does $\rightsquigarrow$ do small step or big step reduction?)
+
+\subsection{Correctness of previews}
+Eliminating let bindings does not change the result in the host language. It also yields the same
+dependency graph.
+
+\begin{lemma}[Let elimintion]
+Given an expression $e_1$ such that $e_1 \rightsquigarrow_\ident{let} e_2$ and a lookup table $\Delta$
+then if $\bndclr{v_1}, (V_1, E_1) = \ident{bind}_{\emptyset, \Delta}(e_1)$ and  
+$\bndclr{v_2}, (V_2, E_2) = \ident{bind}_{\emptyset, \Delta}(e_2)$ then it holds that
+$\bndclr{v_1} = \bndclr{v_2}$ and also $(V_1, E_1) = (V_2, E_2)$.
+\end{lemma}
+
+This simplifies the correctness proof as we only need to consider expressions not containing
+let bindings (if there were let bindings, both the result and the preview would be equivalent
+to one that would be obtained if the let bindings were elimninated)
+
+Now, if we have any let-free expression, we show that the preview obtained via the dependency graph
+is a value that is the same as the one we'd get by directly evaluating the expression.
+
+\begin{lemma}[Let-free correctness]
+Given an expression $e$ that has no free variables and does not contain let bindnigs, together with
+a lookup table $\Delta$ obtained from any sequence of expressions according to Figure~\ref{fig:loop}, 
+let $\bndclr{v}, (V, E) = \ident{bind}_{\emptyset, \Delta}(e)$. If $\bndclr{v}\Downarrow d$ 
+over a graph $(V, E)$ then $d = p$ for some $p$ and $e \rightsquigarrow p$.
+\end{lemma}
+\begin{proof}
+Every dependency graph node $\bndclr{v}$ corresponds to an expression $e$ with free variables
+$FV(e)$. We obtain preview $\bndclr{v}\Downarrow d$ such that if $FV(e) = \emptyset$ then
+$d = p$ for some $p$, otherwise, $d = \llbracket e' \rrbracket_{FV(e)}$.  
+We show that either $e \rightsquigarrow p$ or that for any $C$ such that $FV(C[e]) = \emptyset$
+it holds that $C[e] \rightsquigarrow e''$ and $C[e'] \rightsquigarrow e''$.
+By induction over the structure of the evaluation:
+
+\vspace{0.5em}\noindent\emph{(val)} $\bnd{val}(n) \Downarrow n$ and so $p=n$. The only
+  \ident{bind} case that generates $\bnd{val}(n)$ in the absence of let bindings is~(4) and
+  so $e = n$.
+
+\vspace{0.5em}\noindent\emph{(mem-val)} $\bnd{mem}(m, s) \Downarrow p$. By induction, there
+  are nodes $\bndclr{v_i}$ representing expressions $e_i$ and previews $\bndclr{v_i}\Downarrow p_i$
+  such that $e_i \rightsquigarrow p_i$. The only \ident{bind} case that generates the $\bnd{mem}(m, s)$
+  node in the absence of let binding is~(2) and so $e=e_0.m(e_1, \ldots, e_n)$. From 
+  (\emph{mem-val}), $p_0.m(p_1, \ldots, p_n) \rightsquigarrow p$ and from the compositionality 
+  of $\rightsquigarrow$, it is the case that $e \rightsquigarrow p$.
+
+\end{proof}
+
+\begin{theorem}[Correctness]
+(Same as let-free version, but using let elimination to say that this works for any expression)
+\end{theorem}
+
+
+
+
+
+\subsection{Reuse of previews}
+
+* Inlining let leads to an equivalent dependency graph
+
+* Given two expressions, if we inline lets and they are structurally different, then 
+  their dependency graphs are structurally different
 
 Something about how dependency graph bits are reused correctly, i.e. if there is a source code
 change that can change the result, the graph will change.
