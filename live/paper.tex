@@ -12,8 +12,8 @@
 \newcounter{dfc}
 
 \theoremstyle{plain}
+\newtheorem{lem}[thc]{Lemma}
 \newtheorem{theorem}[thc]{Theorem}
-\newtheorem{lemma}[thc]{Lemma}
 
 \theoremstyle{definition}
 \newtheorem{definition}[dfc]{Definition}
@@ -26,7 +26,7 @@
 \setcopyright{none}
 \bibliographystyle{ACM-Reference-Format}
 
-\title{Design and implementaiton of a live coding environment}
+\title{Design and implementaiton of a live coding environment for data science}
 
 \author{Tomas Petricek}
 \affiliation{
@@ -69,9 +69,21 @@
 
 \begin{document}
 \begin{abstract}
-Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+Data science can be done by directly manipulating data using spreadsheets, or by writing 
+data manipulation scripts using a programming language. The former is error-prone and
+does not scale, while the latter requires expert skills. Live coding has the potential to 
+bridge this gap and make writing of transparent, reproducible scripts more accessible.
 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+In this paper, we describe a live programming environment for data science that provides instant 
+previews and contextual hints, while allowing the user to edit code in an unrestricted way in
+a text editor. This is challenging as the user can make arbitrary edits and we cannot fully 
+recompute previews after every change. The presented interpreter partially evalautes programs as 
+they are written and reuses results of previous evaluations, making it possible to provide instant 
+feedback during development.
+
+We formalise how programs are interpreted and how previews are computed, prove correctness
+of the previews and formally specify when can previews be reused. We hope this work will provide
+solid and easy to reuse foundations for the emerging trend of live programming environments.
 \end{abstract}
 \maketitle
 
@@ -100,8 +112,9 @@ in a data set \ident{movies}:
 \end{equation*}
 %
 A live coding environment shows a preview of the list of dates \ident{top} and the programmer then
-changes the code by making $\num{10}$ a variable and changing the date format to see the full date:
-
+modifies the code by making the constant $\num{10}$ a variable and changing the date format to see 
+the full date:
+%
 \begin{equation*}
 \begin{array}{l}  
 \kvd{let}~\ident{count} = \num{10}\\
@@ -113,21 +126,37 @@ changes the code by making $\num{10}$ a variable and changing the date format to
 %
 Ideally, the live coding environment should understand the change, reuse a cached result of the
 first two transformations (sorting and taking 10 elements) and only evaluate the last \ident{map}
-and format the release dates of already computed top 10 movies.
+to differently format the release dates of already computed top 10 movies.
 
 This is not difficult to achieve if we represent the program in a structured way and allow the user
 to edit code only via well-understood primitive operations such as ``extract variable'' (which has
 no effect on the result) or ``change constant value'' (which forces recomputation of subsequent
-transformations). However, many programmers still prefer to edit programs as free form text.
-In this paper, we present the design and implementation of a live coding system that is capable
+transformations). However, many programmers prefer to edit programs as free form text.
+We present the design and implementation of a live coding system that is capable
 of reusing previously evaluated expressions as in the example above, yet, is integrated into an
-ordinary text editor.
+ordinary text editor. The main contributions of this paper are:
 
-The motivation for this paper is twofold. First, implementing a live programming system requires
-a different way of thinking about compilers and interpreters than the one presented in classic
-programming language literature. Second, an increasing number of programming environments 
-incorporate aspects of live programming [X,Y], yet relatively little has been written on their
-architecture and implementation.
+\begin{itemize}
+\item We introduce The Gamma (Section~\ref{sec:live}), a simple live coding environment for
+  data science. We review its design and implementation and explain how it 
+  bridges the gap between programming and spreadsheets.
+
+\item Implementing a live programming system requires different way of thinking about compilers
+  and interpreters than the one presented in classic programming language literature. Our 
+  formalisation (Section~\ref{sec:formal}) captures the essence of the new perspective.
+
+\item We formalise the evaluation of previews (Section~\ref{sec:previews}) and prove that our
+  evaluation and caching mechanism is produces correct previews (Section~\ref{sec:properties-correct}) 
+  and can effectively reuse partial results (Section~\ref{sec:properties-reuse}).
+  
+\item In the final more speculative part (Section~\ref{sec:design}), we consider alternative
+  language designs that would enable further live coding experiences, which are difficult to
+  build using our current system.
+\end{itemize}
+
+\noindent
+We hope the architecture and its formal presentation in this paper can contribute important 
+foundations to the growing and important trend of text-based live coding environments.
 
 % --------------------------------------------------------------------------------------------------
 
@@ -141,6 +170,7 @@ architecture and implementation.
 % ==================================================================================================
 
 \section{Live programming for data exploration}
+\label{sec:live}
 
 The Gamma introduction and what this tries to do. See pretty screenshot.
 
@@ -634,7 +664,7 @@ operation of a comonad and would be explicitly written as $\llbracket A \rrbrack
 
 \newpage
 \section{Properties}
-
+\label{sec:properties}
 
 \subsection{Host language}
 
@@ -659,15 +689,17 @@ We don't care about non-termination here.
 (so, does $\rightsquigarrow$ do small step or big step reduction?)
 
 \subsection{Correctness of previews}
+\label{sec:properties-correct}
+
 Eliminating let bindings does not change the result in the host language. It also yields the same
 dependency graph.
 
-\begin{lemma}[Let elimintion]
+\begin{lem}[Let elimintion]
 Given an expression $e_1$ such that $e_1 \rightsquigarrow_\ident{let} e_2$ and a lookup table $\Delta$
 then if $\bndclr{v_1}, (V_1, E_1) = \ident{bind}_{\emptyset, \Delta}(e_1)$ and  
 $\bndclr{v_2}, (V_2, E_2) = \ident{bind}_{\emptyset, \Delta}(e_2)$ then it holds that
 $\bndclr{v_1} = \bndclr{v_2}$ and also $(V_1, E_1) = (V_2, E_2)$.
-\end{lemma}
+\end{lem}
 
 This simplifies the correctness proof as we only need to consider expressions not containing
 let bindings (if there were let bindings, both the result and the preview would be equivalent
@@ -676,12 +708,12 @@ to one that would be obtained if the let bindings were elimninated)
 Now, if we have any let-free expression, we show that the preview obtained via the dependency graph
 is a value that is the same as the one we'd get by directly evaluating the expression.
 
-\begin{lemma}[Let-free correctness]
+\begin{lem}[Let-free correctness]
 Given an expression $e$ that has no free variables and does not contain let bindnigs, together with
 a lookup table $\Delta$ obtained from any sequence of expressions according to Figure~\ref{fig:loop}, 
 let $\bndclr{v}, (V, E) = \ident{bind}_{\emptyset, \Delta}(e)$. If $\bndclr{v}\Downarrow d$ 
 over a graph $(V, E)$ then $d = p$ for some $p$ and $e \rightsquigarrow p$.
-\end{lemma}
+\end{lem}
 \begin{proof}
 Every dependency graph node $\bndclr{v}$ corresponds to an expression $e$ with free variables
 $FV(e)$. We obtain preview $\bndclr{v}\Downarrow d$ such that if $FV(e) = \emptyset$ then
@@ -712,6 +744,8 @@ By induction over the structure of the evaluation:
 
 
 \subsection{Reuse of previews}
+\label{sec:properties-reuse}
+
 
 * Inlining let leads to an equivalent dependency graph
 
@@ -726,6 +760,9 @@ Something about various code edit operations that will not cause recomputation.
 % --------------------------------------------------------------------------------------------------
 
 \newpage
+
+\section{Takeaways}
+\label{sec:design}
 
 \newpage
 
