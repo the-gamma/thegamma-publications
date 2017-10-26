@@ -7,6 +7,8 @@
 \usepackage{semantic}
 \usepackage{booktabs} 
 \usepackage{subcaption}
+\usepackage{enumitem}
+\setlist{leftmargin=6mm}
 
 \newcounter{thc}
 \newcounter{dfc}
@@ -76,10 +78,12 @@ bridge this gap and make writing of transparent, reproducible scripts more acces
 
 In this paper, we describe a live programming environment for data science that provides instant 
 previews and contextual hints, while allowing the user to edit code in an unrestricted way in
-a text editor. This is challenging as the user can make arbitrary edits and we cannot fully 
-recompute previews after every change. The presented interpreter partially evalautes programs as 
-they are written and reuses results of previous evaluations, making it possible to provide instant 
-feedback during development.
+a text editor. 
+
+Using a text editor is challenging as any edit can significantly change the structure of code and
+fully recomputing previews after every change is too expensive. The presented interpreter partially 
+evalautes programs as they are written and reuses results of previous evaluations, making it 
+possible to provide instant feedback during development.
 
 We formalise how programs are interpreted and how previews are computed, prove correctness
 of the previews and formally specify when can previews be reused. We hope this work will provide
@@ -111,7 +115,7 @@ in a data set \ident{movies}:
 \end{array}
 \end{equation*}
 %
-A live coding environment shows a preview of the list of dates \ident{top} and the programmer then
+A live coding environment shows a preview of the list of dates. Next, assume that the programmer
 modifies the code by making the constant $\num{10}$ a variable and changing the date format to see 
 the full date:
 %
@@ -128,15 +132,16 @@ Ideally, the live coding environment should understand the change, reuse a cache
 first two transformations (sorting and taking 10 elements) and only evaluate the last \ident{map}
 to differently format the release dates of already computed top 10 movies.
 
-This is not difficult to achieve if we represent the program in a structured way and allow the user
-to edit code only via well-understood primitive operations such as ``extract variable'' (which has
+This is not difficult if we represent the program in a structured way and allow the user
+to edit code only via primitive operations such as ``extract variable'' (which has
 no effect on the result) or ``change constant value'' (which forces recomputation of subsequent
 transformations). However, many programmers prefer to edit programs as free form text.
+
 We present the design and implementation of a live coding system that is capable
 of reusing previously evaluated expressions as in the example above, yet, is integrated into an
-ordinary text editor. The main contributions of this paper are:
+ordinary text editor. Our main contributions are:
 
-\begin{itemize}
+\begin{itemize}[itemsep=3pt]
 \item We introduce The Gamma (Section~\ref{sec:live}), a simple live coding environment for
   data science. We review its design and implementation and explain how it 
   bridges the gap between programming and spreadsheets.
@@ -149,7 +154,7 @@ ordinary text editor. The main contributions of this paper are:
   evaluation and caching mechanism is produces correct previews (Section~\ref{sec:properties-correct}) 
   and can effectively reuse partial results (Section~\ref{sec:properties-reuse}).
   
-\item In the final more speculative part (Section~\ref{sec:design}), we consider alternative
+\item In more speculative conclusions (Section~\ref{sec:design}), we consider alternative
   language designs that would enable further live coding experiences, which are difficult to
   build using our current system.
 \end{itemize}
@@ -161,24 +166,84 @@ foundations to the growing and important trend of text-based live coding environ
 % --------------------------------------------------------------------------------------------------
 
 \begin{figure*}
-\includegraphics[scale=0.45]{scrape.png}
-\caption{xxx}  
+\includegraphics[scale=0.21]{wiki.png}
+\includegraphics[scale=0.21]{drop.png}
+\caption{Scraping 2016 science events. Preview of the Wikipedia source page (left) and live filtering (right).}
+\label{fig:thegamma}
 \end{figure*}
-
-\newpage
 
 % ==================================================================================================
 
 \section{Live programming for data exploration}
 \label{sec:live}
 
-The Gamma introduction and what this tries to do. See pretty screenshot.
+% https://cacm.acm.org/blogs/blog-cacm/169199-data-science-workflow-overview-and-challenges/fulltext
 
-This is what we care about - it's not live programming for your typical haskell,
-but for R or Python.
+The Gamma aims to make basic data exploration accessible to non-experts, such as data journalists [X], who
+need to use data transparently. As such, we focus on simple scripts that can be written using
+tools such as Jupyter notebooks~[X]. Those scripts follow a typical data science workflow [X];
+they acquire and reformat data, run a number of analyses using the clean data and then create 
+several visualizations.
 
-\newpage
-~
+An important property of data science workflow is that we work with readily available concrete data.
+Data scientists load inputs into memory and refer to it in subsequent REPL interactions. They might 
+later wrap completed working code into a function (and run on multiple datasets), but 
+do not start with functions. We reflect this pattern in our language. 
+
+In this section, we provide a brief overview of The Gamma, a simple live coding environment for
+data science. We discuss the language, type providers and the user interface,
+before focusing on the algorithms behind live previews in Section~\ref{sec:formal}.
+
+\subsection{The Gamma scripting language}
+Figure~\ref{fig:thegamma} shows The Gamma script that scrapes items from a Wikipedia page, 
+collects those marked as ``Events'' and filters them. The script illustrates two aspects of the
+scripting language used by The Gamma -- its structure and its use of type providers for
+dot-driven data exploration.
+
+The scripting language is not intended to be as expressive as, say, R or Python and so it
+has a very simple structure -- scripts are a sequence of let-bindings (that obtain or transform 
+data) or statements (that produce visualizations). This reflects the fact that we always work
+with concrete data and allows us to provide previews.
+
+The most notable limitation of The Gamma is that the scripting language does not support top-level 
+functions. This is not a problem for the simple scripts we consider, but it would be an issue for
+a general-purpose language. We discuss potential design for functions that would still be based
+on working with concrete data in Section~\ref{sec:design}.
+
+\subsection{Dot-driven data exploration}
+
+As ilustrated by the second let binding in Figure~\ref{fig:thegamma}, many opertaions
+in The Gamma can be expressed using member access via dot. The underlying mechanism is based
+on type providers [X,Y] and the specific type provider used in this example has been described 
+elsewhere [X].
+
+Given a data source (scraped Wikipedia page), the type provider generates type with members that allow
+a range of transformations of the data such as grouping, sorting and filtering. Some of the members
+are based only on the schema (e.g.~\ident{\textquotesingle Item Contains\textquotesingle} or 
+\ident{\textquotesingle Drop Heading 2\textquotesingle}), but some may also be generated based
+on (a sample of) the dataset (e.g.~the second member in \ident{\textquotesingle Heading 2 
+is\textquotesingle.\textquotesingle Events[edit]\textquotesingle}). 
+
+What matters for the purpose of this paper is 
+the fact that most operations are expressed via member access matters. First, it means 
+that we need to provide live previews for sub-expressions formed by a chain of member accesses.
+Second, it means that the result of any member access expression depends on the instance and,
+possibly, on the parameters provided for a method call.
+
+\subsection{Direct manipulation and live previews}
+The screenshot in Figure~\ref{fig:thegamma} show the editor as implemented in The Gamma. This
+includes live previews (discussed in this paper), but also an editor that provides spreadsheet-like
+interface for editing the data transformation script.
+
+In our implementation, previews appears below the currently selected let binding.
+The preview can be of several types such as web page (left) or data table (right). In this paper,
+we describe how we evaluate scripts to obtain the resulting object and we ignore how such objects
+are rendered.
+
+The Figure~\ref{fig:thegamma} also shows a special handling of expressions constructed using the
+pivot type provider. The editor recognises individual data transformations and provides a simple
+user interface for adding and removing transformations and changing their parameters that changes
+the source code accordingly. This aspect is not discussed in the present paper. 
 
 % ==================================================================================================
 
@@ -763,6 +828,11 @@ Something about various code edit operations that will not cause recomputation.
 
 \section{Takeaways}
 \label{sec:design}
+
+\section{Related and future}
+\label{sec:future}
+
+Integrate with Python/R via Jupyter
 
 \newpage
 
