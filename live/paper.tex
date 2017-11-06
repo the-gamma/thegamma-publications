@@ -8,6 +8,7 @@
 \usepackage{booktabs} 
 \usepackage{subcaption}
 \usepackage{enumitem}
+\usepackage[shortlabels]{enumerate}
 \setlist{leftmargin=6mm}
 
 \newcounter{thc}
@@ -373,15 +374,15 @@ of all parents in the dependency graph.
 \begin{array}{ll}
 \ident{bind}_{\Gamma, \Delta}(n) = \bnd{val}(n), (\{ \bnd{val}(n) \}, \emptyset) }&(4)
 \\[0.75em]
-\ident{bind}_{\Gamma, \Delta}(x) = \bndclr{v}, (\{ \bndclr{v} \}, \emptyset)\quad \textnormal{when}~\bndclr{v} = \Gamma(x)&(6)
+\ident{bind}_{\Gamma, \Delta}(x) = \bndclr{v}, (\{ \bndclr{v} \}, \emptyset)\quad \textnormal{when}~\bndclr{v} = \Gamma(x)&(5)
 \\[1em]
-\ident{bind}_{\Gamma, \Delta}(\lambda x \rightarrow e) = \bndclr{v}, (\{\bndclr{v}\} \cup V, \{e\} \cup E)&(7)\\
+\ident{bind}_{\Gamma, \Delta}(\lambda x \rightarrow e) = \bndclr{v}, (\{\bndclr{v}\} \cup V, \{e\} \cup E)&(6)\\
 \quad \textnormal{when}~\Gamma_1 = \Gamma \cup \{ x, \bnd{var}(x) \}\\
 \quad \textnormal{and}~\bndclr{v_0}, (V, E) = \ident{bind}_{\Gamma_1, \Delta}(e)\\
 \quad \textnormal{and}~\bndclr{v} = \Delta(\bknd{fun}(x),[(\bndclr{v_0}, \blbl{body})])\\
 \quad \textnormal{let}~e = (\bndclr{v}, \bndclr{v_0}, \blbl{body}) 
 \\[1em]
-\ident{bind}_{\Gamma, \Delta}(\lambda x \rightarrow e) = \bndclr{v}, (\{\bndclr{v}\} \cup V, \{e\} \cup E)&(8)\\
+\ident{bind}_{\Gamma, \Delta}(\lambda x \rightarrow e) = \bndclr{v}, (\{\bndclr{v}\} \cup V, \{e\} \cup E)&(7)\\
 \quad \textnormal{when}~\Gamma_1 = \Gamma \cup \{ x, \bnd{var}(x) \}\\
 \quad \textnormal{and}~\bndclr{v_0}, (V, E) = \ident{bind}_{\Gamma_1, \Delta}(e)\\
 \quad \textnormal{and}~(\bknd{fun}(x),[(\bndclr{v_0}, \blbl{body})])\notin \ident{dom}(\Delta)\\
@@ -521,11 +522,11 @@ present in the lookup table.
 \vspace{-0.5em}
 \begin{equation*}
 \begin{array}{l}
-\Delta_{i}(\bknd{mem}(m), [(\bndclr{v_0},\blbl{arg}(0)),\ldots, (\bndclr{v_n},\blbl{arg}(n))]) = \bndclr{v}\\
+\Delta_{i}(\bknd{mem}(m), [(\bndclr{v_0},\blbl{arg}(0)),\ldots, (\bndclr{v_n},\blbl{arg}(n))]) = \bnd{mem}(m, s)\\
 \quad \textnormal{for all}~\bnd{mem}(m, s) \in V\\
 \quad \textnormal{such that}~(\bnd{mem}(m, s), \bndclr{v_i}, \blbl{arg}(i)) \in E~\textnormal{for}~i\in 0,..,n
 \\[0.75em]
-\Delta_{i}(\bknd{fun}(x), [(\bndclr{v_1},\blbl{body})]) = \bndclr{v}\\
+\Delta_{i}(\bknd{fun}(x), [(\bndclr{v_1},\blbl{body})]) = \bnd{fun}(x, s)\\
 \quad \textnormal{for all}~\bnd{fun}(x, s) \in V\\
 \quad \textnormal{such that}~(\bnd{fun}(x, s), \bndclr{v_1}, \blbl{body}) \in E
 \\[0.75em]
@@ -728,13 +729,28 @@ operation of a comonad and would be explicitly written as $\llbracket A \rrbrack
 % ==================================================================================================
 
 \newpage
-\section{Properties}
+\section{Properties of preview evaluation}
 \label{sec:properties}
 
+The dependency graph makes it possible to cache partial results when evaluating previews. 
+The construction of dependency graphs and evaluation of previews needs to have two main properties.
+First, if we evaluate a preview using dependency graph with caching, it should be the same as the
+value we would obtain by evaluating the expression directly. Second, the evaluation of previews 
+using dependency graphs should -- in some cases -- reuse previously evaluated partial results.
+In other words, this section shows that our mechanism is both correct and implements a useful 
+optimization. 
+
+
 \subsection{Host language}
+The method in this paper does not rely on the particulars of how the underlying programming 
+language works. For this reason, we do not give a concrete definition of how member access
+$e.m(e_1,\ldots, e_n)$ reduces to a value.
+
 
 We require that the host language allows eliminating let bindings without changing the meaning
 of the program. That is
+
+[Rightsquigarrow allows beta anywhere? then it works...]
 
 \begin{definition}[Host language reduction]
 The reduction $\rightsquigarrow$ reduces host language expression such that:
@@ -747,14 +763,28 @@ $e_2[x\leftarrow e_1]$, written as $e\rightsquigarrow_\ident{let}e'$, then if $e
 \item 
 Compositionality, i.e. if $e \rightsquigarrow e'$ and $C[e] \rightsquigarrow e''$ then also
   $C[e'] \rightsquigarrow e''$.
+
+\item
+Extensionality -- if $C1[e1] \rightsquigarrow e$ and $C1[e2] \rightsquigarrow e$ then $C2[fn e1] \rightsquigarrow ee$ and $C2[fn e2] \rightsquigarrow ee$
+
 \end{itemize}
 \end{definition}
+
+
 
 We don't care about non-termination here.
 (so, does $\rightsquigarrow$ do small step or big step reduction?)
 
 \subsection{Correctness of previews}
 \label{sec:properties-correct}
+
+First is corrctness (Theorem~\ref{thm:correcntess}) -- no matter how a graph is constructed, when 
+we use it to evaluate a preview for an expression, the preview is the same as the value we would 
+obtain by evaluating the expression directly. Second is determinacy (Theorem~\ref{thm:determinacy}) --
+if we cache a preview for a graph node and update the graph, the preview would still be the same
+when evaluated using an updated graph.
+
+This is the correctness and determinacy property discussed in Section~\ref{sec:properties-correct}.
 
 Eliminating let bindings does not change the result in the host language. It also yields the same
 dependency graph.
@@ -773,40 +803,57 @@ to one that would be obtained if the let bindings were elimninated)
 Now, if we have any let-free expression, we show that the preview obtained via the dependency graph
 is a value that is the same as the one we'd get by directly evaluating the expression.
 
-\begin{lem}[Let-free correctness]
-Given an expression $e$ that has no free variables and does not contain let bindnigs, together with
-a lookup table $\Delta$ obtained from any sequence of expressions according to Figure~\ref{fig:loop}, 
-let $\bndclr{v}, (V, E) = \ident{bind}_{\emptyset, \Delta}(e)$. If $\bndclr{v}\Downarrow d$ 
-over a graph $(V, E)$ then $d = p$ for some $p$ and $e \rightsquigarrow p$.
-\end{lem}
-\begin{proof}
-Every dependency graph node $\bndclr{v}$ corresponds to an expression $e$ with free variables
-$FV(e)$. We obtain preview $\bndclr{v}\Downarrow d$ such that if $FV(e) = \emptyset$ then
-$d = p$ for some $p$, otherwise, $d = \llbracket e' \rrbracket_{FV(e)}$.  
-We show that either $e \rightsquigarrow p$ or that for any $C$ such that $FV(C[e]) = \emptyset$
-it holds that $C[e] \rightsquigarrow e''$ and $C[e'] \rightsquigarrow e''$.
-By induction over the structure of the evaluation:
+xxx
 
-\vspace{0.5em}\noindent\emph{(val)} $\bnd{val}(n) \Downarrow n$ and so $p=n$. The only
-  \ident{bind} case that generates $\bnd{val}(n)$ in the absence of let bindings is~(4) and
-  so $e = n$.
-
-\vspace{0.5em}\noindent\emph{(mem-val)} $\bnd{mem}(m, s) \Downarrow p$. By induction, there
-  are nodes $\bndclr{v_i}$ representing expressions $e_i$ and previews $\bndclr{v_i}\Downarrow p_i$
-  such that $e_i \rightsquigarrow p_i$. The only \ident{bind} case that generates the $\bnd{mem}(m, s)$
-  node in the absence of let binding is~(2) and so $e=e_0.m(e_1, \ldots, e_n)$. From 
-  (\emph{mem-val}), $p_0.m(p_1, \ldots, p_n) \rightsquigarrow p$ and from the compositionality 
-  of $\rightsquigarrow$, it is the case that $e \rightsquigarrow p$.
-
-\end{proof}
-
-\begin{theorem}[Correctness]
-(Same as let-free version, but using let elimination to say that this works for any expression)
+\begin{theorem}[Determinacy]
+\label{thm:determinacy}
+Downarrow will always evaluate the same, if we add things to a graph in the defined way.
+(this means that we can cache)
 \end{theorem}
 
 
+~
+
+~
+
+~
+
+[Only dependency graph matters, not the history and symbols]
+[Symbols are effectively hashes of dependencies]
+
+\begin{lemma}
+\label{thm:lemma-lookup}
+Lemma X - lookup with red mem(m) returns blue mem(m, s)
+\end{lemma}
+
+\begin{theorem}[Let-free correctness]
+Given an expression $e$ that has no free variables and does not contain let bindings, together
+with a lookup table $\Delta$ obtained from any sequence of expressions according to Figure~\ref{fig:loop}
+let $\bndclr{v}, (V, E) = \ident{bind}_{\emptyset, \Delta}(e)$. If $\bndclr{v}\Downarrow d$ 
+over a graph $(V, E)$ then $d = p$ for some $p$ and $e \rightsquigarrow p$.
+\end{theorem}
+\begin{proof}
+First note that, when combining recursively constructed sub-graphs, the \ident{bind} operation
+adds new nodes and edges leading from those new nodes. Therefore, an evaluation using $\Downarrow$
+over a sub-graph will also be valid over the new graph.
+
+Next, we prove a more general property using induction showing that for $e$ such 
+that $\bndclr{v}, (V, E) = \ident{bind}_{\emptyset, \Delta}(e)$:
+\begin{enumerate}
+\item[a.] If $FV(e)=\emptyset$ then $\bndclr{v} \Downarrow p$ for some $p$ and $e \rightsquigarrow p$
+\item[b.] Otherwise, $\bndclr{v} \Downarrow \llbracket e_p \rrbracket_{FV(e)}$ for some $e_p$ and
+  for any evaluation context $C[-]$ such that $FV(C[e_p])=\emptyset$ it holds that if
+  $C[e_p] \rightsquigarrow v$ for some $v$ then $C[e] \rightsquigarrow v$.  
+\end{enumerate}
+The proof is done by induction over the binding process, which follows the structure 
+of the expression $e$ and can be found in Appendix~\ref{sec:app-correctness}.
+\end{proof}
 
 
+\begin{theorem}[Correctness]
+\label{thm:correctness}
+(Same as let-free version, but using let elimination to say that this works for any expression)
+\end{theorem}
 
 \subsection{Reuse of previews}
 \label{sec:properties-reuse}
@@ -839,5 +886,81 @@ Integrate with Python/R via Jupyter
 \section*{References}
 
 \bibliography{paper}
+
+\appendix 
+\section{Appendix}
+\label{sec:app-correctness}
+\begin{theorem}[Let-free correctness]
+Given an expression $e$ that has no free variables and does not contain let bindings, together
+with a lookup table $\Delta$ obtained from any sequence of expressions according to Figure~\ref{fig:loop}
+let $\bndclr{v}, (V, E) = \ident{bind}_{\emptyset, \Delta}(e)$. If $\bndclr{v}\Downarrow d$ 
+over a graph $(V, E)$ then $d = p$ for some $p$ and $e \rightsquigarrow p$.
+\end{theorem}
+\begin{proof}
+First note that, when combining recursively constructed sub-graphs, the \ident{bind} operation
+adds new nodes and edges leading from those new nodes. Therefore, an evaluation using $\Downarrow$
+over a sub-graph will also be valid over the new graph.
+
+Next, we prove a more general property using induction showing that for $e$ such 
+that $\bndclr{v}, (V, E) = \ident{bind}_{\emptyset, \Delta}(e)$:
+\begin{enumerate}
+\item[a.] If $FV(e)=\emptyset$ then $\bndclr{v} \Downarrow p$ for some $p$ and $e \rightsquigarrow p$
+\item[b.] Otherwise, $\bndclr{v} \Downarrow \llbracket e_p \rrbracket_{FV(e)}$ for some $e_p$ and
+  for any evaluation context $C[-]$ such that $FV(C[e_p])=\emptyset$ it holds that if
+  $C[e_p] \rightsquigarrow v$ for some $v$ then $C[e] \rightsquigarrow v$.  
+\end{enumerate}
+
+The proof is done by induction over the binding process, which follows the structure 
+of the expression $e$:
+
+\vspace{0.75em}\noindent(1) $\ident{bind}_{\Gamma, \Delta}(e_0.m(e_1, \ldots, e_n))$ -- 
+  Here $e = e_0.m(e_1, \ldots, e_n)$, $\bndclr{v_i}$ are graph nodes obtained by induction for
+  expressions $e_i$ and $\{ (\bndclr{v}, \bndclr{v_0}, \blbl{arg}(0)), \ldots, (\bndclr{v}, \bndclr{v_n}, \blbl{arg}(n))\} \subseteq E$
+  From Lemma~\ref{thm:lemma-lookup}, $\bndclr{v} = \bnd{mem}(m, s)$ for some $s$.
+  
+  If $FV(e)=\emptyset$, then $\bndclr{v_i} \Downarrow p_i$ for $i\in 0\ldots n$ and   
+  $\bndclr{v}\Downarrow p$ using (\emph{mem-val}) such that $p_0.m(p_1, \ldots, p_n) \rightsquigarrow p$. 
+  From induction hypothesis, $e_i \rightsquigarrow p_i$ and so, using compositionality of $\rightsquigarrow$, 
+  $e_0.m(e_1, \ldots, e_n) \rightsquigarrow p$.
+  
+  If $FV(e)\neq\emptyset$, then $\bnclr{v_i} \Downarrow_\ident{lift} \llbracket e'_i \rrbracket$ for $i\in 0\ldots n$ and 
+  $\bndclr{v}\Downarrow \llbracket e'_0.m(e'_1, \ldots, e'_n) \rrbracket_{FV(e)}$ using (\emph{mem-expr}).
+  From induction hypothesis, for any $C[-]$, if $C[e'_i] \rightsquigarrow v_i$ then $C[e_i] \rightsquigarrow v_i$.
+  Using compositionality, it also holds that for any $C[-]$, if $C[e'_0.m(e'_1, \ldots, e'_n)]\rightsquigarrow v$
+  then also $C[e_0.m(e_1, \ldots, e_n)] \rightsquigarrow v$.   
+  
+\vspace{0.75em}\noindent(2) $\ident{bind}_{\Gamma, \Delta}(e_0.m(e_1, \ldots, e_n))$ --
+  This case is similar to (1), except that the fact that $\bndclr{v} = \bnd{mem}(m, s)$
+  holds by construction, rather than using Lemma~\ref{thm:lemma-lookup}.
+
+\vspace{0.75em}\noindent(3) We assume that the expression $e$ does not include let bindings and
+  so this case never happens.
+
+\vspace{0.75em}\noindent(4) $\ident{bind}_{\Gamma, \Delta}(n)$ -- In this case $e=n$ and $\bndclr{v} = \bnd{val}(n)$. The preview of
+  $\bnd{val}(n)$ is evaluated to $n$ using the (\emph{val}) case.
+
+\vspace{0.75em}\noindent(5) $\ident{bind}_{\Gamma, \Delta}(x)$ -- The initial $\Gamma$ is empty and
+  there are no let bindings, so $x$ must have been added to $\Gamma$ by case (6) or (7). Hence,
+  $\bndclr{v}=\bnd{var}(x)$. Using (\emph{var}) $\bndclr{v}\Downarrow \llbracket x \rrbracket_{x}$
+  and so $e_p = e = x$ and the second case (b.) trivially holds.  
+
+\vspace{0.75em}\noindent(6) $\ident{bind}_{\Gamma, \Delta}(\lambda x\rightarrow e)$ -- Assume
+  $\bndclr{v_b}$ is a graph node representing the body. The evaluation can use one of three rules: 
+  
+  If $FV(e)=\emptyset$ then $\bndclr{v_b}\Downarrow p_b$ for some $p_b$ and $\bndclr{v}\Downarrow \lambda x.p_b$ 
+  using (\emph{fun-val}). From induction $e_b \rightsquigarrow p_b$
+  and so, using extensionality of $\rightsquigarrow$ also $\lambda x.e_b \rightsquigarrow \lambda x.p_b$.
+
+  If $FV(e)=\{x\}$ then $\bndclr{v_b}\Downarrow \llbracket e_b \rrbracket_x$ for some $e_b$ and
+  $\bndclr{v}\Downarrow \lambda x.e_b$ using (\emph{fun-bind}). From 
+  induction, for any $C[-]$, if $C[e_b] \rightsquigarrow v$ then also $C[e] \rightsquigarrow v$.
+  By extensionality, using an empty context $C[-]=-$ it holds that if $\lambda x.e \rightsquigarrow \lambda x.e_b$.
+
+  Otherwise, $\bndclr{v_b}\Downarrow \llbracket e_b \rrbracket_{x,\Gamma}$ for some $e_b$ and
+  $\bndclr{v}\Downarrow \llbracket\lambda x.e_b\rrbracket_\Gamma$ using (\emph{fun-expr}). From
+  induction, for any $C[-]$, if $C[e_b] \rightsquigarrow v$ then also $C[e] \rightsquigarrow v$.
+  By extensionality, if $C'[\lambda x.e_b] \rightsquigarrow v$ then also
+  $C'[\lambda x.e] \rightsquigarrow v$.
+\end{proof}
 
 \end{document}
