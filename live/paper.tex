@@ -708,8 +708,8 @@ Whenever the $\Downarrow$ relation is used to obtain a preview for a graph node,
 attempt to find an already evaluated preview using the lookup table. If the preview has not
 been previously evaluated, we evaluate it and add it to the lookup table.
 
-This means that evaluated previews can be reused in two ways. First, multiple nodes can 
-depend on one sub-graph in a single dependency graph (e.g.~if the same sub-expression appears
+The evaluated previews can be reused in two ways. First, multiple nodes can 
+depend on one sub-graph in a single dependency graph (if the same sub-expression appears
 twice in the program). Second, the keys of the lookup table are graph nodes and nodes are 
 reused when a new dependency graph is constructed after the user edits the source code.
 
@@ -728,52 +728,71 @@ operation of a comonad and would be explicitly written as $\llbracket A \rrbrack
 
 % ==================================================================================================
 
-\newpage
 \section{Properties of preview evaluation}
 \label{sec:properties}
 
 The dependency graph makes it possible to cache partial results when evaluating previews. 
-The construction of dependency graphs and evaluation of previews needs to have two main properties.
+The mechanism needs to satisfy two properties.
 First, if we evaluate a preview using dependency graph with caching, it should be the same as the
 value we would obtain by evaluating the expression directly. Second, the evaluation of previews 
 using dependency graphs should -- in some cases -- reuse previously evaluated partial results.
-In other words, this section shows that our mechanism is both correct and implements a useful 
-optimization. 
+In other words, we show that the mechanism is correct and implements a useful optimization. 
 
+\subsection{Modelling expression evaluation}
+In The Gamma language, computations are expressed using
+member access, written as $e.m(e_1,\ldots, e_n)$. In this paper, we do not define how member
+access evaluates. This has been done elsewhere [X], but more importantly, the evaluation of
+previews does not rely on the exact specifics of the evaluation, provided that the language
+satisfies certan basic conditions. The following definitions provides the necessary structure 
+for discussing correctness of previews.
 
-\subsection{Host language}
-The method in this paper does not rely on the particulars of how the underlying programming 
-language works. For this reason, we do not give a concrete definition of how member access
-$e.m(e_1,\ldots, e_n)$ reduces to a value.
+Partial evaluation may reduce an expression under $\lambda$-abstraction. We do not require that
+the reduction of the host language allows this. Instead, we define an extended reduction relation
+and use that in the proofs. The host language only needs to compose well with such extended reduction
+as captured by the \emph{compositionality} property below. We also require that the language allows
+elimination of let bindings.
 
+\begin{definition}[Host language]
+Given a relation on expressions $e_1 \rightsquigarrow e_2$ that models evaluation, we define:
 
-We require that the host language allows eliminating let bindings without changing the meaning
-of the program. That is
-
-[Rightsquigarrow allows beta anywhere? then it works...]
-
-\begin{definition}[Host language reduction]
-The reduction $\rightsquigarrow$ reduces host language expression such that:
 \begin{itemize}
-\item  
-Given an expression $e$ and $e'$ such that $e'$ is obtained from $e$
-by replacing any sub-expression $\kvd{let}~x=e_1~\kvd{in}~e_2$ with the expression 
-$e_2[x\leftarrow e_1]$, written as $e\rightsquigarrow_\ident{let}e'$, then if $e \rightsquigarrow e''$ then also $e' \rightsquigarrow e''$.
+\item[--]  
+ A \emph{preview evaluation context} (also referred to as \emph{context}):
 
-\item 
-Compositionality, i.e. if $e \rightsquigarrow e'$ and $C[e] \rightsquigarrow e''$ then also
-  $C[e'] \rightsquigarrow e''$.
+\vspace{-1.25em}
+\begin{equation*}
+\begin{array}{lcl}
+C[-] &\hspace{-1em}=\hspace{-1em}& \kvd{let}~x = -~\kvd{in}~e ~|~ \kvd{let}~x = e~\kvd{in}~- ~|~ \lambda x\rightarrow - \\
+     &&  e_0.m(e_1, \ldots, e_{k-1}, -, e_{k+1}, \ldots e_n)
+\end{array}
+\end{equation*}
 
-\item
-Extensionality -- if $C1[e1] \rightsquigarrow e$ and $C1[e2] \rightsquigarrow e$ then $C2[fn e1] \rightsquigarrow ee$ and $C2[fn e2] \rightsquigarrow ee$
+\item[--]  
+An extended reduction relation $\rightsquigarrow_\beta$ such that, for any context $C$, 
+$C[e_1] \rightsquigarrow_\beta C[e_2]$ whenever $e_1 \rightsquigarrow e_2$.
 
+\item[--]  
+Let elimination $\rightsquigarrow_\ident{let}$ such that, using  capture-avoiding substitution,
+  $C[\kvd{let}~x=e_1~\kvd{in}~e_2] \rightsquigarrow_\ident{let} C[e_2[x\leftarrow e_1]]$
+\end{itemize}
+
+\noindent
+We say that $\rightsquigarrow$ is a suitable \emph{host language reduction} if:
+\begin{itemize}
+\item[--] It satisfies the \emph{compositionality} property, that is if $e \rightsquigarrow e'$ and 
+$C[e]\rightsquigarrow_\beta e''$ then also $C[e']\rightsquigarrow_\beta e''$.
+
+\item[--] Let elimination does not affect the result, i.e.~if $e \rightsquigarrow_{\ident{let}} e'$ 
+and $e'\rightsquigarrow_\beta e''$ then also $e\rightsquigarrow_\beta e''$ 
 \end{itemize}
 \end{definition}
 
-
-
-We don't care about non-termination here.
-(so, does $\rightsquigarrow$ do small step or big step reduction?)
+\noindent
+The host language in The Gamma is a simple call-by-value functional language without side-effects,
+and so it satisfies both compositionality and allows let bindings to be eliminated, although the
+latter affects the performance. The mechanism for preview evaluation presented here would also 
+work for call-by-name languages, but it would suffer from the expected difficulties in the 
+presence of side-effects or non-determinism.
 
 \subsection{Correctness of previews}
 \label{sec:properties-correct}
@@ -830,7 +849,7 @@ Lemma X - lookup with red mem(m) returns blue mem(m, s)
 Given an expression $e$ that has no free variables and does not contain let bindings, together
 with a lookup table $\Delta$ obtained from any sequence of expressions according to Figure~\ref{fig:loop}
 let $\bndclr{v}, (V, E) = \ident{bind}_{\emptyset, \Delta}(e)$. If $\bndclr{v}\Downarrow d$ 
-over a graph $(V, E)$ then $d = p$ for some $p$ and $e \rightsquigarrow p$.
+over a graph $(V, E)$ then $d = p$ for some $p$ and $e \rightsquigarrow_\beta p$.
 \end{theorem}
 \begin{proof}
 First note that, when combining recursively constructed sub-graphs, the \ident{bind} operation
@@ -840,11 +859,12 @@ over a sub-graph will also be valid over the new graph.
 Next, we prove a more general property using induction showing that for $e$ such 
 that $\bndclr{v}, (V, E) = \ident{bind}_{\emptyset, \Delta}(e)$:
 \begin{enumerate}
-\item[a.] If $FV(e)=\emptyset$ then $\bndclr{v} \Downarrow p$ for some $p$ and $e \rightsquigarrow p$
-\item[b.] Otherwise, $\bndclr{v} \Downarrow \llbracket e_p \rrbracket_{FV(e)}$ for some $e_p$ and
+\item[a.] If $FV(e)\,=\,\emptyset$ then $\bndclr{v} \Downarrow p$ for some $p$ and $e \rightsquigarrow_\beta p$
+\item[b.] If $FV(e)\neq\emptyset$ then $\bndclr{v} \Downarrow \llbracket e_p \rrbracket_{FV(e)}$ for some $e_p$ and
   for any evaluation context $C[-]$ such that $FV(C[e_p])=\emptyset$ it holds that if
-  $C[e_p] \rightsquigarrow v$ for some $v$ then $C[e] \rightsquigarrow v$.  
+  $C[e] \rightsquigarrow_\beta C[e_p]$.  
 \end{enumerate}
+
 The proof is done by induction over the binding process, which follows the structure 
 of the expression $e$ and can be found in Appendix~\ref{sec:app-correctness}.
 \end{proof}
@@ -888,13 +908,16 @@ Integrate with Python/R via Jupyter
 \bibliography{paper}
 
 \appendix 
+
 \section{Appendix}
 \label{sec:app-correctness}
+
+\setcounter{thc}{-1}
 \begin{theorem}[Let-free correctness]
 Given an expression $e$ that has no free variables and does not contain let bindings, together
 with a lookup table $\Delta$ obtained from any sequence of expressions according to Figure~\ref{fig:loop}
 let $\bndclr{v}, (V, E) = \ident{bind}_{\emptyset, \Delta}(e)$. If $\bndclr{v}\Downarrow d$ 
-over a graph $(V, E)$ then $d = p$ for some $p$ and $e \rightsquigarrow p$.
+over a graph $(V, E)$ then $d = p$ for some $p$ and $e \rightsquigarrow_\beta p$.
 \end{theorem}
 \begin{proof}
 First note that, when combining recursively constructed sub-graphs, the \ident{bind} operation
@@ -904,10 +927,10 @@ over a sub-graph will also be valid over the new graph.
 Next, we prove a more general property using induction showing that for $e$ such 
 that $\bndclr{v}, (V, E) = \ident{bind}_{\emptyset, \Delta}(e)$:
 \begin{enumerate}
-\item[a.] If $FV(e)=\emptyset$ then $\bndclr{v} \Downarrow p$ for some $p$ and $e \rightsquigarrow p$
-\item[b.] Otherwise, $\bndclr{v} \Downarrow \llbracket e_p \rrbracket_{FV(e)}$ for some $e_p$ and
+\item[a.] If $FV(e)\,=\,\emptyset$ then $\bndclr{v} \Downarrow p$ for some $p$ and $e \rightsquigarrow_\beta p$
+\item[b.] If $FV(e)\neq\emptyset$ then $\bndclr{v} \Downarrow \llbracket e_p \rrbracket_{FV(e)}$ for some $e_p$ and
   for any evaluation context $C[-]$ such that $FV(C[e_p])=\emptyset$ it holds that if
-  $C[e_p] \rightsquigarrow v$ for some $v$ then $C[e] \rightsquigarrow v$.  
+  $C[e] \rightsquigarrow_\beta C[e_p]$.  
 \end{enumerate}
 
 The proof is done by induction over the binding process, which follows the structure 
@@ -918,16 +941,16 @@ of the expression $e$:
   expressions $e_i$ and $\{ (\bndclr{v}, \bndclr{v_0}, \blbl{arg}(0)), \ldots, (\bndclr{v}, \bndclr{v_n}, \blbl{arg}(n))\} \subseteq E$
   From Lemma~\ref{thm:lemma-lookup}, $\bndclr{v} = \bnd{mem}(m, s)$ for some $s$.
   
-  If $FV(e)=\emptyset$, then $\bndclr{v_i} \Downarrow p_i$ for $i\in 0\ldots n$ and   
+  If $FV(e)=\emptyset$, then $\bndclr{v_i} \Downarrow p_i$ for $i\in 0\ldots n$ and 
   $\bndclr{v}\Downarrow p$ using (\emph{mem-val}) such that $p_0.m(p_1, \ldots, p_n) \rightsquigarrow p$. 
-  From induction hypothesis, $e_i \rightsquigarrow p_i$ and so, using compositionality of $\rightsquigarrow$, 
-  $e_0.m(e_1, \ldots, e_n) \rightsquigarrow p$.
+  From induction hypothesis, $e_i \rightsquigarrow_\beta p_i$ and so, using compositionality of $\rightsquigarrow$, 
+  $e_0.m(e_1, \ldots, e_n) \rightsquigarrow_\beta p$.
   
   If $FV(e)\neq\emptyset$, then $\bnclr{v_i} \Downarrow_\ident{lift} \llbracket e'_i \rrbracket$ for $i\in 0\ldots n$ and 
-  $\bndclr{v}\Downarrow \llbracket e'_0.m(e'_1, \ldots, e'_n) \rrbracket_{FV(e)}$ using (\emph{mem-expr}).
-  From induction hypothesis, for any $C[-]$, if $C[e'_i] \rightsquigarrow v_i$ then $C[e_i] \rightsquigarrow v_i$.
-  Using compositionality, it also holds that for any $C[-]$, if $C[e'_0.m(e'_1, \ldots, e'_n)]\rightsquigarrow v$
-  then also $C[e_0.m(e_1, \ldots, e_n)] \rightsquigarrow v$.   
+  using (\emph{mem-expr}), $\bndclr{v}\Downarrow \llbracket e'_0.m(e'_1, \ldots, e'_n) \rrbracket_{FV(e)}$.
+  From induction hypothesis, for any $C[-]$, it holds that $C[e_i] \rightsquigarrow_\beta C[e'_i]$.
+  Using compositionality, it also holds that for any $C[-]$, it is the case that
+  $C[e_0.m(e_1, \ldots, e_n)] \rightsquigarrow_\beta C[e'_0.m(e'_1, \ldots, e'_n)]$.
   
 \vspace{0.75em}\noindent(2) $\ident{bind}_{\Gamma, \Delta}(e_0.m(e_1, \ldots, e_n))$ --
   This case is similar to (1), except that the fact that $\bndclr{v} = \bnd{mem}(m, s)$
@@ -948,19 +971,19 @@ of the expression $e$:
   $\bndclr{v_b}$ is a graph node representing the body. The evaluation can use one of three rules: 
   
   If $FV(e)=\emptyset$ then $\bndclr{v_b}\Downarrow p_b$ for some $p_b$ and $\bndclr{v}\Downarrow \lambda x.p_b$ 
-  using (\emph{fun-val}). From induction $e_b \rightsquigarrow p_b$
-  and so, using extensionality of $\rightsquigarrow$ also $\lambda x.e_b \rightsquigarrow \lambda x.p_b$.
+  using (\emph{fun-val}). From induction $e_b \rightsquigarrow_\beta p_b$
+  and so by definition also $\lambda x.e_b \rightsquigarrow_\beta \lambda x.p_b$.
 
   If $FV(e)=\{x\}$ then $\bndclr{v_b}\Downarrow \llbracket e_b \rrbracket_x$ for some $e_b$ and
   $\bndclr{v}\Downarrow \lambda x.e_b$ using (\emph{fun-bind}). From 
-  induction, for any $C[-]$, if $C[e_b] \rightsquigarrow v$ then also $C[e] \rightsquigarrow v$.
-  By extensionality, using an empty context $C[-]=-$ it holds that if $\lambda x.e \rightsquigarrow \lambda x.e_b$.
+  induction, for any context $C[-]$, it holds that $C[e] \rightsquigarrow_\beta C[e_b]$.
+  Using a context $C[-]=\lambda x.-$ it holds that $\lambda x.e \rightsquigarrow_\beta \lambda x.e_b$.
 
   Otherwise, $\bndclr{v_b}\Downarrow \llbracket e_b \rrbracket_{x,\Gamma}$ for some $e_b$ and
   $\bndclr{v}\Downarrow \llbracket\lambda x.e_b\rrbracket_\Gamma$ using (\emph{fun-expr}). From
-  induction, for any $C[-]$, if $C[e_b] \rightsquigarrow v$ then also $C[e] \rightsquigarrow v$.
-  By extensionality, if $C'[\lambda x.e_b] \rightsquigarrow v$ then also
-  $C'[\lambda x.e] \rightsquigarrow v$.
+  induction, for any context $C[-]$, it holds that $C[e] \rightsquigarrow_\beta C[e_b]$ 
+  and for any context $C'[-]$, by definition of $\rightsquigarrow_\beta$ also 
+  $C'[\lambda x.e] \rightsquigarrow C'[\lambda x.e_b]$.
 \end{proof}
 
 \end{document}
