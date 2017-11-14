@@ -350,7 +350,6 @@ of all parents in the dependency graph.
 % --------------------------------------------------------------------------------------------------
 
 \begin{figure*}[t]
-\vspace{-0.5em}
 \begin{equation*}
 \begin{array}{ll}
 \ident{bind}_{\Gamma, \Delta}(e_0.m(e_1, \ldots, e_n)) = &(1)~~\\ 
@@ -358,14 +357,14 @@ of all parents in the dependency graph.
 \quad \textnormal{when}~\bndclr{v_i}, (V_i, E_i) = \ident{bind}_{\Gamma, \Delta}(e_i)\\
 \quad \textnormal{and}~\bndclr{v} = \Delta(\bknd{mem}(m),[(\bndclr{v_0}, \blbl{arg}(0)), \ldots, (\bndclr{v_n}, \blbl{arg}(n))])\\
 \quad \textnormal{let}~E = \{ (\bndclr{v}, \bndclr{v_0}, \blbl{arg}(0)), \ldots, (\bndclr{v}, \bndclr{v_n}, \blbl{arg}(n))\}
-\\[0.75em]
+\\[1em]
 \ident{bind}_{\Gamma, \Delta}(e_0.m(e_1, \ldots, e_n)) = &(2)\\ 
 \qquad \bndclr{v}, (\{\bndclr{v}\} \cup V_0 \cup \ldots \cup V_n, E \cup E_0 \cup \ldots \cup E_n)\\
 \quad \textnormal{when}~\bndclr{v_i}, (V_i, E_i) = \ident{bind}_{\Gamma, \Delta}(e_i)\\
 \quad \textnormal{and}~(\bknd{mem}(m),[(\bndclr{v_0}, \blbl{arg}(0)), \ldots, (\bndclr{v_n}, \blbl{arg}(n))]) \notin \ident{dom}(\Delta)\hspace{-200em}.\\
 \quad \textnormal{let}~\bndclr{v} = \bnd{mem}(m, s), s~\textnormal{fresh}\\
 \quad \textnormal{let}~E = \{ (\bndclr{v}, \bndclr{v_0}, \blbl{arg}(0)), \ldots, (\bndclr{v},\bndclr{v_n}, \blbl{arg}(n)) \}
-\\[0.75em]
+\\[1em]
 \ident{bind}_{\Gamma, \Delta}(\kvd{let}~x=e_1~\kvd{in}~e_2) = \bndclr{v}, (\{\bndclr{v}\} \cup V \cup V_1, E \cup E_1)&(3)\\
 \quad \textnormal{let}~\bndclr{v_1}, (V_1,E_1) = \ident{bind}_{\Gamma,\Delta}(e_1)\\
 \quad \textnormal{let}~\Gamma_1 = \Gamma \cup \{(x,\bndclr{v_1})\} \\
@@ -373,25 +372,24 @@ of all parents in the dependency graph.
 \end{array}
 \begin{array}{ll}
 \ident{bind}_{\Gamma, \Delta}(n) = \bnd{val}(n), (\{ \bnd{val}(n) \}, \emptyset) }&(4)
-\\[0.75em]
-\ident{bind}_{\Gamma, \Delta}(x) = \bndclr{v}, (\{ \bndclr{v} \}, \emptyset)\quad \textnormal{when}~\bndclr{v} = \Gamma(x)&(5)
 \\[1em]
+\ident{bind}_{\Gamma, \Delta}(x) = \bndclr{v}, (\{ \bndclr{v} \}, \emptyset)\quad \textnormal{when}~\bndclr{v} = \Gamma(x)&(5)
+\\[1.25em]
 \ident{bind}_{\Gamma, \Delta}(\lambda x \rightarrow e) = \bndclr{v}, (\{\bndclr{v}\} \cup V, \{e\} \cup E)&(6)\\
 \quad \textnormal{when}~\Gamma_1 = \Gamma \cup \{ x, \bnd{var}(x) \}\\
 \quad \textnormal{and}~\bndclr{v_0}, (V, E) = \ident{bind}_{\Gamma_1, \Delta}(e)\\
 \quad \textnormal{and}~\bndclr{v} = \Delta(\bknd{fun}(x),[(\bndclr{v_0}, \blbl{body})])\\
 \quad \textnormal{let}~e = (\bndclr{v}, \bndclr{v_0}, \blbl{body}) 
-\\[1em]
+\\[1.25em]
 \ident{bind}_{\Gamma, \Delta}(\lambda x \rightarrow e) = \bndclr{v}, (\{\bndclr{v}\} \cup V, \{e\} \cup E)&(7)\\
 \quad \textnormal{when}~\Gamma_1 = \Gamma \cup \{ x, \bnd{var}(x) \}\\
 \quad \textnormal{and}~\bndclr{v_0}, (V, E) = \ident{bind}_{\Gamma_1, \Delta}(e)\\
 \quad \textnormal{and}~(\bknd{fun}(x),[(\bndclr{v_0}, \blbl{body})])\notin \ident{dom}(\Delta)\\
-\quad \textnormal{let}~\bndclr{v} = \bnd{fun}(s, x), s~\textnormal{fresh}\\
+\quad \textnormal{let}~\bndclr{v} = \bnd{fun}(x, s), s~\textnormal{fresh}\\
 \quad \textnormal{let}~e = (\bndclr{v},\bndclr{v_0},\blbl{body}) 
-\\[0.5em]
+\\[0.75em]
 \end{array}
 \end{equation*}
-\vspace{-0.5em}
 \caption{Rules of the binding process, which constructs a dependency graph for an expression.}
 \label{fig:binding-rules}
 \end{figure*}
@@ -518,24 +516,25 @@ present in the lookup table.
 
 % --------------------------------------------------------------------------------------------------
 
-\begin{figure}[!b]
-\vspace{-0.5em}
+\begin{figure}[!b]  
 \begin{equation*}
 \begin{array}{l}
-\Delta_{i}(\bknd{mem}(m), [(\bndclr{v_0},\blbl{arg}(0)),\ldots, (\bndclr{v_n},\blbl{arg}(n))]) = \bnd{mem}(m, s)\\
-\quad \textnormal{for all}~\bnd{mem}(m, s) \in V\\
-\quad \textnormal{such that}~(\bnd{mem}(m, s), \bndclr{v_i}, \blbl{arg}(i)) \in E~\textnormal{for}~i\in 0,..,n
+\ident{update}_{V,E}(\Delta_{i-1}) = \Delta_i~\textnormal{such that:}
 \\[0.75em]
-\Delta_{i}(\bknd{fun}(x), [(\bndclr{v_1},\blbl{body})]) = \bnd{fun}(x, s)\\
-\quad \textnormal{for all}~\bnd{fun}(x, s) \in V\\
-\quad \textnormal{such that}~(\bnd{fun}(x, s), \bndclr{v_1}, \blbl{body}) \in E
+\quad\Delta_{i}(\bknd{mem}(m), [(\bndclr{v_0},\blbl{arg}(0)),\ldots, (\bndclr{v_n},\blbl{arg}(n))]) = \bnd{mem}(m, s)\\
+\quad\quad \textnormal{for all}~\bnd{mem}(m, s) \in V\\
+\quad\quad \textnormal{such that}~(\bnd{mem}(m, s), \bndclr{v_i}, \blbl{arg}(i)) \in E~\textnormal{for}~i\in 0,..,n
 \\[0.75em]
-\Delta_{i}(\bkndclr{v}) = \Delta_{i-1}(\bkndclr{v})\quad \textnormal{(otherwise)}
+\quad\Delta_{i}(\bknd{fun}(x), [(\bndclr{v_1},\blbl{body})]) = \bnd{fun}(x, s)\\
+\quad\quad \textnormal{for all}~\bnd{fun}(x, s) \in V\\
+\quad\quad \textnormal{such that}~(\bnd{fun}(x, s), \bndclr{v_1}, \blbl{body}) \in E
+\\[0.75em]
+\quad\Delta_{i}(\bkndclr{v}) = \Delta_{i-1}(\bkndclr{v})\quad \textnormal{(otherwise)}
 \end{array}
 \end{equation*}
-\vspace{-0.5em}
 \caption{Updating the node cache after binding a new graph}
 \label{fig:loop}
+\vspace{0.5em}
 \end{figure}
 
 % --------------------------------------------------------------------------------------------------
@@ -728,6 +727,29 @@ operation of a comonad and would be explicitly written as $\llbracket A \rrbrack
 
 % ==================================================================================================
 
+\section{Type checking}
+\label{sec:types}
+
+We need to cache type checking results too.
+
+The key trick is to separate the process into faster binding which constructs dependency
+graph and slower type checking and evaluation. (This assumes that binding can be done, perhaps
+as an over-approximation without full type checking.)
+
+\subsection{Provided types}
+
+a
+
+\subsection{Type checking over dependency graphs}
+
+a
+
+\newpage
+~
+\newpage
+
+% ==================================================================================================
+
 \section{Properties of preview evaluation}
 \label{sec:properties}
 
@@ -747,13 +769,14 @@ satisfies certan basic conditions. The following definitions provides the necess
 for discussing correctness of previews.
 
 Partial evaluation may reduce an expression under $\lambda$-abstraction. We do not require that
-the reduction of the host language allows this. Instead, we define an extended reduction relation
+the reduction of the host language does this. Instead, we define an extended reduction relation
 and use that in the proofs. The host language only needs to compose well with such extended reduction
 as captured by the \emph{compositionality} property below. We also require that the language allows
 elimination of let bindings.
 
 \begin{definition}[Host language]
-Given a relation on expressions $e_1 \rightsquigarrow e_2$ that models evaluation, we define:
+\label{def:host}
+Given a relation on expressions $e_1 \rightsquigarrow e_2$ that models small-step evaluation, we define:
 
 \begin{itemize}
 \item[--]  
@@ -794,58 +817,69 @@ latter affects the performance. The mechanism for preview evaluation presented h
 work for call-by-name languages, but it would suffer from the expected difficulties in the 
 presence of side-effects or non-determinism.
 
+% --------------------------------------------------------------------------------------------------
+
 \subsection{Correctness of previews}
 \label{sec:properties-correct}
 
-First is corrctness (Theorem~\ref{thm:correcntess}) -- no matter how a graph is constructed, when 
-we use it to evaluate a preview for an expression, the preview is the same as the value we would 
-obtain by evaluating the expression directly. Second is determinacy (Theorem~\ref{thm:determinacy}) --
-if we cache a preview for a graph node and update the graph, the preview would still be the same
-when evaluated using an updated graph.
+To show that the evalauted previews are correct, we prove two properties. Correctness 
+(Theorem~\ref{thm:correcntess}) shows that, no matter how a graph is constructed, when we use
+it to evaluate a preview for an expression, the preview is the same as the value we would obtain
+by evaluating the expression directly. Determinacy (Theorem~\ref{thm:determinacy}) shows that if
+we cache a preview for a graph node and update the graph, the preview we would evaluate using the
+updated graph would be the same as the cached preview. 
 
-This is the correctness and determinacy property discussed in Section~\ref{sec:properties-correct}.
-
-Eliminating let bindings does not change the result in the host language. It also yields the same
-dependency graph.
+To simplify the proofs, we consider expressions without let bindings. This is possible, because
+eliminating let bindings does not change the result in the host language (Definition~\ref{def:host})
+and it also does not change the constructed dependency graph as shown in Lemma~\ref{thm:let-elimination}.
 
 \begin{lem}[Let elimintion]
-Given an expression $e_1$ such that $e_1 \rightsquigarrow_\ident{let} e_2$ and a lookup table $\Delta$
-then if $\bndclr{v_1}, (V_1, E_1) = \ident{bind}_{\emptyset, \Delta}(e_1)$ and  
-$\bndclr{v_2}, (V_2, E_2) = \ident{bind}_{\emptyset, \Delta}(e_2)$ then it holds that
-$\bndclr{v_1} = \bndclr{v_2}$ and also $(V_1, E_1) = (V_2, E_2)$.
+\label{thm:let-elimination}  
+Given an expression $e_1$ such that $e_1 \rightsquigarrow_\ident{let} e_2$ and a lookup table $\Delta_0$
+then if $\bndclr{v_1}, (V_1, E_1) = \ident{bind}_{\emptyset, \Delta_0}(e_1)$ and  
+$\bndclr{v_2}, (V_2, E_2) = \ident{bind}_{\emptyset, \Delta_1}(e_2)$ such that $\Delta_1 = \ident{update}_{V_1, E_1}(\Delta_0)$
+then it holds that $\bndclr{v_1} = \bndclr{v_2}$ and also $(V_1, E_1) = (V_2, E_2)$.
 \end{lem}
+\begin{proof}
+Assume $e_1 = C[\kvd{let}~x=e'~\kvd{in}~e'']$ and the resulting $e_2 = C[e''[x\leftarrow e']]$. The case 
+$\ident{bind}_{\Gamma,\Delta}(\kvd{let}~x=e'~\kvd{in}~e'')$ when binding $e_1$ is handled using
+(3).
 
-This simplifies the correctness proof as we only need to consider expressions not containing
-let bindings (if there were let bindings, both the result and the preview would be equivalent
-to one that would be obtained if the let bindings were elimninated)
+When binding $e_1$, the node resulting from binding $e'$ is added to the graph $V_1, E_1$ and is 
+referenced each time $x$ is used. When binding $e_2$, the node representing $e'$ is a primitive value,
+or already present in $\Delta_1$ (added by $\ident{update}_{V_1, E_1}$) and is reused each time 
+$\ident{bind}_{\Gamma,\Delta_1}(e')$ is called.
+\end{proof}
 
-Now, if we have any let-free expression, we show that the preview obtained via the dependency graph
-is a value that is the same as the one we'd get by directly evaluating the expression.
+The Lemma~\ref{thm:let-elimination} provides a way of removing let bindings from an expression,
+such that the resulting dependency graph remains the same. Here, we bind the original expression
+first, which adds the node for $e'$ to $\Delta$. In our implementation, this is not needed
+because $\Delta$ is updated while the graph is being constructed using $\ident{bind}$. 
+To keep the formalisation simpler, we separate the process of building the dependency graph 
+and updating $\Delta$. 
 
-xxx
+Now, we can show that, given a let-free expression, the preview obtained using a correctly
+constructed dependency graph is the same as the one we would obtain by directly evaluating the
+expression. This requires a simple auxiliary lemma and the full proof is shown in 
+Appendix~\ref{sec:app-correctness}.
 
-\begin{theorem}[Determinacy]
-\label{thm:determinacy}
-Downarrow will always evaluate the same, if we add things to a graph in the defined way.
-(this means that we can cache)
-\end{theorem}
-
-
-~
-
-~
-
-~
-
-[Only dependency graph matters, not the history and symbols]
-[Symbols are effectively hashes of dependencies]
-
-\begin{lemma}
-\label{thm:lemma-lookup}
-Lemma X - lookup with red mem(m) returns blue mem(m, s)
-\end{lemma}
+\begin{lem}
+\label{thm:lemma-lookup}[Lookup inversion]
+Given $\Delta$ obtained using \ident{update} as defined in Figure~\ref{fig:loop} then: 
+\begin{itemize}
+\raggedright
+\item[--] If $\bndclr{v}=\Delta(\bknd{fun}(x),[(\bndclr{v_0}, \blblclr{l_0})])$
+then $\bndclr{v}=\bnd{fun}(x, s)$ for some $s$. 
+\item[--] If $\bndclr{v}=\Delta(\bknd{mem}(m),[(\bndclr{v_0}, \blblclr{l_0}), \ldots, (\bndclr{v_n}, \blblclr{l_n})])$
+then $\bndclr{v}=\bnd{mem}(m, s)$ for some $s$. 
+\end{itemize}
+\end{lem}
+\begin{proof}
+By construction of $\Delta$ in Figure~\ref{fig:loop}.  
+\end{proof}
 
 \begin{theorem}[Let-free correctness]
+\label{thm:let-free-correct}
 Given an expression $e$ that has no free variables and does not contain let bindings, together
 with a lookup table $\Delta$ obtained from any sequence of expressions according to Figure~\ref{fig:loop}
 let $\bndclr{v}, (V, E) = \ident{bind}_{\emptyset, \Delta}(e)$. If $\bndclr{v}\Downarrow d$ 
@@ -864,30 +898,96 @@ that $\bndclr{v}, (V, E) = \ident{bind}_{\emptyset, \Delta}(e)$:
   for any evaluation context $C[-]$ such that $FV(C[e_p])=\emptyset$ it holds that if
   $C[e] \rightsquigarrow_\beta C[e_p]$.  
 \end{enumerate}
-
+%
 The proof is done by induction over the binding process, which follows the structure 
 of the expression $e$ and can be found in Appendix~\ref{sec:app-correctness}.
 \end{proof}
 
+\noindent
+The correctness theorem combines the previous two results.
 
 \begin{theorem}[Correctness]
-\label{thm:correctness}
-(Same as let-free version, but using let elimination to say that this works for any expression)
+\label{thm:correcntess}
+Consider an expression $e_1$ that has no free variables together with a lookup table $\Delta_1$ obtained 
+from any sequence of expressions according to Figure~\ref{fig:loop} and $e_2$ such that
+$e_1\rightsquigarrow_\beta e_2$ and let $\bndclr{v_1}, (V_1, E_1) = \ident{bind}_{\emptyset, \Delta_1}(e_1)$.
+
+Let $\Delta_2 = \ident{update}_{V_1, E_1}(\Delta_1)$ and $\bndclr{v_2}, (V_2, E_2) = \ident{bind}_{\emptyset, \Delta_2}(e_2)$.
+If $\bndclr{v_2}\Downarrow d$ over a graph $(V_2, E_2)$ then $d = p$ for some $p$ and $e \rightsquigarrow_\beta p$.
 \end{theorem}
+\begin{proof}
+Direct consequence of Lemma~\ref{thm:let-elimination} and Theorem~\ref{thm:let-free-correct}.
+\end{proof}
+
+As discussed above when introducing Lemma~\ref{thm:let-elimination}, in our implementation,
+$\Delta$ is updated during the recursive binding process and so a stronger version of the property
+holds -- namely, $e \rightsquigarrow_\beta p$ for a $p$ that is obtained by calculating preview 
+over a graph obtained directly for the original expression $e$. We note that this is the case, but
+do not show it formally to keep aid the clarity of our formalisation.
+
+The second important property that guarantees the correctness of previews shown by the user in 
+our implementation is determinacy. This makes it possible to cache the previews evaluated using
+$\Downarrow$ using the corresponding graph node as a lookup key.
+
+\begin{theorem}[Determinacy]
+\label{thm:determinacy}
+Let $\Delta_1 = \emptyset$, for any $e_1, e_2$, assume that the first expression is bound,
+i.e.~$\bndclr{v_1}, (V_1, E_1) = \ident{bind}_{\emptyset, \Delta_1}(e_1)$, the graph node cache
+is updated $\Delta_2 = \ident{update}_{V_1, E_1}(\Delta_1)$ and a new expression is bound, i.e.~
+$\bndclr{v_2}, (V_2, E_2) = \ident{bind}_{\emptyset, \Delta_2}(e_2)$. Now, for any $\bndclr{v}$, 
+if $\bndclr{v} \Downarrow p$ over $(V_1, E_1)$ then also
+ $\bndclr{v} \Downarrow p$ over $(V_2, E_2)$.
+\end{theorem}
+\begin{proof}
+By induction over $\Downarrow$ over $(V_1, E_1)$, we show that the same evaluation rules also
+apply over $(V_2, E_2)$. 
+
+This is the case, because new graph nodes added to $\Delta_2$ by $\ident{update}_{V_1, E_2}$
+are only ever added as new nodes in $\ident{bind}_{\emptyset, \Delta_2}$ and so the existing 
+nodes and edges of $(V_1, E_1)$ used during the evaluation are unaffected.
+\end{proof}
+
+The mechanism used for caching previews, as discussed at the end of Section~\ref{sec:previews},
+keeps a preview or a partial preview $d$ in a lookup table indexed by nodes $\bndclr{v}$. The
+Throrem~\ref{thm:determinacy} guarantees that this is a valid strategy. As we update dependency
+graph during code editing, previous nodes will continue representing the same sub-expressions.
 
 \subsection{Reuse of previews}
 \label{sec:properties-reuse}
 
+\subparagraph{1. Introducing let}
 
-* Inlining let leads to an equivalent dependency graph
+$C_1[C_2[e]]$ to
+$C_1[\kvd{let}~x=e~\kvd{in}~C_2[x]]$
 
-* Given two expressions, if we inline lets and they are structurally different, then 
-  their dependency graphs are structurally different
+Also holds for multiple replaces. 
 
-Something about how dependency graph bits are reused correctly, i.e. if there is a source code
-change that can change the result, the graph will change.
+\subparagraph{2. Eliminating let}
 
-Something about various code edit operations that will not cause recomputation.
+$C_1[\kvd{let}~x=e~\kvd{in}~C_2[x]]$ to
+$C_1[\kvd{let}~x=e~\kvd{in}~C_2[e]]$ to
+$C_1[C_2[e]]$ 
+
+or
+
+$C_1[\kvd{let}~x=e~\kvd{in}~C_2[x]]$ to
+$C_1[C_2[x]]$ to
+$C_1[C_2[e]]$ 
+
+Also holds for multiple variables...
+
+\subparagraph{3. Editing non-dependency in let}
+
+$C[\kvd{let}~x=e_1~\kvd{in}~e_2]$ such that $x\notin FV(e_2)$ to
+$C[\kvd{let}~x=e_1'~\kvd{in}~e_2]$
+
+\subparagraph{3. Editing non-dependency in chain} a
+
+$C[e.m(e_1, \ldots, e_n).m'(e'_1, \ldots, e'_k)]$ to
+
+$C[e.m(e_1, \ldots, e_n).m''(e''_1, \ldots, e''_k)]$ 
+
+preview of $e.m(e_1, \ldots, e_n)$ remains
 
 % --------------------------------------------------------------------------------------------------
 
@@ -938,7 +1038,7 @@ of the expression $e$:
 
 \vspace{0.75em}\noindent(1) $\ident{bind}_{\Gamma, \Delta}(e_0.m(e_1, \ldots, e_n))$ -- 
   Here $e = e_0.m(e_1, \ldots, e_n)$, $\bndclr{v_i}$ are graph nodes obtained by induction for
-  expressions $e_i$ and $\{ (\bndclr{v}, \bndclr{v_0}, \blbl{arg}(0)), \ldots, (\bndclr{v}, \bndclr{v_n}, \blbl{arg}(n))\} \subseteq E$
+  expressions $e_i$ and $\{ (\bndclr{v}, \bndclr{v_0}, \blbl{arg}(0)), \ldots, (\bndclr{v}, \bndclr{v_n}, \blbl{arg}(n))\} \subseteq E$.
   From Lemma~\ref{thm:lemma-lookup}, $\bndclr{v} = \bnd{mem}(m, s)$ for some $s$.
   
   If $FV(e)=\emptyset$, then $\bndclr{v_i} \Downarrow p_i$ for $i\in 0\ldots n$ and 
