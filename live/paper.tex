@@ -42,7 +42,8 @@
 \definecolor{cmtclr}{rgb}{0.0,0.6,0.0}
 \definecolor{kvdclr}{rgb}{0.0,0.0,0.6}
 \definecolor{numclr}{rgb}{0.0,0.4,0.0}
-\definecolor{strclr}{rgb}{0.4,0.3,0.0}
+\definecolor{strclr}{rgb}{0.4,0.4,0.0}
+\definecolor{rstrclr}{rgb}{0.5,0.1,0.0}
 \definecolor{prepclr}{rgb}{0.6,0.0,0.2}
 \newcommand{\vect}[1]{\langl #1 \rangl}
 \newcommand{\langl}{\begin{picture}(4.5,7)
@@ -57,6 +58,7 @@
 \newcommand{\lsep}{~\,|\,~}
 \newcommand{\num}[1]{\textcolor{numclr}{#1}}
 \newcommand{\str}[1]{\textnormal{\textcolor{strclr}{\sffamily "#1"}}}
+\newcommand{\rstr}[1]{\textnormal{\textcolor{rstrclr}{\sffamily "#1"}}}
 \newcommand{\ident}[1]{\textnormal{\sffamily #1}}
 \newcommand{\qident}[1]{\textnormal{\sffamily \guillemotleft #1\guillemotright}}
 \newcommand{\dom}{\ident{dom}}
@@ -287,10 +289,10 @@ the source code accordingly. This aspect is not discussed in the present paper.
 \newpage
 
 
-\section{Formalising live coding environment}
+\section{Formalising live coding infrastructure}
 \label{sec:formal}
 
-In this section, we present a formalisation of a live coding environment for a small,
+In this section, we present a formalisation of a live coding infrastructure for a small,
 expression-based programming language that supports \kvd{let} binding, member invocations
 and $\lambda$ abstractions. This is the necessary minimum for data exploration as described
 in the previous section.  
@@ -695,17 +697,17 @@ produce a value. If one of the arguments is delayed (\emph{member-expr}), becaus
 is in the body of a lambda function, then we produce a delayed member access experession that
 requires the union of the variables required by the individual arguments.
 
-Finally, the evaluation of function values is similar, but requires three cases. If the body can 
+The evaluation of function values is similar, but requires three cases. If the body can 
 be reduced to a value with no unbound variables (\emph{fun-val}), we return a lambda function that
 returns the value. If the body requires only the bound variable (\emph{fun-bind}), we return a 
 lambda function with the delayed preview as the body. If the body requires further variables,
-the result is a delayed preview containing a function.
+the result is a delayed preview.
 
 \paragraph{Caching previews.}
 For simplicity, the relation $\Downarrow$ in Figure~\ref{fig:eval} does not specify how previews 
 are cached and linked to graph nodes. In practice, this is done by maintaining a lookup table
-$\bndclr{v} \rightarrow p$ from graph nodes $\bdnclr{v}$ to (possibly delayed) previews $p$.
-Whenever the $\Downarrow$ relation is used to obtain a preview for a graph node, we first 
+from graph nodes $\bdnclr{v}$ to (possibly delayed) previews $p$.
+Whenever $\Downarrow$ is used to obtain a preview for a graph node, we first 
 attempt to find an already evaluated preview using the lookup table. If the preview has not
 been previously evaluated, we evaluate it and add it to the lookup table.
 
@@ -730,6 +732,7 @@ operation of a comonad and would be explicitly written as $\llbracket A \rrbrack
 % ==================================================================================================
 
 \begin{figure*}[t]
+\vspace{-0.5em}
 \begin{equation*}
 \begin{array}{ll}
 \ident{bind}_{\Gamma, \Delta, c}(e_0.m(e_1, \ldots, e_n)) = &(2b)\\ 
@@ -754,80 +757,73 @@ operation of a comonad and would be explicitly written as $\llbracket A \rrbrack
 \\[0.75em]
 \end{array}
 \end{equation*}
+\vspace{-0.5em}
 \caption{Revised binding rules, tracking call sites of function values.} 
 \label{fig:binding-rules-callsite}
+\vspace{-0.5em}
 \end{figure*}
 
-
-\begin{figure*}
-\begin{equation*}
-\begin{array}{l}
-\inference[(val)~]
-  {\Sigma(n) = \tau}
-  {\bnd{val}(n) \vdash \tau }
-\\
-\\
-\inference[(var)~]
-  { (\bnd{var}(x,s), \bndclr{v}, \blbl{callsite}(m, i)) \in E \\
-    \bndclr{v} \vdash (.., m:(\tau_1, \ldots, \tau_k)\rightarrow \tau,..) & \tau_i=\tau'\rightarrow\tau'' }
-  { \bnd{var}(x, s) \vdash \tau' }
-\\
-\\
-\inference[(fun-val)~]
-  { (\bnd{fun}(x,s), \bndclr{v_b}, \blbl{body}) \in E \\
-    (\bnd{var}(x,s), \bndclr{v_c}, \blbl{callsite}(m, i)) \in E \\
-    \bndclr{v_c} \vdash (.., m:(\tau_1, \ldots, \tau_k)\rightarrow \tau,..) \\
-    \tau_i=\tau'\rightarrow\tau'' & \bndclr{v_b} \vdash \tau'' }
-  { \bnd{fun}(x, s) \vdash \tau' \rightarrow \tau'' }
-\\
-\\
-\inference[(mem)~]
-  { \forall i\in\{0\ldots k\}.(\bnd{mem}(m, s), \bndclr{v_i}, \blbl{arg}(i)) \in E \\
-    \bndclr{v_0} \vdash (.., m:(\tau_1, \ldots, \tau_k) \rightarrow \tau, ..)& \bndclr{v_i} \vdash \tau_i }
-  { \bnd{mem}(m, s) \vdash \tau }
-\\  
-\\
-\end{array}
-\end{equation*}
-
-\caption{Rules that define evaluation of previews over a dependency graph for an expression}  
-\label{fig:tc}
-\end{figure*}
-
-% --------------------------------------------------------------------------------------------------
+% ==================================================================================================
 
 \section{Type checking}
 \label{sec:types}
 
-We need to cache type checking results too.
+Evaluating live previews can be an expensive operations, so being able to cache partial previews
+is a must for a live coding environment. Type checking is typically fast, so the main focus of
+this paper is on live previews. However, asynchronous type providers in The Gamma (Section~\ref{sec:types-providers}) 
+can make type checking time consuming, and so we use the dependency graph also for type checking
+(Section~\ref{sec:types-graph}). Type checking lambda functions (Section~\ref{sec:types-funs}) 
+requires a slight extension of the model discussed in Section~\ref{sec:formal}. 
+   
+% --------------------------------------------------------------------------------------------------
 
-The key trick is to separate the process into faster binding which constructs dependency
-graph and slower type checking and evaluation. (This assumes that binding can be done, perhaps
-as an over-approximation without full type checking.)
+\subsection{Asynchronously provided types}
+\label{sec:types-providers}
 
+Data available in The Gamma can be defined using several kinds of type providers. The type provider
+used in Figure~\ref{fig:thegamma} as asynchronous [X]. It downloads the sample URL and generates 
+types based on the contents of the web page. The parameter to \ident{web.scrape} is a static 
+parameter and is evaluated during type-checking. We omit details in this paper, but we note this
+works similarly to F\# type providers [X]. 
 
-
-
-\subsection{Provided types}
-
-a
-
-\subsection{Type checking functions}
-
+Type providers can also be implemented as REST services [X] to allow anyone implement a data source
+in the language of their choice. In this case, each member of a call-chain returns a type that is
+generated based on the result of an HTTP request. For example, when the user types \ident{worldbank}
+(to access information about countries), the type provider makes a request to   
+\url{http://thegamma-services.azurewebsites.net/worldbank}, which returns two members:
 %
 \begin{equation*}
-\begin{array}{lcll}
-\bkndclr{k}&\in&\bknd{fun}(x)~|~\bknd{mem}(m)~|~\bknd{var}(x)&\quad(\textit{Node kinds})\\
-c&\in&\bot ~|~(\bndclr{v}, \blblclr{l})&\quad(\textit{Call sites})\\
+\begin{array}{l}
+[~\{\rstr{name}\!:\str{byYear},\rstr{returns}\!:\\
+~\quad \{\rstr{kind}\!:\str{nested},\rstr{endpoint}\!:\str{/pickYear}\}\}\\
+\hspace{0.55em}\{\rstr{name}\!:\str{byCountry},\rstr{returns}\!:\\
+~\quad \{\rstr{kind}\!:\str{nested},\rstr{endpoint}\!:\str{/pickCountry}\}\}~]
 \end{array}
 \end{equation*}
 %
+This indicates that \ident{worldbank} has members \ident{byYear} and \ident{byCountry}.
+If the user types \ident{worldbank.byCountry}, a request is made to the specified URL 
+\url{http://thegamma-services.azurewebsites.net/worldbank/pickCountry}:
+%
+\begin{equation*}
+\begin{array}{l}
+[~\{\rstr{name}\!:\str{Andorra},\rstr{trace}\!:[\str{"country=AR"}], \\
+\quad \rstr{returns}\!:\{\rstr{kind}\!:\str{nested},\rstr{endpoint}\!:\str{/pickTopic}\}\}\\
+\hspace{0.55em}\{\rstr{name}\!:\str{Afghanistan},\rstr{trace}\!:[\str{"country=AF"}],\\
+\quad \rstr{returns}\!:\{\rstr{kind}\!:\str{nested},\rstr{endpoint}\!:\str{/pickTopic}\}\},\,..]
+\end{array}
+\end{equation*}
+%
+This returns a list of countries which can then be accessed as members via 
+\ident{worldbank.byCountry.Andorra}, etc.
 
+This is one reason for why type checking in The Gamma can be time consuming. Other
+type providers may perform other more computationally intensive work to provide types and so
+it is desirable to reuse type-checking results during live coding. The rest of this section
+shows how this is done using the dependency graph discussed in Section~\ref{sec:formal}.
 
-Binding of
-
-$o.m(\lambda x\rightarrow x)$
-
+\begin{figure}[!b]
+\vspace{-0.5em}
 \begin{equation*}
 \xymatrix{
 &\bnd{val}(o)\\
@@ -835,24 +831,169 @@ $o.m(\lambda x\rightarrow x)$
 \bnd{fun}(x, s_2) \ar@/^/[uur]^{\blbl{callsite}(m, 1)} \ar[rr]^{\blbl{body}} && \bnd{var}(x, s_1) \ar@/_/[uul]_{\blbl{callsite}(m, 1)}
 }  
 \end{equation*}
+\caption{Dependency graph for $o.m(\lambda x\rightarrow x)$}
+\label{fig:graph-func}
+\end{figure}
 
-Update Figure~\ref{fig:loop} accordingly
+% --------------------------------------------------------------------------------------------------
 
-We show cases (2) and (7); cases (1) and (6) that reuse nodes are analogous;
-other cases just call bind recursively with no node
+\subsection{Revised binding of functions}
+\label{sec:types-funs}
 
-\subsection{Type checking over dependency graphs}
+The Gamma script supports lambda functions, but only in a limited way. A function can be passed
+as a parameter to a method, which makes type checking of functions easier. For example, consider:
+%
+\begin{equation*}
+\begin{array}{l}  
+\ident{movies}.\ident{sortBy}(\lambda x \rightarrow x.\ident{getBudget}())
+\end{array}
+\end{equation*}
+%
+If \ident{movies} is a collection of \ident{Movie} objects, the type of the lambda function must be
+$\ident{Movie}\rightarrow\ident{bool}$ and so the type of $x$ is \ident{Movie}. This is similar to
+type checking of lambda functions in C\# [X], where type is also inferred from the context (or has
+to be specified explicitly). 
 
+We do not currently allow lambda functions as stand-alone let-bound 
+values. This could be done by requiring explicit types, or introducing polymorphism, but it was not
+necessary for the limited domain of non-expert data exploration.
+
+\paragraph{Dependency graph for functions.}
+In the binding process specified in Section~\ref{sec:formal}, a variable is a leaf of the dependency
+graph. In the revised model, it depends on the context in which it appears. A new edge labelled
+$\blbl{callsite}(m, i)$ indicates that the source node is the input variable of a function 
+passed as the $i^\textnormal{th}$ argument to the $m$ member of the expression represented by the
+target node. A node representing function is linked to the call site using the same edge.
+
+Figure~\ref{fig:graph-func} shows the result of binding $o.m(\lambda x\rightarrow x)$. Both
+$\bnd{fun}(x, s_2)$ and $\bnd{var}(x, s_1)$ now depend on the node representing $o$. The new 
+$\blbl{callsite}$ edge makes it possible to type-check function and variable nodes just using their 
+dependencies. As before, the member invocation $\bnd{mem}(m, s_0)$ 
+depends on the instance using $\blbl{arg}(0)$ and on its argument using $\blbl{arg}(1)$. 
+
+% --------------------------------------------------------------------------------------------------
+
+\begin{figure*}
+\vspace{0.5em}
+\begin{equation*}
+\begin{array}{l}
+\qquad\inference[(val)~]
+  {\Sigma(n) = \alpha}
+  {\bnd{val}(n) \vdash \alpha }
+\quad\qquad
+\inference[(var)~]
+  { (\bnd{var}(x,s), \bndclr{v}, \blbl{callsite}(m, i)) \in E &
+    \bndclr{v} \vdash (.., m:(\tau_1, \ldots, \tau_k)\rightarrow \tau,..) & \tau_i=\tau'\rightarrow\tau'' }
+  { \bnd{var}(x, s) \vdash \tau' }
+\\[2.5em]
+\inference[(fun)~]
+  { \{(\bnd{fun}(x,s), \bndclr{v_b}, \blbl{body}), (\bnd{var}(x,s), \bndclr{v_c}, \blbl{callsite}(m, i))\} \subseteq E &
+    \bndclr{v_c} \vdash (.., m:(\tau_1, \ldots, \tau_k)\rightarrow \tau,..) &
+    \tau_i=\tau'\rightarrow\tau'' & \bndclr{v_b} \vdash \tau'' }
+  { \bnd{fun}(x, s) \vdash \tau' \rightarrow \tau'' }
+\\[2.5em]
+\qquad\qquad\quad\inference[(mem)~]
+  { \forall i\in\{0\ldots k\}.(\bnd{mem}(m, s), \bndclr{v_i}, \blbl{arg}(i)) \in E &
+    \bndclr{v_0} \vdash (.., m:(\tau_1, \ldots, \tau_k) \rightarrow \tau, ..)& \bndclr{v_i} \vdash \tau_i }
+  { \bnd{mem}(m, s) \vdash \tau }
+\\[1em]
+\end{array}
+\end{equation*}
+\caption{Rules that define evaluation of previews over a dependency graph for an expression}  
+\vspace{0.5em}
+\label{fig:tc}
+\end{figure*}
+
+% --------------------------------------------------------------------------------------------------
+
+\paragraph{Revised binding process.}
+For the revised binding process, we introduce a new edge label $\blbl{callsite}$. Variable nodes
+now have dependencies and so we cache them and attach a symbol $s$ to \bnd{var}, so we also 
+introduce a node kind $\bknd{var}$ as part of a lookup key for $\Delta$. 
+
+The \ident{bind} function now has a parameter $c$, in addition to $\Gamma$ and $\Delta$, which 
+represents the context in which the binding happens. This is either a member invocation (labelled 
+with instance node $\bndclr{v}$ and \blbl{callsite} label $\blblclr{l}$), or not a member 
+invocation writted as $\bot$. The updated definitions are:
+%
 \begin{equation*}
 \begin{array}{lcll}
-\tau&\in&\alpha ~|~ \tau \rightarrow \tau ~|~ (m_1\!:\!\sigma_1, \ldots, m_n\!:\!\sigma_n) &\quad(\textit{Types})\\
-\sigma &\in& (\tau_1, \ldots, \tau_n) \rightarrow \tau &\quad(\textit{Members})\\
+\bndclr{v} &\hspace{-0.5em}\in\hspace{-0.5em}&\bnd{val}(n)~|~\bnd{var}(x, s)~|~\bnd{mem}(m, s)~|~\bnd{fun}(x, s)&(\textit{Vertices})\\
+\blblclr{l}&\hspace{-0.5em}\in\hspace{-0.5em}&\blbl{body}~|~\blbl{arg}(i)~|~\blbl{callsite}(m,i)&(\textit{Edge labels})\\
+\bkndclr{k}&\hspace{-0.5em}\in\hspace{-0.5em}&\bknd{fun}(x)~|~\bknd{mem}(m)~|~\bknd{var}(x)&(\textit{Node kinds})\\
+          c&\hspace{-0.5em}\in\hspace{-0.5em}&\bot ~|~(\bndclr{v}, \blblclr{l})&(\textit{Call sites})\\
+\end{array}
+\end{equation*}
+%
+The key parts of the revised definiton of the \ident{bind} function are shown in Figure~\ref{fig:binding-rules-callsite}.
+We now write $\ident{bind}_{\Gamma,\Delta,c}$ where $c$ represents the context in which the
+binding occurs. This is set to $\bot$ in all cases, except when binding arguments of a member call.
+In (2b), we first recursively bind the instance node using $\bot$ as the context and then 
+bind all the arguments using $(\bndclr{v_0}, \blbl{callsite}(m, i))$ as the context for $i^{\textnormal{th}}$ 
+argument. The rest is as in case (2) before. The case (1) is updated similarly and is not shown 
+here for brevity.
+
+When binding a function (7b), we now also store variable nodes in $\Delta$ and so we check if a 
+variable with the given call site exists. If no, we create a fresh node $\bnd{var}(x, s_x)$.
+The node is added to $\Gamma$ as before. At the end, we now also include a call site edge from the 
+variable node and from the function node in $E$. We omit a similar variant of the case (6).
+The remaining cases (3)-(5) are the same, except that \ident{bind} has the additional $c$ parameter
+and recursive calls always set it to $\bot$.
+
+Finally, the \ident{update} function in Figure~\ref{fig:loop} also needs to be updated to store the
+newly created \bnd{var} nodes. This is done by adding the following single case:
+
+\begin{equation*}
+\begin{array}{l}
+\Delta_{i}(\bknd{var}(x), [(\bndclr{v},\blbl{callsite}(m,i))]) = \bnd{var}(x, s)\\
+\quad\quad \textnormal{for all}~\bnd{var}(x, s) \in V\\
+\quad\quad \textnormal{such that}~(\bnd{var}(x, s), \bndclr{v}, \blbl{callsite}(m,i)) \in E
 \end{array}
 \end{equation*}
 
-\newpage
-~
-\newpage
+% --------------------------------------------------------------------------------------------------
+
+\subsection{Type checking over dependency graphs}
+\label{sec:types-graph}
+
+The type system for The Gamma supports a number of primitive types (such as integers and strings) 
+written as $\alpha$. Composed types include functions and objects with members. Objects are be 
+provided by type providers, but we omit the details here. Types of object members are written as
+$\sigma$ and can have multiple arguments:
+%
+\begin{equation*}
+\begin{array}{lcll}
+\tau&\in&\alpha ~|~ \tau \rightarrow \tau ~|~ \{m_1\!:\!\sigma_1, \ldots, m_n\!:\!\sigma_n\} &\quad(\textit{Types})\\
+\sigma &\in& (\tau_1, \ldots, \tau_n) \rightarrow \tau &\quad(\textit{Members})\\
+\end{array}
+\end{equation*}
+%
+The typing judgements are written in the form $\bnd{v}\vdash \tau$. They are parameterised by the
+dependency graph $(V, E)$, but this is not modified during type checking so we keep it implicit
+rather than writing e.g.~$\bnd{v}\vdash_{(V,E)} \tau$.
+
+\paragraph{Type checking.}
+The typing rules are shown in Figure~\ref{fig:tc}. Types of primitive values $n$ are obtained
+using a global lookup table $\Sigma$ (\emph{val}). When type checking a member call (\emph{mem}),
+we find its dependencies $\bndclr{v_i}$ and check that the first one (instance) is an object with 
+the required member $m$. The types of input arguments of the member then need to match the types 
+of the remaining (non-instance) nodes. 
+
+Type checking a function (\emph{fun}) and a variable (\emph{var}) is similar. In both cases,
+we follow the \blbl{callsite} edge to find the member that accepts the function as an argument.
+We obtain the type of the function from the type of the $i^\textnormal{th}$ argument of the 
+member. We use the input type as the type of variable (\emph{var}). For functions, we also check 
+that the resulting type matches the type of the body (\emph{fun}).
+
+\paragraph{Caching results.}
+Performing type checking over the dependency graph, rather than over the abstract syntax tree,
+enables us to reuse the results of previously type checked parts of a program. As when 
+caching evaluated previews (Section~\ref{sec:previews}), we build a lookup table mapping graph
+nodes to types. When type checking a node, we first check the cache and, only if it is new, 
+follow the $\vdash$ relation to obtain the type. 
+
+As a result, code can be type checked on-the-fly during editing, even when asynchronous type 
+providers are used, and the programmer gets instant feedback without delays.
 
 % ==================================================================================================
 
@@ -1173,6 +1314,14 @@ a
 Integrate with Python/R via Jupyter
 
 \newpage
+
+\section{Summary}
+The key trick is to separate the process into faster binding which constructs dependency
+graph and slower type checking and evaluation. (This assumes that binding can be done, perhaps
+as an over-approximation without full type checking.)
+
+
+
 
 \section*{References}
 
