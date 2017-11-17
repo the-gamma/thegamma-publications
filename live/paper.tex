@@ -1,4 +1,4 @@
-\documentclass[sigplan,10pt]{acmart}\settopmatter{printfolios=true,printccs=false,printacmref=false}
+\documentclass[sigplan,10pt,review,anonymous]{acmart}\settopmatter{printfolios=true,printccs=false,printacmref=false}
 
 \usepackage{lineno,hyperref,xcolor}
 \usepackage{stmaryrd}
@@ -83,13 +83,13 @@ In this paper, we describe a live programming environment for data science that 
 previews and contextual hints, while allowing the user to edit code in an unrestricted way in
 a text editor. 
 
-Using a text editor is challenging as any edit can significantly change the structure of code and
-fully recomputing previews after every change is too expensive. The presented interpreter partially 
-evalautes programs as they are written and reuses results of previous evaluations, making it 
-possible to provide instant feedback during development.
+Supporting a text editor is challenging as any edit can significantly change the structure of code and
+fully recomputing previews after every change is too expensive. We present a technique that allows the type
+checker and the interpreter to run on the fly, while code is written, and reuse results of previous 
+runs. This makes it possible to efficiently provide instant feedback and live previews during development.
 
 We formalise how programs are interpreted and how previews are computed, prove correctness
-of the previews and formally specify when can previews be reused. We hope this work will provide
+of the previews and formally specify when can previews be reused. We believe this work provides
 solid and easy to reuse foundations for the emerging trend of live programming environments.
 \end{abstract}
 \maketitle
@@ -102,8 +102,8 @@ solid and easy to reuse foundations for the emerging trend of live programming e
 \label{sec:intro}
 
 One of the aspects that make spreadsheet tools such as Excel more accessible than programming 
-environments is their liveness. When you change a value in a cell in Excel, the whole spreadsheet
-is updated instantly and you see the new results immediately.
+environments is their liveness. When you change a value in a cell in Excel \cite{spreadsheet}, the  
+whole spreadsheet is updated instantly and you see the new results immediately.
 
 Increasing number of programming environments aim to provide the same live experience for more
 standard programming languages, but doing this is not easy. Fully recomputing the whole program after
@@ -137,8 +137,8 @@ Ideally, the live coding environment should understand the change, reuse a cache
 first two transformations (sorting and taking 10 elements) and only evaluate the last \ident{map}
 to differently format the release dates of already computed top 10 movies.
 
-This is not difficult if we represent the program in a structured way and allow the user
-to edit code only via primitive operations such as ``extract variable'' (which has
+This is not difficult if we represent the program in a structured way \cite{structure-based,hazelnut} 
+and allow the user to edit code via known operations such as ``extract variable'' (which has
 no effect on the result) or ``change constant value'' (which forces recomputation of subsequent
 transformations). However, many programmers prefer to edit programs as free form text.
 
@@ -158,15 +158,19 @@ ordinary text editor. Our main contributions are:
 \item We formalise the evaluation of previews (Section~\ref{sec:previews}) and prove that our
   evaluation and caching mechanism is produces correct previews (Section~\ref{sec:properties-correct}) 
   and can effectively reuse partial results (Section~\ref{sec:properties-reuse}).
-  
+
+\item We follow the same method to implement a type checker (Section~\ref{sec:types}) for our
+  language that is capable of reusing previous results. This makes it possible to efficiently support
+  asynchronously provided types (Section~\ref{sec:types-providers}).
+
 \item In more speculative conclusions (Section~\ref{sec:design}), we consider alternative
   language designs that would enable further live coding experiences, which are difficult to
   build using our current system.
 \end{itemize}
 
 \noindent
-We hope the architecture and its formal presentation in this paper can contribute important 
-foundations to the growing and important trend of text-based live coding environments.
+We hope the architecture and its formal presentation in this paper can contribute crucial 
+foundations for the growing and important trend of text-based live coding environments.
 
 % --------------------------------------------------------------------------------------------------
 
@@ -182,11 +186,9 @@ foundations to the growing and important trend of text-based live coding environ
 \section{Live programming for data exploration}
 \label{sec:live}
 
-% https://cacm.acm.org/blogs/blog-cacm/169199-data-science-workflow-overview-and-challenges/fulltext
-
-The Gamma aims to make basic data exploration accessible to non-experts, such as data journalists [X], who
-need to use data transparently. As such, we focus on simple scripts that can be written using
-tools such as Jupyter notebooks~[X]. Those scripts follow a typical data science workflow [X];
+The Gamma aims to make basic data exploration accessible to non-experts, such as data journalists \cite{ddj}, 
+who need to use data transparently. As such, we focus on simple scripts that can be written using
+tools such as Jupyter notebooks \cite{jupyter}. Those scripts follow a typical data science workflow \cite{workflow};
 they acquire and reformat data, run a number of analyses using the clean data and then create 
 several visualizations.
 
@@ -219,8 +221,8 @@ on working with concrete data in Section~\ref{sec:design}.
 
 As ilustrated by the second let binding in Figure~\ref{fig:thegamma}, many opertaions
 in The Gamma can be expressed using member access via dot. The underlying mechanism is based
-on type providers [X,Y] and the specific type provider used in this example has been described 
-elsewhere [X].
+on type providers \cite{providers-fsharp,providers-idris}. The specific type provider used in 
+the above example has been described elsewhere \cite{gamma}.
 
 Given a data source (scraped Wikipedia page), the type provider generates type with members that allow
 a range of transformations of the data such as grouping, sorting and filtering. Some of the members
@@ -325,18 +327,17 @@ We can provide live preview for the \ident{movies} sub-expression, but not for
 $\ident{movies}.\ident{skip}(x*\num{10})$ because we cannot obtain the value of $x$ without
 running the rest of the program and analysing how the function is called later.
 
-The method described in this paper does not provide live preview for sub-expressions that
-contain free variables (which are not global objects provided by a type provider), but we
-describe possible ways of doing so in Section~X and more speculative design of live coding 
-friendly fucntions in Section~Y.
+The method described in this paper obtains delayed previews for sub-expressions that contain
+free varaibles (which could be fully evaluated if values for free variables were provided), but
+we describe a more speculative design of live coding friendly functions in Section~\ref{sec:design}.
 
 % --------------------------------------------------------------------------------------------------
 
 \subsection{Maintaining dependency graph}
 \label{sec:formal-deps}
 
-The key idea behind our implementation is to maintain a dependency graph with nodes 
-representing individual operations of the computation that can be partially evaluated
+The key idea behind our implementation is to maintain a dependency graph \cite{dependencies} with 
+nodes representing individual operations of the computation that can be partially evaluated
 to obtain a preview. Each time the program text is modified, we parse it afresh (using an
 error-recovering parser) and bind the abstract syntax tree to the dependency graph.
 
@@ -674,8 +675,8 @@ For delayed previews, we construct a delayed expression using splicing. For exam
 we have a delayed previews $\llbracket e_0 \rrbracket_x$ and $\llbracket e_1 \rrbracket_y$. 
 If we need to invoke a member $m$ on $e_0$ using $e_1$ as an argument, we construct a new 
 delayed preview $\llbracket e_0.m(e_1) \rrbracket_{x, y}$. This operation is akin to expression
-splicing from meta-programming [X,Y] and can be more formally captured by Contextual Modal Type 
-Theory (CMTT) as outlined below.
+splicing from meta-programming \cite{metaml,quotations} and can be more formally captured by 
+Contextual Modal Type Theory (CMTT) as outlined below.
 
 \paragraph{Evaluation of previews.}
 The evaluation of previews is defined in Figure~\ref{fig:eval}. Given a dependency graph $(V, E)$,
@@ -719,13 +720,13 @@ reused when a new dependency graph is constructed after the user edits the sourc
 \paragraph{Semantics of delayed previews.}
 The focus of this paper is on the design and implementation of a live coding environment, 
 but it is worth noting that the structure of delayed previews is closely linked to the work
-on Contextual Modal Type Theory (CMTT) [X] and comonads [Y]. 
+on Contextual Modal Type Theory (CMTT) \cite{cmtt} and comonads \cite{cmtt-denotation}. 
 
 In CMTT, $\lbrack \Psi \rbrack A$ denotes that a proposition $A$ is valid in context $\Psi$,
 which is closely related to our delayed preivews written as $\llbracket A \rrbracket_\Psi$.
 CMTT defines rules for composing context-dependent propositions that would allow us to express
 the splicing operation used in (\emph{mem-expr}). In categorical terms, the context-dependent
-proposition can be modelled as an indexed comonad [X]. The evaluation of a preview with no 
+proposition can be modelled as an indexed comonad \cite{effectrev,graded}. The evaluation of a preview with no 
 context dependencies (built implicitly into our evaluation rules) corresponds to the counit
 operation of a comonad and would be explicitly written as $\llbracket A \rrbracket_\emptyset \rightarrow A$.
 
@@ -781,12 +782,12 @@ requires a slight extension of the model discussed in Section~\ref{sec:formal}.
 \label{sec:types-providers}
 
 Data available in The Gamma can be defined using several kinds of type providers. The type provider
-used in Figure~\ref{fig:thegamma} as asynchronous [X]. It downloads the sample URL and generates 
+used in Figure~\ref{fig:thegamma} as asynchronous \cite{async}. It downloads the sample URL and generates 
 types based on the contents of the web page. The parameter to \ident{web.scrape} is a static 
 parameter and is evaluated during type-checking. We omit details in this paper, but we note this
-works similarly to F\# type providers [X]. 
+works similarly to F\# type providers \cite{providers-fsharp}. 
 
-Type providers can also be implemented as REST services [X] to allow anyone implement a data source
+Type providers can also be implemented as REST services \cite{rest} to allow anyone implement a data source
 in the language of their choice. In this case, each member of a call-chain returns a type that is
 generated based on the result of an HTTP request. For example, when the user types \ident{worldbank}
 (to access information about countries), the type provider makes a request to   
@@ -851,7 +852,7 @@ as a parameter to a method, which makes type checking of functions easier. For e
 %
 If \ident{movies} is a collection of \ident{Movie} objects, the type of the lambda function must be
 $\ident{Movie}\rightarrow\ident{bool}$ and so the type of $x$ is \ident{Movie}. This is similar to
-type checking of lambda functions in C\# [X], where type is also inferred from the context (or has
+type checking of lambda functions in C\# \cite{csharp}, where type is also inferred from the context (or has
 to be specified explicitly). 
 
 We do not currently allow lambda functions as stand-alone let-bound 
@@ -1010,7 +1011,7 @@ In other words, we show that the mechanism is correct and implements a useful op
 \subsection{Modelling expression evaluation}
 In The Gamma language, computations are expressed using
 member access, written as $e.m(e_1,\ldots, e_n)$. In this paper, we do not define how member
-access evaluates. This has been done elsewhere [X], but more importantly, the evaluation of
+access evaluates. This has been done elsewhere \cite{gamma}, but more importantly, the evaluation of
 previews does not rely on the exact specifics of the evaluation, provided that the language
 satisfies certan basic conditions. The following definitions provides the necessary structure 
 for discussing correctness of previews.
@@ -1301,29 +1302,188 @@ nodes to $\Delta$, but those are ignored when binding the final expression.
 
 \subsection{Properties of type checking}
 
-a
+As noted in Section~\ref{sec:types}, the focus of this paper is on live previews, but we also
+use the method based on reusing nodes in a dependency graph for type checking. We do not discuss 
+properties of type checking in detail, but we briefly note how the different properties of 
+live previews extend to corresponding properties of type checking.
 
-% --------------------------------------------------------------------------------------------------
+\paragraph{Type checking result reuse.} In Section~\ref{sec:properties-reuse}, we show that 
+certain source code edits do not cause the recomputation of previews for the whole expression
+or a sub-expression. The edits are given in Figure~\ref{fig:operations}. The proof uses the fact
+that the newly bound graph (after code edit) reuses nodes of the previous graph. This implies that
+type checking results can be reused in exactly the same way as live previews -- they are also 
+stored in a lookup table with graph nodes as keys.
 
-\section{Takeaways}
+\paragraph{Correctness.} The correctness property (Theorem~\ref{thm:correctness}) shows that 
+graph-based preview evaluation matches direct evaluation of expressions. To show a corresponding
+property for type checking, we would need to provide ordinary type system based on the structure
+of the expression and prove that the two are equivalent. In our implementation, we only use the
+presented graph-based type checking method, so we do not provide an alternate account in this paper.
+
+\paragraph{Determinacy.} The determinacy property (Theorem~\ref{thm:determinacy}) guarantees that
+previews can be cached, because evaluating them again, using $\Downarrow$ over an updated graph, 
+would yield the same result. The same property holds for $\vdash$, meaning that type checking 
+results can be cached. Although the Theorem~\ref{thm:determinacy} talks explicitly about 
+$\Downarrow$, it can be easily extended for $\vdash$, because the proof depends on how the graph
+is updated using $\ident{update}_{V,E}$ and the binding process.
+
+% ==================================================================================================
+
+\section{Design lessons}
 \label{sec:design}
 
-\section{Related and future}
+The motivation for the presented work, briefly outlined in Section~\ref{sec:live}, is to build a 
+simple data exploration environment that would allow non-experts, like data journalists, 
+transparently work with data. In this paper, we focused on providing live coding experience, 
+which is one important step towards the goal. However, the language we use is a mix of established 
+object-oriented (member access) and functional (function values) features with type providers.
+
+If we were to design a new programming language, there are lessons we can learn from the 
+cases that make type checking and preview evaluation in this paper difficult. This section 
+briefly considers those. 
+
+\paragraph{Functions and type providers.} When using type providers in a nominally-typed language,
+the provided types are named, but the names are typically not easy to type \cite{fsdata}. This is
+not a problem in typical usage where provided members are accessed via dot. Using the \ident{worldbank}
+example from Section~\ref{sec:types-providers}, we can access population of two countries using:
+%
+\begin{equation*}
+\begin{array}{l}
+\ident{worldbank.byCountry.\textquotesingle United Kingdom\textquotesingle}.\\
+\quad \ident{Indicators.\textquotesingle Population (total)\textquotesingle}\\[0.5em]
+\ident{worldbank.byCountry.\textquotesingle Czech Republic\textquotesingle}.\\
+\quad \ident{Indicators.\textquotesingle Population (total)\textquotesingle}\hspace{9em}
+\end{array}
+\end{equation*}
+%
+However, the fact that the provided types do not have nice names becomes a problem when want to 
+extract code to access population into a function:
+%
+\begin{equation*}
+\begin{array}{l}
+\kvd{let}~\ident{getPopulation}~c=\\
+\quad c.\ident{Indicators.\textquotesingle Population (total)\textquotesingle}\hspace{8.5em}
+\end{array}
+\end{equation*}
+%
+Here, the compiler cannot infer the type of $c$ from usage and so we are required to provide a
+type annotation using an automatically generated name.
+
+\paragraph{Functions and live previews.} 
+Providing live previews in a language with ordinary functions suffers from the same problem as 
+type checking of functions.
+
+Our live preview evaluation, discussed in Section~\ref{sec:previews}, can obtain only a delayed 
+preview for the body of \ident{getPopulation}. The delayed preview we would obtain in this case
+is $\llbracket c.\ident{Indicators}.\ident{\textquotesingle Population (total)\textquotesingle} \rrbracket_{c}$.
+
+If we know the type of $c$, we can provide a user interface that lets the user specify a value 
+for $c$ (or, more generally, free variables of the preview) and then evaluate the preview, but 
+it is difficult to provide a meaningful preview automatically.
+
+\paragraph{Reusable code blocks.}
+In data science scripting, we start with a concrete example and then turn code into a reusable
+function. This pattern could be supported by the language in a way that makes type checking
+and preview evaluation easier. Using an imaginary notation, we could write:
+%
+\begin{equation*}
+\begin{array}{l}
+\kvd{let}~\ident{uk}~=~\ident{worldbank.byCountry.\textquotesingle United Kingdom\textquotesingle}\hspace{1.5em}\\[0.5em]
+\kvd{def}~\ident{getPopulation}~=\\
+\quad\lbrack\ident{country}\!:\!\ident{uk}\rbrack.\ident{Indicators.\textquotesingle Population (total)\textquotesingle}\\[0.5em]
+\ident{getPopulation}~\ident{worldbank.byCountry.China}\\
+\ident{getPopulation}~\ident{worldbank.byCountry.India}
+\end{array}
+\end{equation*}
+%
+This notation is speculative and we intend to implement it in future prototypes of The Gamma.
+The second line is an expression that accesses the population of the UK, using a concrete
+data source as the input, but it also defines a named function \ident{getPopulation} that has a
+parameter \ident{country}. In a way, we are providing \emph{type annotation} by example, together
+with a \emph{value annotation} that can be used for live previews.
+
+This way of constructing abstractions is perhaps more akin to how spreadsheets are used -- we often
+write a formula using a concrete cell and then use the ``drag down'' operation to extend it to 
+other inputs.
+
+% ==================================================================================================
+
+\section{Related and future work}
 \label{sec:future}
 
-Integrate with Python/R via Jupyter
+This paper approaches the problem of live coding environments from a theoretical programming
+language perspective with a special focus on tooling for data science. Hence, the related and
+future work spans numerous areas.
 
-\newpage
+\paragraph{Design and human-computer interaction.}
+From a design perspective, the idea of live programming environments has been popularised by 
+Bret Victor \cite{learnable}. Active research on novel forms of interaction happens in areas
+such as live coded music \cite{beyond,sonic}.
+The idea of live previews can be extended to direct manipulation \cite{direct}. The Gamma
+provides limited support for directly manipulating data (Section~\ref{sec:live}), but we 
+intend to explore this direction further.
+
+\paragraph{Data science tooling.}
+An essential tool in data science is REPL (read-eval-print-loop) \cite{drscheme}, which is now
+widely available. This has been integrated with rich graphical outputs in tools such as Jupyter
+notebooks \cite{jupyter,ipython}, but such previews are updated using an explicit command.
+Integrating our work with Jupyter to provide instant live previews for R or Python would be
+an interesting extension of the presented work.
+
+\paragraph{Live coding and live previews.}
+Live previews have been implemented in LightTable \cite{lighttable} and, more recently, in
+editors such as Chrom Developer Tools, but neither presents a simple description of their
+inner workings. An issue that attracts much attention is keeping state during code edits
+\cite{alive,livingit}. This would be an interesting problem if we extended our work to
+event-based reactive programming.
+
+\paragraph{Structured editing.}
+An alternative approach to ours is to avoid using text editors. Structured editors 
+\cite{structure-based} allow the user to edit the AST and could, in principle, recompute previews
+based on the performed operations, or preview evaluation as in interactive functional programming
+\cite{interactive}. A promising direction is using bi-directional lambda calculus~\cite{hazelnut}. 
+Finally, abandoning text also enables building richer, more human-centric 
+abstractions as illustrated by Subtext~\cite{subtext}. Our current focus, however, remains
+on text-based editors.
+
+\paragraph{Dependency analysis.}
+Our use of dependency graphs \cite{dependencies} is first-order. Building dependency graphs 
+involving function calls using modern compiler methods \cite{optimizing} or program slicing 
+\cite{slicing} would allow us to deduce possible inputs for functions and use those for 
+previews rather than changing the language as suggested in Section~\ref{sec:design}. This direction
+is worth considering, but it requires more empirical usability testing.
+
+\paragraph{Semantics and partial evaluation.}
+The evaluation of previews can be seen as a form of partial evaluation \cite{partial}, done in a
+way that allows reuse of results. This can be done implicitly or explicitly in the form of 
+multi-stage programming \cite{metaml}. Both can provide useful perspective for formally analysing
+how previews are evaluated. Semantically, the evaluation of previews can be seen as a modality
+\cite{modal} and delayed previews are linked to contextual modal type thoery \cite{cmtt}, which, 
+in turn, can be understood in terms of comonads \cite{cmtt-denotation}. This provides an intriguing
+direction for rigorous analysis of the presented system.
+
+% ==================================================================================================
 
 \section{Summary}
-The key trick is to separate the process into faster binding which constructs dependency
-graph and slower type checking and evaluation. (This assumes that binding can be done, perhaps
-as an over-approximation without full type checking.)
+We present The Gamma, a live coding environment for data exploration. The environment
+bridges the gap between spreadsheets and scripting -- live previews give users rapid feedback, 
+while the final result is a fully reproducible script.
 
+In this paper, we focus on the challenge of efficiently providing live previews and type checking 
+code during editing in a free-form text editor. This is a challenge, because users can perform 
+arbitrary text transformations and we cannot recompute previews after each edit.
 
+The key trick is to separate the process into fast \emph{binding phaes}, 
+which constructs a dependency graph and slower \emph{evaluation phase} and \emph{type checking phase} 
+that can cache results, using the nodes from the dependency graph created during binding as keys.
+This makes it possible to quickly parse updated code, reconstruct dependency graph and compute
+preview using previous, partially evaluated, results.
 
-
-\section*{References}
+We describe our approach formally, which serves two purposes. First, we aim to provide easy to
+use foundations for the growing and important trend of text-based live coding environments. 
+Second, we explore the properties of our system and prove that our method does not recompute 
+previews in a number of common cases and, at the same time, the optimisation still produces 
+correct previews.
 
 \bibliography{paper}
 
