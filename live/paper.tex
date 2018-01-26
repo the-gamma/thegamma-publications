@@ -1,4 +1,4 @@
-\documentclass[sigplan,10pt,review,anonymous]{acmart}\settopmatter{printfolios=true,printccs=false,printacmref=false}
+\documentclass[sigplan,10pt]{acmart}\settopmatter{printfolios=true,printccs=false,printacmref=false}
 
 \usepackage{lineno,hyperref,xcolor}
 \usepackage{flushend}
@@ -33,11 +33,11 @@
 \title{Design and implementation of a live coding environment for data science}
 
 \author{Tomas Petricek}
-\affiliation{
-  \institution{The Alan Turing Institute}
-  \country{London, United Kingdom}
-}
-\email{tomas@tomasp.net}
+%\affiliation{
+%  \institution{The Alan Turing Institute}
+%  \country{London, United Kingdom}
+%}
+%\email{tomas@tomasp.net}
 
 
 \definecolor{cmtclr}{rgb}{0.0,0.6,0.0}
@@ -1382,7 +1382,7 @@ If we know the type of $c$, we can provide a user interface that lets the user s
 for $c$ (or, more generally, free variables of the preview) and then evaluate the preview, but 
 it is difficult to provide a meaningful preview automatically.
 
-\paragraph{Reusable code blocks.}
+\paragraph{Wormhole abstractions.}
 In data science scripting, we start with a concrete example and then turn code into a reusable
 function. This pattern could be supported by the language in a way that makes type checking
 and preview evaluation easier. Using an imaginary notation, we could write:
@@ -1397,7 +1397,7 @@ and preview evaluation easier. Using an imaginary notation, we could write:
 \end{array}
 \end{equation*}
 %
-This notation is speculative and we intend to implement it in future prototypes of The Gamma.
+We tentatively call this notation \emph{wormhole} abstraction and we intend to implement it in future prototypes of The Gamma.
 The second line is an expression that accesses the population of the UK, using a concrete
 data source as the input, but it also defines a named function \ident{getPopulation} that has a
 parameter \ident{country}. In a way, we are providing \emph{type annotation} by example, together
@@ -1488,6 +1488,7 @@ correct previews.
 
 \bibliography{paper}
 
+\newpage
 \appendix 
 
 \section{Appendix}
@@ -1532,7 +1533,8 @@ of the expression $e$:
   From induction hypothesis, for any $C[-]$, it holds that $C[e_i] \rightsquigarrow_\beta C[e'_i]$.
   Using compositionality, it also holds that for any $C[-]$, it is the case that
   $C[e_0.m(e_1, \ldots, e_n)] \rightsquigarrow_\beta C[e'_0.m(e'_1, \ldots, e'_n)]$.
-  
+
+\newpage  
 \vspace{0.75em}\noindent(2) $\ident{bind}_{\Gamma, \Delta}(e_0.m(e_1, \ldots, e_n))$ --
   This case is similar to (1), except that the fact that $\bndclr{v} = \bnd{mem}(m, s)$
   holds by construction, rather than using Lemma~\ref{thm:lemma-lookup}.
