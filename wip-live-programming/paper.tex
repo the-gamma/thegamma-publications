@@ -1,6 +1,7 @@
 \documentclass[sigplan,10pt]{acmart}\settopmatter{printfolios=true,printccs=false,printacmref=false}
 
 \usepackage{lineno,hyperref,xcolor}
+\usepackage{ragged2e}
 \usepackage{flushend}
 \usepackage{stmaryrd}
 \usepackage{amssymb}
@@ -30,14 +31,15 @@
 \setcopyright{none}
 \bibliographystyle{ACM-Reference-Format}
 
-\title{Design and implementation of a live coding environment for data science}
+\title{What you see is what you write}
+\subtitle{On the fly evaluation of live previews for data manipulation scripts}
 
 \author{Tomas Petricek}
-%\affiliation{
-%  \institution{The Alan Turing Institute}
-%  \country{London, United Kingdom}
-%}
-%\email{tomas@tomasp.net}
+\affiliation{
+  \institution{The Alan Turing Institute}
+  \country{London, United Kingdom}
+}
+\email{tomas@tomasp.net}
 
 
 \definecolor{cmtclr}{rgb}{0.0,0.6,0.0}
@@ -75,23 +77,22 @@
 
 \begin{document}
 \begin{abstract}
-Data science can be done by directly manipulating data using spreadsheets, or by writing 
-data manipulation scripts using a programming language. The former is error-prone and
-does not scale, while the latter requires expert skills. Live coding has the potential to 
-bridge this gap and make writing of transparent, reproducible scripts more accessible.
+Liveness is one of the aspects that make spreadsheets easy to use. When you edit a formula in 
+Excel, the whole spreadsheet is automatically updated and you see the result immediately. 
+Providing the same behaviour for data manipulation scripts would make simple data scripting 
+more accessible, but it is difficult to do efficiently while allowing users to edit code in 
+an unrestricted way in a text editor.  
 
-In this paper, we describe a live programming environment for data science that provides instant 
-previews and contextual hints, while allowing the user to edit code in an unrestricted way in
-a text editor. 
+In this paper, we describe an efficient method for evaluating live previews for simple data 
+manipulation scripts. This is challenging as any edit in a text editor can significantly 
+change the structure of code and fully recomputing previews after every change is too expensive. 
+Our method allows the interpreter to run while code is written and reuse results of previous 
+runs. This makes it possible to efficiently provide live previews on the fly during development.
 
-Supporting a text editor is challenging as any edit can significantly change the structure of code and
-fully recomputing previews after every change is too expensive. We present a technique that allows the type
-checker and the interpreter to run on the fly, while code is written, and reuse results of previous 
-runs. This makes it possible to efficiently provide instant feedback and live previews during development.
-
-We formalise how programs are interpreted and how previews are computed, prove correctness
-of the previews and formally specify when can previews be reused. We believe this work provides
-solid and easy to reuse foundations for the emerging trend of live programming environments.
+We formalise how live previews are computed, prove their correctness and formally specify when 
+a live preview can be reused. We also demonstrate the efficiency of our method using an empirical 
+study. Although our focus is on a simple data scripting language, the work provides easy to use 
+foundations that can be shared by a wide range of live programming environments.
 \end{abstract}
 \maketitle
 
@@ -102,46 +103,51 @@ solid and easy to reuse foundations for the emerging trend of live programming e
 \section{Introduction}
 \label{sec:intro}
 
-One of the aspects that make spreadsheet tools such as Excel more accessible than programming 
-environments is their liveness. When you change a value in a cell in Excel \cite{spreadsheet}, the  
-whole spreadsheet is updated instantly and you see the new results immediately.
+Data science tools such as Jupyter notebooks \cite{jupyter} and programming environments
+with REPLs \cite{rmarkdown,drscheme} embed program outputs directly into the environment, 
+but the outputs are only updated after the user finishes writing code and explicitly runs it.
+Doing better is not easy. Fully recomputing the whole program after every single key stroke is 
+inefficient and calculating how a change in source code changes the result is extremely hard 
+when the editor allows arbitrary manipulation of program text. 
 
-Increasing number of programming environments aim to provide the same live experience for more
-standard programming languages, but doing this is not easy. Fully recomputing the whole program after
-every single change is inefficient and calculating how a change in source code changes the result
-is extremely hard when the editor allows arbitrary manipulation of program text. For example, 
-consider the following simple program that gets the release years of 10 most expensive movies 
-in a data set \ident{movies}:
-%
-\begin{equation*}
-\begin{array}{l}  
-\kvd{let}~\ident{top} =\ident{movies}\\
-\quad .\ident{sortBy}(\lambda x \rightarrow x.\ident{getBudget}())\ident{.take}(\num{10})\\
-\quad .\ident{map}(\lambda x \rightarrow x.\ident{getReleased()}.\ident{format}(\str{yyyy}))}\\
-\end{array}
-\end{equation*}
-%
-A live coding environment shows a preview of the list of dates. Next, assume that the programmer
-modifies the code by making the constant $\num{10}$ a variable and changing the date format to see 
-the full date:
-%
-\begin{equation*}
-\begin{array}{l}  
-\kvd{let}~\ident{count} = \num{10}\\
-\kvd{let}~\ident{top} = \ident{movies}\\
-\quad .\ident{sortBy}(\lambda x \rightarrow x.\ident{getBudget}())\ident{.take}(\ident{count})\\
-\quad \ident{.map}(\lambda x \rightarrow x.\ident{getReleased()}.\ident{format}(\str{dd-mm-yyyy}))}\\
-\end{array}
-\end{equation*}
-%
-Ideally, the live coding environment should understand the change, reuse a cached result of the
-first two transformations (sorting and taking 10 elements) and only evaluate the last \ident{map}
-to differently format the release dates of already computed top 10 movies.
+For example, consider two steps of a data manipulation process that are documented in 
+Figure~\ref{fig:intro-live}. The user first writes code to load and aggregate broadband speed data 
+(described in Appendix~\ref{sec:app-broadband}). Using a live preview, she spots a problem with 
+the data and decides to fix it by ignoring invalid rows. She then changes the code by adding
+a call to filter the data and also extracts a constant into a named variable.
+
+% --------------------------------------------------------------------------------------------------
+
+\begin{figure}[b]
+\caption{\small{Exploring broadband speed data. We group reports by whether they are from urban
+  or rural area and calculate average download speeds. Resulting table is displayed as we type.}}
+\label{fig:intro-live}
+
+\vspace{0.5em}
+\noindent
+\includegraphics[scale=0.38]{bb1.png}
+
+\vspace{0.5em}
+\justify
+\small{We notice that Urban/rural may be empty and filter out empty values and we
+  extract the URL into a variable. To update live preview, the system needs to evaluate
+  only the last filtering operation.}
+
+\vspace{0.75em}
+\noindent
+\includegraphics[scale=0.38]{bb2.png}
+\end{figure}
+
+% --------------------------------------------------------------------------------------------------
+
+A system that provides live previews should understand the code change, reuse cached result of data 
+loading and aggregation and only evaluate the filtering operation. Regardless of the size of the 
+original input, this will be fast as it filters an aggregated series with just three rows.
 
 This is not difficult if we represent the program in a structured way \cite{structure-based,hazelnut} 
 and allow the user to edit code via known operations such as ``extract variable'' (which has
-no effect on the result) or ``change constant value'' (which forces recomputation of subsequent
-transformations). However, many programmers prefer to edit programs as free form text.
+no effect on the result) or ``add operation to a chain'' (which requires evaluation of the new
+transformation). However, many programmers prefer to edit programs as free form text.
 
 We present the design and implementation of a live coding system that is capable
 of reusing previously evaluated expressions as in the example above, yet, is integrated into an
@@ -1490,6 +1496,9 @@ correct previews.
 
 \newpage
 \appendix 
+
+\section{Appendix}
+\label{sec:app-broadband}
 
 \section{Appendix}
 \label{sec:app-correctness}
