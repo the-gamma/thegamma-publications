@@ -1,8 +1,7 @@
 paket.exe
 paket.targets
-ecoop-2017/packages
-live/packages
-live/paket-files
+packages
+paket-files
 *.aux
 *.dvi
 *.log
