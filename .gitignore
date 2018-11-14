@@ -1,5 +1,6 @@
 paket.exe
 paket.targets
+paket.restore.targets
 packages
 paket-files
 *.aux

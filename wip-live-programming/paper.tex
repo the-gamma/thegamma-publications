@@ -61,7 +61,7 @@
 \newcommand{\str}[1]{\textnormal{\textcolor{strclr}{\sffamily "#1"}}}
 \newcommand{\rstr}[1]{\textnormal{\textcolor{rstrclr}{\sffamily "#1"}}}
 \newcommand{\ident}[1]{\textnormal{\sffamily #1}}
-\newcommand{\qident}[1]{\textnormal{\sffamily \guillemotleft #1\guillemotright}}
+\newcommand{\qident}[1]{\textnormal{\sffamily \textquotesingle #1\textquotesingle}}
 \newcommand{\dom}{\ident{dom}}
 \newcommand{\kvd}[1]{\textnormal{\textcolor{kvdclr}{\sffamily #1}}}
 
@@ -173,85 +173,142 @@ ordinary text editor. Our main contributions are:
 We hope the architecture and its formal presentation in this paper can contribute crucial 
 foundations for the growing and important trend of text-based live coding environments.
 
-% --------------------------------------------------------------------------------------------------
-
-\begin{figure*}
-\includegraphics[scale=0.21]{wiki.png}
-\includegraphics[scale=0.21]{drop.png}
-\caption{Scraping 2016 science events. Preview of the Wikipedia source page (left) and live filtering (right).}
-\label{fig:thegamma}
-\end{figure*}
+\newpage
 
 % ==================================================================================================
 
-\section{Live programming for data exploration}
-\label{sec:live}
+\section{Understanding how data scientists work}
 
-The Gamma aims to make basic data exploration accessible to non-experts, such as data journalists \cite{ddj}, 
-who need to use data transparently. As such, we focus on simple scripts that can be written using
-tools such as Jupyter notebooks \cite{jupyter}. Those scripts follow a typical data science workflow \cite{workflow};
-they acquire and reformat data, run a number of analyses using the clean data and then create 
-several visualizations.
+Data scientists often use general-purpose programming languages such as Python, but the kind of 
+code they write and the way they interact with the system is very different from how software 
+engineers work. 
 
-An important property of data science workflow is that we work with readily available concrete data.
-Data scientists load inputs into memory and refer to it in subsequent REPL interactions. They might 
-later wrap completed working code into a function (and run on multiple datasets), but 
-do not start with functions. We reflect this pattern in our language. 
+This paper focuses on simple data wrangling and data exploration as done, for example, by 
+journalists analysing government datasets. This section illustrates how such data analyses 
+look and provides a justification for design decisions that we make when designing the data 
+exploration calculus.
 
-In this section, we provide a brief overview of The Gamma, a simple live coding environment for
-data science. We discuss the language, type providers and the user interface,
-before focusing on the algorithms behind live previews in Section~\ref{sec:formal}.
+% --------------------------------------------------------------------------------------------------
 
-\subsection{The Gamma scripting language}
-Figure~\ref{fig:thegamma} shows The Gamma script that scrapes items from a Wikipedia page, 
-collects those marked as ``Events'' and filters them. The script illustrates two aspects of the
-scripting language used by The Gamma -- its structure and its use of type providers for
-dot-driven data exploration.
+\subsection{Data wrangling in Jupyter}
+\label{sec:background-jupyter}
 
-The scripting language is not intended to be as expressive as, say, R or Python and so it
-has a very simple structure -- scripts are a sequence of let-bindings (that obtain or transform 
-data) or statements (that produce visualizations). This reflects the fact that we always work
-with concrete data and allows us to provide previews.
+Increasing numbers of data analysts use notebook systems such as Jupyter or R Markdown, which 
+make it possible to combine text, equations and code with results of running the code such as tables 
+or visualizations. Notebooks blur the traditional distinction between development and execution. 
+Data analysts write small snippets of code, run them immediately to see results and then revise 
+them interactively based on the results. We aim to take this trend further and build foundations
+for seamlessly integrating development and execution in a notebook-like environment.
 
-The most notable limitation of The Gamma is that the scripting language does not support top-level 
-functions. This is not a problem for the simple scripts we consider, but it would be an issue for
-a general-purpose language. We discuss potential design for functions that would still be based
-on working with concrete data in Section~\ref{sec:design}.
+Jupyter notebooks are used by a variety of users ranging from scientists who implement complex
+models to journalists who load data, perform simple aggregations and create visualizations. Our
+focus is on simple use cases, such as those of journalists, because we believe that this is where
+better tooling can provide the most value.
 
-\subsection{Dot-driven data exploration}
+As an example, consider the data anlysis done by the Financial Times for an article on plastic 
+waste. The analysis joins datasets from Eurostat, UN Comtrade and more, aggregates the data and 
+builds a visualization comparing the plastic waste flows in 2017 and 2018.
+Figure~\ref{fig:ft-uncomtrade} shows an extract from one notebook from the data analysis. 
+The code of the analysis has a number of remarkable properties:
+%
+\begin{itemize}
+\item There is no abstraction. The analysis uses lambda functions as arguments to library calls,
+  but it does not define any functions. Parameterization is done either by defining a list of 
+  inputs and then having a for loop, or by defining a top-level variable and setting its value.
+  In our example, \ident{material} is set to \str{plastics} and a comment lists other options. 
+  This lets the analyst easily see and check the results of intermediate steps of the analysis.
 
-As illustrated by the second let binding in Figure~\ref{fig:thegamma}, many operations
-in The Gamma can be expressed using member access via dot. The underlying mechanism is based
-on type providers \cite{providers-fsharp,providers-idris}. The specific type provider used in 
-the above example has been described elsewhere \cite{gamma}.
+\item The code is structured as a sequence of commands. Some commands define a variable, either by
+  loading data, or by transforming data loaded previously. Even in Python, data is often treated
+  as immutable. Other commands produce an output that is displayed in the notebook. 
+  
+\item There are many corner cases, such as the fact that the \ident{keep\_default\_na} parameter 
+  needs to be set to handle Namibia correctly. These are discovered interactively by writing and 
+  running a code snippet and examining the output, so providing a rapid feedback is essential.
+\end{itemize}
 
-Given a data source (scraped Wikipedia page), the type provider generates type with members that allow
-a range of transformations of the data such as grouping, sorting and filtering. Some of the members
-are based only on the schema (e.g.~\ident{\textquotesingle Item Contains\textquotesingle} or 
-\ident{\textquotesingle Drop Heading 2\textquotesingle}), but some may also be generated based
-on (a sample of) the dataset (e.g.~the second member in \ident{\textquotesingle Heading 2 
-is\textquotesingle.\textquotesingle Events[edit]\textquotesingle}). 
+Many Jupyter notebooks are more complex than the example discussed here. They might define
+helper functions or even structure code using object-oriented programming. However, simple 
+data analyses such as the one discussed here are frequent enough to pose an interesting and
+important problem for programming tools research.
 
-What matters for the purpose of this paper is 
-the fact that most operations are expressed via member access matters. First, it means 
-that we need to provide live previews for sub-expressions formed by a chain of member accesses.
-Second, it means that the result of any member access expression depends on the instance and,
-possibly, on the parameters provided for a method call.
+\begin{figure}
+\includegraphics[scale=0.6]{notebook.png}
+\caption{An excerpt from a Jupyter notebook by Financial Times reporters, which loads trade
+  data from the UN trade database and adds ISO country codes.}
+\label{fig:ft-uncomtrade}
+\end{figure}
 
-\subsection{Direct manipulation and live previews}
-The screenshot in Figure~\ref{fig:thegamma} show the editor as implemented in The Gamma. This
-includes live previews (discussed in this paper), but also an editor that provides spreadsheet-like
-interface for editing the data transformation script.
+\begin{figure}
+\includegraphics[scale=0.52]{gamma.png}
+\caption{The Gamma script to aggregate waste data. We select three countries and group
+data by country. We then count the number of distinct reporting periods per country and type `.'
+to choose further aggregation operations.}
+\label{fig:gamma-waste}
+\vspace{-1em}
+\end{figure}
 
-In our implementation, previews appears below the currently selected let binding.
-The preview can be of several types such as web page (left) or data table (right). In this paper,
-we describe how we evaluate scripts to obtain the resulting object and we ignore how such objects
-are rendered.
+% --------------------------------------------------------------------------------------------------
 
-The Figure~\ref{fig:thegamma} also shows a special handling of expressions constructed using the
-pivot type provider. The editor recognises individual data transformations and provides a simple
-user interface for adding and removing transformations and changing their parameters that changes
-the source code accordingly. This aspect is not discussed in the present paper. 
+\subsection{Dot-driven data exploration in The Gamma}
+\label{sec:background-gamma}
+
+Data exploration of the kind discussed in the previous section has been the motivation
+for a recent programming language research project The Gamma. The scripting language in The Gamma
+captures the structure discussed above. 
+
+A script is a sequence of commands that can either define a 
+variable or produce an output. The language does not support top-level function declarations, 
+although we propose an extension that provides a simple abstraction mechanism and is compatible with
+providing live previews in Section~X. Lambda functions can be used only as method 
+arguments. 
+
+Given the expressiveness of The Gamma, libraries for it are implemented in other languages, such as
+JavaScript. More importantly, The Gamma supports type providers, which can be used to generate types,
+on the fly, for accessing and exploring external data sources. Type providers provide object types 
+with members and The Gamma makes using those convenient by providing auto-complete when the user 
+types the dot symbol (`.') to access a member.
+
+The combination of type providers and auto-complete on~``.'' makes it possible to complete a 
+large number of data exploration tasks through a very simple interaction of selecting operations from
+a list. An example in Figure~\ref{fig:gamma-waste} summarizes waste data using a type provider.
+The names of identifiers such as \qident{average Waste (kg)} do not have
+any special meaning -- they are merely members generated by the type provider, based on information
+about the data source. The type provider used in this example generates an object with members for
+different data transformations, such as \qident{group data}, which return furhter objects with 
+members for specifying transformation parameters, such as selecting the grouping key using
+\qident{by Country}. 
+
+The Gamma is more complex than shown here -- it supports methods that can take
+functions as arguments -- but the above example illustrates the fact that non-trivial data
+exploration can be done using a very simple language.
+
+We complement our theoretical work on foundations of live programming environments for data
+exploration with an implementation for The Gamma. As discussed in the previous
+section, the assumptions about structure of code that are explicit in The Gamma are also
+implicitly present in Python and R data analyses produced by journalists, economists and
+other users with other than  programming background. Consequently, our theoretical work 
+applies to simple data analyses using Python and readers not familiar with The Gamma
+can assume that we use a small subset of Python.
+
+% ==================================================================================================
+
+\section{Calculus}
+
+x
+
+\begin{equation*}
+\begin{array}{lcl}
+p &=& c_1; \ldots; c_n\\
+c &=& \kvd{let}~x = e ~|~ e\\
+e &=& n ~|~ x ~|~ e.m(a, \ldots, a)\\
+a &=& e ~|~ \lambda x\rightarrow e
+\end{array}
+\end{equation*}
+
+
+
+\newpage
 
 % ==================================================================================================
 
