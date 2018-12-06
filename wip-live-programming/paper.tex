@@ -1,5 +1,42 @@
-\documentclass[sigplan,10pt]{acmart}\settopmatter{printfolios=true,printccs=false,printacmref=false}
+\documentclass[acmsmall,anonymous,fleqn]{acmart}\settopmatter{printfolios=false,printccs=false,printacmref=false}
 
+%% For double-blind review submission, w/ CCS and ACM Reference
+%\documentclass[acmsmall,review,anonymous]{acmart}\settopmatter{printfolios=true}
+%% For single-blind review submission, w/o CCS and ACM Reference (max submission space)
+%\documentclass[acmsmall,review]{acmart}\settopmatter{printfolios=true,printccs=false,printacmref=false}
+%% For single-blind review submission, w/ CCS and ACM Reference
+%\documentclass[acmsmall,review]{acmart}\settopmatter{printfolios=true}
+%% For final camera-ready submission, w/ required CCS and ACM Reference
+%\documentclass[acmsmall]{acmart}\settopmatter{}
+
+\acmJournal{PACMPL}
+\acmVolume{1}
+\acmNumber{OOPSLA}
+\acmArticle{1}
+\acmYear{2019}
+\acmMonth{1}
+\acmDOI{} % \acmDOI{10.1145/nnnnnnn.nnnnnnn}
+\startPage{1}
+
+%% Copyright information
+%% Supplied to authors (based on authors' rights management selection;
+%% see authors.acm.org) by publisher for camera-ready submission;
+%% use 'none' for review submission.
+\setcopyright{none}
+%\setcopyright{acmcopyright}
+%\setcopyright{acmlicensed}
+%\setcopyright{rightsretained}
+%\copyrightyear{2018}           %% If different from \acmYear
+
+%% Bibliography style
+\bibliographystyle{ACM-Reference-Format}
+%% Citation style
+%% Note: author/year citations are required for papers published as an
+%% issue of PACMPL.
+\citestyle{acmauthoryear}   %% For author/year citations
+
+\usepackage{booktabs}
+\usepackage{subcaption}
 \usepackage{lineno,hyperref,xcolor}
 \usepackage{flushend}
 \usepackage{stmaryrd}
@@ -9,9 +46,10 @@
 \usepackage{booktabs} 
 \usepackage{subcaption}
 \usepackage{enumitem}
-\usepackage[shortlabels]{enumerate}
-\setlist{leftmargin=6mm}
+\usepackage{enumerate}
+\usepackage{amsmath}
 
+\setlist{leftmargin=6mm}
 \newcounter{thc}
 \newcounter{dfc}
 
@@ -22,23 +60,32 @@
 \theoremstyle{definition}
 \newtheorem{definition}[dfc]{Definition}
 
-\acmConference[PL'17]{ACM SIGPLAN Conference on Programming Languages}{January 01--03, 2017}{New York, NY, USA}
-\acmYear{2017}
-\acmISBN{} % \acmISBN{978-x-xxxx-xxxx-x/YY/MM}
-\acmDOI{} % \acmDOI{10.1145/nnnnnnn.nnnnnnn}
-\startPage{1}
-\setcopyright{none}
-\bibliographystyle{ACM-Reference-Format}
-
-\title{Design and implementation of a live coding environment for data science}
-
+\title{Live coding}
 \author{Tomas Petricek}
-%\affiliation{
-%  \institution{The Alan Turing Institute}
-%  \country{London, United Kingdom}
-%}
-%\email{tomas@tomasp.net}
 
+\affiliation{
+  \institution{University of Kent}
+  \country{United Kingdom}
+}
+\email{tomas@tomasp.net}
+
+\begin{CCSXML}
+<ccs2012>
+<concept>
+<concept_id>10011007.10011006.10011008</concept_id>
+<concept_desc>Software and its engineering~General programming languages</concept_desc>
+<concept_significance>500</concept_significance>
+</concept>
+<concept>
+<concept_id>10003456.10003457.10003521.10003525</concept_id>
+<concept_desc>Social and professional topics~History of programming languages</concept_desc>
+<concept_significance>300</concept_significance>
+</concept>
+</ccs2012>
+\end{CCSXML}
+
+\ccsdesc[500]{Software and its engineering~General programming languages}
+\ccsdesc[300]{Social and professional topics~History of programming languages}
 
 \definecolor{cmtclr}{rgb}{0.0,0.6,0.0}
 \definecolor{kvdclr}{rgb}{0.0,0.0,0.6}
@@ -56,7 +103,7 @@
 \put(.9,2.5){\rotatebox{240}{\line(1,0){5.5}}}
 \end{picture}}
 \newcommand{\ball}[1]{\FPeval{\result}{clip(201+#1)}\textnormal{\ding{\result}}}
-\newcommand{\lsep}{~\,|\,~}
+\newcommand{\lsep}{\;\;|\;\;}
 \newcommand{\num}[1]{\textcolor{numclr}{#1}}
 \newcommand{\str}[1]{\textnormal{\textcolor{strclr}{\sffamily "#1"}}}
 \newcommand{\rstr}[1]{\textnormal{\textcolor{rstrclr}{\sffamily "#1"}}}
@@ -178,6 +225,7 @@ foundations for the growing and important trend of text-based live coding enviro
 % ==================================================================================================
 
 \section{Understanding how data scientists work}
+\label{sec:background}
 
 Data scientists often use general-purpose programming languages such as Python, but the kind of 
 code they write and the way they interact with the system is very different from how software 
@@ -193,17 +241,17 @@ exploration calculus.
 \subsection{Data wrangling in Jupyter}
 \label{sec:background-jupyter}
 
-Increasing numbers of data analysts use notebook systems such as Jupyter or R Markdown, which 
+Data analysts increasingly use notebook systems such as Jupyter or R Markdown, which 
 make it possible to combine text, equations and code with results of running the code such as tables 
-or visualizations. Notebooks blur the traditional distinction between development and execution. 
-Data analysts write small snippets of code, run them immediately to see results and then revise 
-them interactively based on the results. We aim to take this trend further and build foundations
-for seamlessly integrating development and execution in a notebook-like environment.
+or visualizations. Notebooks blur the distinction between development and execution. 
+Data analysts write small snippets of code, run them to see results immediately and then revise 
+them interactively based on the results. We aim to build foundations for such seamless integration 
+of development and execution in a notebook environment.
 
 Jupyter notebooks are used by a variety of users ranging from scientists who implement complex
 models to journalists who load data, perform simple aggregations and create visualizations. Our
-focus is on simple use cases, such as those of journalists, because we believe that this is where
-better tooling can provide the most value.
+initial focus is on simple use cases, such as those of journalists, because we believe that this 
+is where better tooling can provide the most value.
 
 As an example, consider the data anlysis done by the Financial Times for an article on plastic 
 waste. The analysis joins datasets from Eurostat, UN Comtrade and more, aggregates the data and 
@@ -212,16 +260,18 @@ Figure~\ref{fig:ft-uncomtrade} shows an extract from one notebook from the data 
 The code of the analysis has a number of remarkable properties:
 %
 \begin{itemize}
-\item There is no abstraction. The analysis uses lambda functions as arguments to library calls,
-  but it does not define any functions. Parameterization is done either by defining a list of 
+\item There is no abstraction. The full analysis uses lambda functions as arguments to library calls,
+  but it does not define any top-level functions. Parameterization is done by defining a list of 
   inputs and then having a for loop, or by defining a top-level variable and setting its value.
   In our example, \ident{material} is set to \str{plastics} and a comment lists other options. 
   This lets the analyst easily see and check the results of intermediate steps of the analysis.
 
+\vspace{0.5em}
 \item The code is structured as a sequence of commands. Some commands define a variable, either by
   loading data, or by transforming data loaded previously. Even in Python, data is often treated
   as immutable. Other commands produce an output that is displayed in the notebook. 
   
+\vspace{0.5em}
 \item There are many corner cases, such as the fact that the \ident{keep\_default\_na} parameter 
   needs to be set to handle Namibia correctly. These are discovered interactively by writing and 
   running a code snippet and examining the output, so providing a rapid feedback is essential.
@@ -230,7 +280,7 @@ The code of the analysis has a number of remarkable properties:
 Many Jupyter notebooks are more complex than the example discussed here. They might define
 helper functions or even structure code using object-oriented programming. However, simple 
 data analyses such as the one discussed here are frequent enough to pose an interesting and
-important problem for programming tools research.
+important domain for programming tools research.
 
 \begin{figure}
 \includegraphics[scale=0.6]{notebook.png}
@@ -239,22 +289,22 @@ important problem for programming tools research.
 \label{fig:ft-uncomtrade}
 \end{figure}
 
+% --------------------------------------------------------------------------------------------------
+
 \begin{figure}
-\includegraphics[scale=0.52]{gamma.png}
-\caption{The Gamma script to aggregate waste data. We select three countries and group
-data by country. We then count the number of distinct reporting periods per country and type `.'
-to choose further aggregation operations.}
-\label{fig:gamma-waste}
+\includegraphics[scale=0.28]{gamma1.png}
+\caption{\small The Gamma script to aggregate Olympic medals. We select Rio 2016 games and
+count the number of distinct events per athlete. We then type `.' to choose 
+further aggregation operations.}
+\label{fig:gamma-dot}
 \vspace{-1em}
 \end{figure}
-
-% --------------------------------------------------------------------------------------------------
 
 \subsection{Dot-driven data exploration in The Gamma}
 \label{sec:background-gamma}
 
 Data exploration of the kind discussed in the previous section has been the motivation
-for a recent programming language research project The Gamma. The scripting language in The Gamma
+for a recent programming environment called The Gamma. The scripting language in The Gamma
 captures the structure discussed above. 
 
 A script is a sequence of commands that can either define a 
@@ -263,7 +313,7 @@ although we propose an extension that provides a simple abstraction mechanism an
 providing live previews in Section~X. Lambda functions can be used only as method 
 arguments. 
 
-Given the expressiveness of The Gamma, libraries for it are implemented in other languages, such as
+Given the limited expressiveness of The Gamma, libraries for it are implemented in other languages, such as
 JavaScript. More importantly, The Gamma supports type providers, which can be used to generate types,
 on the fly, for accessing and exploring external data sources. Type providers provide object types 
 with members and The Gamma makes using those convenient by providing auto-complete when the user 
@@ -271,13 +321,13 @@ types the dot symbol (`.') to access a member.
 
 The combination of type providers and auto-complete on~``.'' makes it possible to complete a 
 large number of data exploration tasks through a very simple interaction of selecting operations from
-a list. An example in Figure~\ref{fig:gamma-waste} summarizes waste data using a type provider.
-The names of identifiers such as \qident{average Waste (kg)} do not have
+a list. An example in Figure~\ref{fig:gamma-dot} summarizes data on Olympic medals using a type provider.
+The names of identifiers such as \qident{sum Bronze} do not have
 any special meaning -- they are merely members generated by the type provider, based on information
 about the data source. The type provider used in this example generates an object with members for
 different data transformations, such as \qident{group data}, which return furhter objects with 
 members for specifying transformation parameters, such as selecting the grouping key using
-\qident{by Country}. 
+\qident{by Athlete}. 
 
 The Gamma is more complex than shown here -- it supports methods that can take
 functions as arguments -- but the above example illustrates the fact that non-trivial data
@@ -293,20 +343,200 @@ can assume that we use a small subset of Python.
 
 % ==================================================================================================
 
-\section{Calculus}
+% https://www.ft.com/content/360e2524-d71a-11e8-a854-33d6f82e62f8
+% https://github.com/ft-interactive/recycling-is-broken-notebooks
 
-x
+\begin{figure}
+\includegraphics[scale=0.28 ]{gamma2.png}
+\caption{\small Live preview in The Gamma programming environment. The table is produced as
+  the data anlyst types and updates on-the-fly to show result at the current cursor position.}
+\label{fig:gamma-preview}
+\end{figure}
 
+\section{Live coding for data exploration}
+
+This paper presents the foundations of a live coding environment for data exploration that 
+follows the analysis in the previous section. We consider simple data exploration tasks, such as 
+those done by journalists and we implement our ideas in the editor for TheGamma. 
+
+Figure~\ref{fig:gamma-preview} shows a TheGamma script exporing Olympic medal statistics in 
+our live coding environment. Before discussing the technical details, it is worth highlighting
+a number of important points about our approach.
+
+\paragraph{Real-world use cases.}
+Our work has been motivated by the needs outlined in the previous section. In particular, we 
+have been focusing on a langauge that is simple, yet sufficient for completing basic data 
+exploration tasks that a journalist might want to do. We have used our live coding environment
+to perform a number of simple data analyses looking at topics such as public government spending, 
+crises in financial markets and activities of a research institute. Qualitative observations about
+our experience are reported in Section~X. Our tools can be used in any modern web browser and are 
+available as an open-source package.
+
+\paragraph{Text editor integration.}
+Our approach is based on an ordinary text editor that allows unrestricted modification of the
+code. Our parser supports error-recovery and we attempt to give previews whenever the code can be
+correctly parsed and type-checked up to the current location. Notably, we do not, in general, know
+how the user modified the code. This is in contrast with approaches based on structured editing
+where the editor tracks what changes to code have been made. Using an ordinary text editor makes
+providing live previews harder, but we believe that many users still favor the flexibility of 
+plain text editors.
+
+\paragraph{Data stay, code changes.}
+Our focus has been on the scenario when input data is a static file that does not change, but the
+data analyst modifies the source code. This is in contrast with work on incremental computation,
+which focuses on scenarios where code stays the same, but input data change.
+
+That said, many of the methods that we used for evaluating live previews such as maintaining 
+the dependency graph with nodes for individual syntactic elements are closely related to methods
+used in incremental computation research. We do not attempt to combine the two, but note that
+this is an interesting future direction.
+
+\newpage
+\begin{figure}
+\raggedright
+{\small\sffamily Programs, commands, expressions, arguments and values}
 \begin{equation*}
+\hspace{-2em}
 \begin{array}{lcl}
 p &=& c_1; \ldots; c_n\\
-c &=& \kvd{let}~x = e ~|~ e\\
-e &=& n ~|~ x ~|~ e.m(a, \ldots, a)\\
-a &=& e ~|~ \lambda x\rightarrow e
+c &=& \kvd{let}~x = e \lsep e\\
+\end{array}
+\quad
+\begin{array}{lcl}
+e &=& o \lsep x \\
+  &|& e.m(a, \ldots, a)
+\end{array}
+\quad
+\begin{array}{lcl}
+a &=& e \lsep \lambda x\rightarrow e\\
+v &=& o \lsep \lambda x\rightarrow e\\
 \end{array}
 \end{equation*}
 
+\vspace{0.5em}
+{\small\sffamily Evaluation contexts of expressions}
+\begin{equation*}
+\hspace{-2em}  
+\begin{array}{lcl}
+C_e[-] &=& -.m(a_1, \ldots, a_n) ~|~ -.m(v_1, \ldots, v_{m}, -, a_1,\ldots , a_n) ~|~ -\\
+C_c[-] &=& \kvd{let}~x = C_e[-] ~|~ C_e[-]\\
+C_p[-] &=& c_1;\; \ldots;\; c_{k-1};\; C_c[-];\; c_{k+1};\; \ldots;\; c_n\\
+\end{array}
+\end{equation*}
 
+\vspace{0.5em}
+{\small\sffamily Let elimination and member reduction}
+\begin{equation*}
+\hspace{-2em}  
+\begin{array}{ll}
+\hspace{-0.5em}\begin{array}{l}  
+c_1;\; \ldots;\; c_{k-1};\; \kvd{let}~x=o;\; c_{k+1};\; \ldots; c_n \rightsquigarrow\\
+\qquad  c_1;\; \ldots;\; c_{k-1};\; c_{k+1}[x\leftarrow o];\; \ldots; c_n[x\leftarrow o]\end{array} &
+\quad\text{\small\sffamily(let)}\\[1.2em]
+{o.m(v_1, \ldots, v_n) \rightsquigarrow_\epsilon o'}\implies
+  {C_p[o.m(v_1, \ldots, v_n)] \rightsquigarrow C_p[o']} & 
+\quad\text{\small\sffamily (external)}    
+\end{array}  
+\end{equation*}
+
+\vspace{-0.5em}
+\caption{Syntax, contexts and reduction rules of the data exploration calculus}
+\label{fig:dec-calculus}
+\end{figure}
+
+\section{Data exploration calculus}
+\label{sec:calculus}
+
+The \emph{data exploration calculus} is a small, formally tractable language for data exploration. 
+The calculus is not Turing-complete and it can only be used together with external libraries that
+define what objects are available and what the behaviour of their members is. However, this is 
+sufficient to capture the simple data analyses discussed in Section~\ref{sec:background}. We 
+define the caluclus in this section and then use it as the basis for discussing our live preview 
+mechanism in Section~\ref{sec:formal}.
+
+\subsection{Language syntax}
+The calculus combines object-oriented features such as member access with functional features
+such as lambda functions. The syntax is defined in Figure~\ref{fig:dec-calculus}. We write $x$ for 
+variables and $o$ for object values. A program $p$ in the data exploration calculus consists of a 
+sequence of commands $c$. A command can be either let binding or an expression. Lambda functions 
+can only appear directly as arguments in method calls. An argument $a$ can thus be a lambda 
+function or an expression.
+
+\subsection{Operational semantics}
+The data exploration calculus is a call-by-value language. We model the evaluation as a small-step
+reduction $\rightsquigarrow$. Fully evaluating a program results in an irreducible sequence of 
+objects $o_1;\; \ldots;\; o_n$ which can be displayed as results of the data analysis. The 
+operational semantics is parameterized by a relation $\rightsquigarrow_\epsilon$ that models
+the functionality of the external libraries used with the calculus and defines reduction rules
+for member accesses. The relation has the following form:
+%
+\begin{equation*}
+o.m(v_1, \ldots, v_n) \rightsquigarrow_\epsilon o'
+\end{equation*}
+%
+foo
+
+bar
+
+\newpage
+
+
+\subsection{Equational theory}
+In The Gamma language, computations are expressed using
+member access, written as $e.m(e_1,\ldots, e_n)$. In this paper, we do not define how member
+access evaluates. This has been done elsewhere \cite{gamma}, but more importantly, the evaluation of
+previews does not rely on the exact specifics of the evaluation, provided that the language
+satisfies certain basic conditions. The following definitions provides the necessary structure 
+for discussing correctness of previews.
+
+Partial evaluation may reduce an expression under $\lambda$-abstraction. We do not require that
+the reduction of the host language does this. Instead, we define an extended reduction relation
+and use that in the proofs. The host language only needs to compose well with such extended reduction
+as captured by the \emph{compositionality} property below. We also require that the language allows
+elimination of let bindings.
+
+\begin{definition}[Host language]
+\label{def:host}
+Given a relation on expressions $e_1 \rightsquigarrow e_2$ that models small-step evaluation, we define:
+
+\begin{itemize}
+\item[--]  
+ A \emph{preview evaluation context} (also referred to as \emph{context}):
+
+\vspace{-1.25em}
+\begin{equation*}
+\begin{array}{lcl}
+C[-] &\hspace{-1em}=\hspace{-1em}& \kvd{let}~x = -~\kvd{in}~e ~|~ \kvd{let}~x = e~\kvd{in}~- ~|~ \lambda x\rightarrow - \\
+     &&  e_0.m(e_1, \ldots, e_{k-1}, -, e_{k+1}, \ldots e_n)
+\end{array}
+\end{equation*}
+
+\item[--]  
+An extended reduction relation $\rightsquigarrow_\beta$ such that, for any context $C$, 
+$C[e_1] \rightsquigarrow_\beta C[e_2]$ whenever $e_1 \rightsquigarrow e_2$.
+
+\item[--]  
+Let elimination $\rightsquigarrow_\ident{let}$ such that, using  capture-avoiding substitution,
+  $C[\kvd{let}~x=e_1~\kvd{in}~e_2] \rightsquigarrow_\ident{let} C[e_2[x\leftarrow e_1]]$
+\end{itemize}
+
+\noindent
+We say that $\rightsquigarrow$ is a suitable \emph{host language reduction} if:
+\begin{itemize}
+\item[--] It satisfies the \emph{compositionality} property, that is if $e \rightsquigarrow e'$ and 
+$C[e]\rightsquigarrow_\beta e''$ then also $C[e']\rightsquigarrow_\beta e''$.
+
+\item[--] Let elimination does not affect the result, i.e.~if $e \rightsquigarrow_{\ident{let}} e'$ 
+and $e'\rightsquigarrow_\beta e''$ then also $e\rightsquigarrow_\beta e''$ 
+\end{itemize}
+\end{definition}
+
+\noindent
+The host language in The Gamma is a simple call-by-value functional language without side-effects,
+and so it satisfies both compositionality and allows let bindings to be eliminated, although the
+latter affects the performance. The mechanism for preview evaluation presented here would also 
+work for call-by-name languages, but it would suffer from the expected difficulties in the 
+presence of side-effects or non-determinism.
 
 \newpage
 
