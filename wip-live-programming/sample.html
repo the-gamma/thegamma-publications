@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">  
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
   <link rel="stylesheet" href="https://highlightjs.org/static/demo/styles/github.css">
   <script src="https://highlightjs.org/static/highlight.site.pack.js"></script>
   <script>hljs.initHighlightingOnLoad();</script>
@@ -17,9 +17,7 @@
 material = 'plastics' # 'plastics', 'paper'
 </code></pre>
 <h3>Loading exports data</h3>
-<pre><code class="python">df_mat = pd.read_csv('{material}-2017.csv')
-    .fillna(0).sort_values(['country_name', 'period'])
-
+<pre><code class="python">df_mat = pd.read_csv('{material}-2017.csv').fillna(0).sort_values(['country_name', 'period'])
 df_mat.head()
 </code></pre>
 <table class="table table-sm">
@@ -60,12 +58,8 @@ df_mat.head()
 <h3>Join to country codes</h3>
 
 <pre><code class="python"># Set keep_default_na because the Namibia has ISO code NA
-df_isos = pd.read_excel('iso.xlsx', keep_default_na=False)
-    .drop_duplicates('country_code')
-
-df = df_mat.copy().merge(df_isos, 'left', 'country_code')
-   .rename({ 'iso2': 'country_code' }, axis=1)
-
+df_isos = pd.read_excel('iso.xlsx', keep_default_na=False).drop_duplicates('country_code')
+df = df_mat.copy().merge(df_isos, 'left', 'country_code').rename({ 'iso2': 'country_code' }, axis=1)
 df.head()
 </code></pre>
 <table class="table table-sm">
