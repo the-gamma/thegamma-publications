@@ -57,6 +57,7 @@
 \newtheorem{theorem}[thc]{Theorem}
 
 \theoremstyle{definition}
+\newtheorem{axiom}[dfc]{Axiom}
 \newtheorem{definition}[dfc]{Definition}
 
 \title{Live coding}
@@ -119,6 +120,7 @@
 \newcommand{\bknd}[1]{\textnormal{\textcolor{prepclr}{\sffamily #1}}}
 \newcommand{\blbl}[1]{\textnormal{\textcolor{numclr}{\sffamily #1}}}
 \newcommand{\narrow}[1]{\hspace{-0.6em}#1\hspace{-0.6em}}
+\newcommand{\rname}[1]{{\sffamily\small(#1)}}
 
 \begin{document}
 \begin{abstract}
@@ -164,7 +166,7 @@ in a data set \ident{movies}:
 \begin{array}{l}
 \kvd{let}~\ident{top} =\ident{movies}\\
 \quad .\ident{sortBy}(\lambda x \rightarrow x.\ident{getBudget}())\ident{.take}(\num{10})\\
-\quad .\ident{map}(\lambda x \rightarrow x.\ident{getReleased()}.\ident{format}(\str{yyyy}))}\\
+\quad .\ident{map}(\lambda x \rightarrow x.\ident{getReleased()}.\ident{format}(\str{yyyy}))\\
 \end{array}
 \end{equation*}
 %
@@ -177,7 +179,7 @@ the full date:
 \kvd{let}~\ident{count} = \num{10}\\
 \kvd{let}~\ident{top} = \ident{movies}\\
 \quad .\ident{sortBy}(\lambda x \rightarrow x.\ident{getBudget}())\ident{.take}(\ident{count})\\
-\quad \ident{.map}(\lambda x \rightarrow x.\ident{getReleased()}.\ident{format}(\str{dd-mm-yyyy}))}\\
+\quad \ident{.map}(\lambda x \rightarrow x.\ident{getReleased()}.\ident{format}(\str{dd-mm-yyyy}))\\
 \end{array}
 \end{equation*}
 %
@@ -400,21 +402,21 @@ this is an interesting future direction.
 \newpage
 \begin{figure}
 \raggedright
-{\small\sffamily Programs, commands, expressions, arguments and values}
+{\small\sffamily Programs, commands, terms, expressions and values}
 \begin{equation*}
 \hspace{-2em}
 \begin{array}{lcl}
 p &\narrow{=}& c_1; \ldots; c_n\\
-c &\narrow{=}& \kvd{let}~x = e \lsep e\\
+c &\narrow{=}& \kvd{let}~x = t \lsep t\\
 \end{array}
 \qquad
 \begin{array}{lcl}
-e &\narrow{=}& o \lsep x \\
-  &\narrow{|}& e.m(a, \ldots, a)
+t &\narrow{=}& o \lsep x \\
+  &\narrow{|}& t.m(e, \ldots, e)
 \end{array}
 \qquad
 \begin{array}{lcl}
-a &\narrow{=}& e \lsep \lambda x\rightarrow e\\
+e &\narrow{=}& t \lsep \lambda x\rightarrow e\\
 v &\narrow{=}& o \lsep \lambda x\rightarrow e\\
 \end{array}
 \end{equation*}
@@ -424,8 +426,8 @@ v &\narrow{=}& o \lsep \lambda x\rightarrow e\\
 \begin{equation*}
 \hspace{-2em}
 \begin{array}{lcl}
-C_e[-] &=& -.m(a_1, \ldots, a_n) ~\lsep~ -.m(v_1, \ldots, v_{m}, -, a_1,\ldots , a_n) ~\lsep~ -\\
-C_c[-] &=& \kvd{let}~x = C_e[-] \hspace{1.25em}\lsep~ C_e[-]\\
+C_e[-] &=& C_e[-].m(e_1, \ldots, e_n) ~\lsep~ o.m(v_1, \ldots, v_{m}, C_e[-], e_1,\ldots , e_n) ~\lsep~ -\\
+C_c[-] &=& \kvd{let}~x = C_e[-] ~\lsep~ C_e[-]\\
 C_p[-] &=& o_1;\; \ldots;\; o_{k};\; C_c[-];\; c_{1};\; \ldots;\; c_n\\
 \end{array}
 \end{equation*}
@@ -437,11 +439,11 @@ C_p[-] &=& o_1;\; \ldots;\; o_{k};\; C_c[-];\; c_{1};\; \ldots;\; c_n\\
 \begin{array}{ll}
 \hspace{-0.5em}\begin{array}{l}
 o_1;\; \ldots;\; o_{k};\; \kvd{let}~x=o;\; c_{1};\; \ldots; c_n \rightsquigarrow\\
-\qquad  o_1;\; \ldots;\; o_{k};\; c_{1}[x\leftarrow o];\; \ldots; c_n[x\leftarrow o]\end{array} &
-\quad\text{\small\sffamily(let)}\\[1.2em]
+\qquad  o_1;\; \ldots;\; o_{k};\; o; c_{1}[x\leftarrow o];\; \ldots; c_n[x\leftarrow o]\end{array} &
+\quad\text{\rname{let}}\\[1.2em]
 {o.m(v_1, \ldots, v_n) \rightsquigarrow_\epsilon o'}\implies
   {C_p[o.m(v_1, \ldots, v_n)] \rightsquigarrow C_p[o']} &
-\quad\text{\small\sffamily (external)}
+\quad\text{\rname{external}}
 \end{array}
 \end{equation*}
 
@@ -466,14 +468,17 @@ such as lambda functions. The syntax is defined in Figure~\ref{fig:dec-calculus}
 $o$ are defined by external libraries that are used in conjunction with the core calculus.
 
 A program $p$ in the data exploration calculus consists of a sequence of commands $c$. A command
-can be either let binding or an expression. Let bindings define variables $x$ that can be used in
+can be either let binding or a term. Let bindings define variables $x$ that can be used in
 subsequent commands. The calculus supports lambda functions, but they
-can only appear as arguments in method calls. An argument $a$ can thus be a lambda
-function or an expression.\footnote{Similar but weaker restrictions on the use of lambda functions
+can only appear as arguments in method calls. A term $t$ can be a value, variable or a
+member access, while an expression $e$, which can appear as an argument in member access,
+can be a lambda function or a term.\footnote{Similar but weaker restrictions on the use of lambda functions
 exist in other languages. To guide type inference, lambda functions in C\# can appear as either
 method arguments or assigned to an explicitly typed variable.}
 
 \subsection{Operational semantics}
+\label{sec:calculus-semantics}
+
 The data exploration calculus is a call-by-value language. We model the evaluation as a small-step
 reduction $\rightsquigarrow$. Fully evaluating a program results in an irreducible sequence of
 objects $o_1;\; \ldots;\; o_n$ which can be displayed as intermediate results of the data analysis. The
@@ -488,80 +493,50 @@ o_1.m(v_1, \ldots, v_n) \rightsquigarrow_\epsilon o_2
 Figure~\ref{fig:dec-calculus} defines the reduction rules in terms of $\rightsquigarrow_\epsilon$
 and evaluation contexts; $C_e$ specifies left-to-right evaluation of arguments of a method call,
 $C_c$ specifies evluation of a command and $C_p$ defines top-to-bottom evaluation of a program.
-The rule {\small\sffamily (external)} applies reductions provided by an external library in a
-call-by-value order and {\small\sffamily (let)} substitutes a value of an evaluated variable in
-all subsequent commands.
+The rule \rname{external} applies reductions provided by an external library in a
+call-by-value order and \rname{let} substitutes a value of an evaluated variable in
+all subsequent commands. Note that \rname{let} leaves the value of the variable
+in the resulting list of commands.
 
 \subsection{Properties}
 
-TBD: Some adaptation of the stuff below, as needed for the proofs.
+DEFINE $\rightsquigarrow^{*}$ as a reflexive, transitive closure of $\rightsquigarrow$
+
+DEFINE $\rightsquigarrow_\ident{let}$ (on a program) - CBN subsitution
+
+\begin{definition}[External library]
+\label{def:external}
+
+Satsifies \emph{compositionality} such that:
+
+Given $e_0, e_1, \ldots, e_n$ and $e'_0, e'_1, \ldots, e'_n$ and $m$ such that
+$e_0.m(e_1, \ldots, e_n) \rightsquigarrow^{*} o$ and
+$e'_0.m(e'_1, \ldots, e'_n) \rightsquigarrow^{*} o'$ then
+if for any contexts
+$C_0, C_1, \ldots, C_n$ it holds that if $C_i[e_i] \rightsquigarrow^{*} o_i$ and $C_i[e'_i] \rightsquigarrow^{*} o_i$ for some $o_i$
+then $o = o'$.
+\end{definition}
+
+TBD: LET above should leave the evaluated object in the list of commmands
+
+LET ELIMINATION DOES NOT CHANGE RESULTS
+
+Let elimination $\rightsquigarrow_\ident{let}$ such that, using  capture-avoiding substitution,
+$C[\kvd{let}~x=e_1~\kvd{in}~e_2] \rightsquigarrow_\ident{let} C[e_2[x\leftarrow e_1]]$
+
+Let elimination does not affect the result, i.e.~if $e \rightsquigarrow_{\ident{let}} e'$
+and $e'\rightsquigarrow_\beta e''$ then also $e\rightsquigarrow_\beta e''$
+
+\begin{lem}[Let elimination for a program]
+\label{thm:let-lang-elimination}
+does not matter
+\end{lem}
 
 \newpage
 
-% TODO: Adapt as needed
-%
-% \subsection{Equational theory}
-% In The Gamma language, computations are expressed using
-% member access, written as $e.m(e_1,\ldots, e_n)$. In this paper, we do not define how member
-% access evaluates. This has been done elsewhere \cite{gamma}, but more importantly, the evaluation of
-% previews does not rely on the exact specifics of the evaluation, provided that the language
-% satisfies certain basic conditions. The following definitions provides the necessary structure
-% for discussing correctness of previews.
-%
-% Partial evaluation may reduce an expression under $\lambda$-abstraction. We do not require that
-% the reduction of the host language does this. Instead, we define an extended reduction relation
-% and use that in the proofs. The host language only needs to compose well with such extended reduction
-% as captured by the \emph{compositionality} property below. We also require that the language allows
-% elimination of let bindings.
-%
-% \begin{definition}[Host language]
-% \label{def:host}
-% Given a relation on expressions $e_1 \rightsquigarrow e_2$ that models small-step evaluation, we define:
-%
-% \begin{itemize}
-% \item[--]
-%  A \emph{preview evaluation context} (also referred to as \emph{context}):
-%
-% \vspace{-1.25em}
-% \begin{equation*}
-% \begin{array}{lcl}
-% C[-] &\hspace{-1em}=\hspace{-1em}& \kvd{let}~x = -~\kvd{in}~e ~|~ \kvd{let}~x = e~\kvd{in}~- ~|~ \lambda x\rightarrow - \\
-%      &&  e_0.m(e_1, \ldots, e_{k-1}, -, e_{k+1}, \ldots e_n)
-% \end{array}
-% \end{equation*}
-%
-% \item[--]
-% An extended reduction relation $\rightsquigarrow_\beta$ such that, for any context $C$,
-% $C[e_1] \rightsquigarrow_\beta C[e_2]$ whenever $e_1 \rightsquigarrow e_2$.
-%
-% \item[--]
-% Let elimination $\rightsquigarrow_\ident{let}$ such that, using  capture-avoiding substitution,
-%   $C[\kvd{let}~x=e_1~\kvd{in}~e_2] \rightsquigarrow_\ident{let} C[e_2[x\leftarrow e_1]]$
-% \end{itemize}
-%
-% \noindent
-% We say that $\rightsquigarrow$ is a suitable \emph{host language reduction} if:
-% \begin{itemize}
-% \item[--] It satisfies the \emph{compositionality} property, that is if $e \rightsquigarrow e'$ and
-% $C[e]\rightsquigarrow_\beta e''$ then also $C[e']\rightsquigarrow_\beta e''$.
-%
-% \item[--] Let elimination does not affect the result, i.e.~if $e \rightsquigarrow_{\ident{let}} e'$
-% and $e'\rightsquigarrow_\beta e''$ then also $e\rightsquigarrow_\beta e''$
-% \end{itemize}
-% \end{definition}
-%
-% \noindent
-% The host language in The Gamma is a simple call-by-value functional language without side-effects,
-% and so it satisfies both compositionality and allows let bindings to be eliminated, although the
-% latter affects the performance. The mechanism for preview evaluation presented here would also
-% work for call-by-name languages, but it would suffer from the expected difficulties in the
-% presence of side-effects or non-determinism.
-%
-% \newpage
-
 % ==================================================================================================
 
-\section{Formalising live coding infrastructure}
+\section{Formalising live coding environment}
 \label{sec:formal}
 
 A naive way of providing live previews during code editing would be to re-evaluate the code
@@ -734,7 +709,7 @@ symbol $s_2$.
 \quad \textnormal{let}~\bndclr{v} = \bnd{fun}(x, s), s~\textnormal{fresh}
 ~\textnormal{and}~e = (\bndclr{v},\bndclr{v_0},\blbl{body})
 \\[1em]
-\ident{bind-expr}_{\Gamma, \Delta}(o) = \bnd{val}(o), (\{ \bnd{val}(o) \}, \emptyset) }&(5)
+\ident{bind-expr}_{\Gamma, \Delta}(o) = \bnd{val}(o), (\{ \bnd{val}(o) \}, \emptyset) &(5)
 \\[1em]
 \ident{bind-expr}_{\Gamma, \Delta}(x) = \bndclr{v}, (\{ \bndclr{v} \}, \emptyset)~\textnormal{when}~\bndclr{v} = \Gamma(x)&(6)
 \end{array}
@@ -749,12 +724,12 @@ symbol $s_2$.
 \begin{equation*}
 \hspace{-3.5em}
 \begin{array}{ll}
-\ident{bind-prog}_{\Gamma, \Delta}(\kvd{let}~x=e; c_2; \ldots; c_n) = \bndclr{v_1};\ldots;\bndclr{v_n}, (\{\bndclr{v}\} \cup V \cup V_1, E \cup E_1)
+\ident{bind-prog}_{\Gamma, \Delta}(\kvd{let}~x=e; c_2; \ldots; c_n) = \bndclr{v_1};\ldots;\bndclr{v_n}, (\{\bndclr{v_1}\} \cup V \cup V_1, E \cup E_1)
   \hspace{9.35em}&(7)\\
 \quad \textnormal{let}~\bndclr{v_1}, (V_1,E_1) = \ident{bind-expr}_{\Gamma,\Delta}(e_1)~\textnormal{and}~\Gamma_1 = \Gamma \cup \{(x,\bndclr{v_1})\} \\
 \quad \textnormal{and}~\bndclr{v_2}; \ldots; \bndclr{v_n}, (V, E) = \ident{bind-prog}_{\Gamma_1, \Delta}(c_2; \ldots; c_n)
 \\[1em]
-\ident{bind-prog}_{\Gamma, \Delta}(e; c_2; \ldots; c_n) = \bndclr{v_1};\ldots;\bndclr{v_n}, (\{\bndclr{v}\} \cup V \cup V_1, E \cup E_1)&(8)\\
+\ident{bind-prog}_{\Gamma, \Delta}(e; c_2; \ldots; c_n) = \bndclr{v_1};\ldots;\bndclr{v_n}, (\{\bndclr{v_1}\} \cup V \cup V_1, E \cup E_1)&(8)\\
 \quad \textnormal{let}~\bndclr{v_1}, (V_1,E_1) = \ident{bind-expr}_{\Gamma,\Delta}(e)
 ~\textnormal{and}~\bndclr{v_2}; \ldots; \bndclr{v_n}, (V, E) = \ident{bind-prog}_{\Gamma_1, \Delta}(c_2; \ldots; c_n)
 \\[1em]
@@ -858,71 +833,118 @@ the same thanks to the way they are constructed.
 \section{Evaluating previews}
 \label{sec:previews}
 
-The mechanism for constructing dependency graphs defined in Section~\ref{sec:formal} makes it
-possible to provide live previews when editing code without recomputing the whole program
-each time the source code changes.
+The binding process described in the previous section constructs a dependency graph after code
+changes. The nodes in the dependency graph correspond to individual operations that will be performed
+when running the program. When evaluating a preview, we attach (partial) results to
+nodes of the graph. Since the binding process reuses nodes when their dependencies do not change,
+previews for expressions (or sub-expressions) of a program can be reused when updating a preview.
 
-The nodes in the dependency graph correspond to individual operations that will be performed
-when running the program. When the dependencies of an operation do not change while editing
-code, the subsequent dependency graph will reuse a node used to represent the operation.
-
-Our live editor keeps a map from graph nodes to live previews, so a new preview only needs to be
-computed when a new node appears in the dependency graph (and the user moves the cursor to a
-code location that corresponds to the node). This section describes how previews are evaluated.
-
+In this section, we describe how previews are evaluated. The evaluation is done over the dependency
+graph, rather than over the structure of the program expressions as in the operational semantics
+given in Section~\ref{sec:calculus-semantics}. We analyse the preview evaluation formally in
+Section~\ref{sec:properties} and show that the resulting previews are the same as the result we
+would get by directly evaluating the code and, also, that no recomputation occurs when code is
+edited in certain ways.
 
 % --------------------------------------------------------------------------------------------------
 
-\begin{figure*}
+\subsection{Previews and delayed previews}
+
+Programs in the data exploration calculus consist of sequence of commands. Those can always be
+evaluated to a value with a preview that can be displayed to the user. However, we also support
+previews for all sub-expressions. This can be problematic if the current sub-expression is inside
+the body of a function. For example:
+%
 \begin{equation*}
-\qquad\qquad\quad\begin{array}{l}
-\inference[(lift-expr)~]
+\begin{array}{l}
+\kvd{let}~\ident{top} = \ident{movies}.\ident{take}(\num{10}).\ident{map}(\lambda x \rightarrow x.\ident{getReleased}().\ident{format}(\str{dd-mm-yyyy}))
+\end{array}
+\end{equation*}
+%
+Here, we can directly evaluate sub-expressions \ident{movies} and $\ident{movies}.\ident{take}(\num{10})$,
+but not $x.\ident{getReleased}()$ and $x.\ident{getReleased}().\ident{format}(\str{dd-mm-yyyy})$
+because they contain a free variable $x$. Our preview evaluation algorithm addresses this by
+producing two kinds of previews. A \emph{fully evaluated preview} is just a value, while
+a \emph{delayed preview} is a partially evalauted expression with free variables:
+
+\begin{equation*}
+\begin{array}{rcll}
+p&=&o \lsep  \lambda x\rightarrow e&\quad(\textit{Fully evaluated previews})\\
+d&=&p \lsep  \llbracket e \rrbracket_\Gamma&\quad(\textit{Evaluated and delayed previews})\\
+\end{array}
+\end{equation*}
+%
+A fully evaluated preview $p$ can be either a primitive object or a function value with no free
+variables. A possibly delayed preview $d$ can be either an evaluated preview $p$ or an expression
+$e$ that requires variables $\Gamma$. For simplicity, we use an untyped language and so $\Gamma$
+is just a list of variables $x_1, \ldots, x_n$.
+
+A delayed preview is not necessarily the body of a lambda function as it appears in the source
+code. We partially evaluate sub-expressions of the body that do not have free variables or that
+have free variables bound by an earlier let binding.
+
+Our implementation does not currently display
+delayed previews to the user, but there is a number of possible approaches for doing that.
+Most interestingly, since lambda functions always appear as arguments of a member access, we could
+force the evaluation of the surrounding expression, capture (a number of) values passed as inputs
+to the lambda function and display a preview based on those. Finally, in Section~\ref{sec:design},
+we also consider a more speculative design for an abstraction mechanism that supports live previews
+that could, in some cases, replace lambda function.
+
+% --------------------------------------------------------------------------------------------------
+
+\begin{figure*}[b]
+\begin{equation*}
+\hspace{-2.5em}
+\begin{array}{l}
+\inference[\rname{lift-expr}~]
   {\bndclr{v} \Downarrow \llbracket e \rrbracket_\Gamma}
   {\bndclr{v} \Downarrow_{\ident{lift}} \llbracket e \rrbracket_\Gamma}
 \\
 \\
-\inference[(lift-prev)~]
+\inference[\rname{lift-prev}~]
   {\bndclr{v} \Downarrow p}
   {\bndclr{v} \Downarrow_{\ident{lift}} \llbracket p \rrbracket_\emptyset}
 \\
 \\
-\inference[(val)~]
+\inference[\rname{val}~]
   {~}
-  {\bnd{val}(n) \Downarrow n }
+  {\bnd{val}(o) \Downarrow o }
 \\
 \\
-\inference[(var)~]
+\inference[\rname{var}~]
   {~}
   {\bnd{var}(x) \Downarrow \llbracket x \rrbracket_x}
   \\[0.5em]~
 \end{array}
-\qquad
+\qquad\quad
 \begin{array}{l}
-\inference[(fun-val)~]
+\inference[\rname{fun-val}~]
   { (\bnd{fun}(x, s), \bndclr{v}, \blbl{body}) \in E & \bndclr{v} \Downarrow p }
   { \bnd{fun}(x, s) \Downarrow \lambda x\rightarrow p }
 \\
 \\
-\inference[(fun-bind)~]
+\inference[\rname{fun-bind}~]
   { (\bnd{fun}(x, s), \bndclr{v}, \blbl{body}) \in E & \bndclr{v} \Downarrow \llbracket e \rrbracket_{x} }
   { \bnd{fun}(x, s) \Downarrow \lambda x\rightarrow e }
 \\
 \\
-\inference[(fun-expr)~]
+\inference[\rname{fun-expr}~]
   { (\bnd{fun}(x, s), \bndclr{v}, \blbl{body}) \in E & \bndclr{v} \Downarrow \llbracket e \rrbracket_{x,\Gamma} }
   { \bnd{fun}(x, s) \Downarrow \llbracket \lambda x\rightarrow e \rrbracket_\Gamma }
 \\[0.5em]~
 \end{array}
 \end{equation*}
 \begin{equation*}
-\qquad\qquad\begin{array}{l}
-\inference[(mem-val)~]
+\hspace{-2.5em}
+\begin{array}{l}
+\inference[\rname{mem-val}~]
   { \forall i\in\{0\ldots k\}.(\bnd{mem}(m, s), \bndclr{v_i}, \blbl{arg}(i)) \in E & \bndclr{v_i} \Downarrow p_i
-    & p_0.m(p_1, \ldots, p_k) \rightsquigarrow p }
+    & p_0.m(p_1, \ldots, p_k) \rightsquigarrow_\epsilon p }
   { \bnd{mem}(m, s) \Downarrow p }
 \\
 \\
-\inference[(mem-expr)~]
+\inference[\rname{mem-expr}~]
   { \forall i\in\{0\ldots k\}.(\bnd{mem}(m, s), \bndclr{v_i}, \blbl{arg}(i)) \in E & \exists j\in\{0\ldots k\}.\bndclr{v_j}\diagup\hspace{-1em}\Downarrow p_j
    & \bndclr{v_i} \Downarrow_{\ident{lift}} \llbracket e_i \rrbracket_{\Gamma_i}  }
   { \bnd{mem}(m, s) \Downarrow \llbracket e_0.m(e_1, \ldots, e_k) \rrbracket_{\Gamma_0,\ldots,\Gamma k} }
@@ -930,450 +952,90 @@ code location that corresponds to the node). This section describes how previews
 \end{array}
 \end{equation*}
 
-\caption{Rules that define evaluation of previews over a dependency graph for an expression}
+\caption{Rules that define evaluation of previews over a dependency graph for a program}
 \label{fig:eval}
 \end{figure*}
 
 % --------------------------------------------------------------------------------------------------
 
-\subsection{The problem with functions.}
-In the context of live programming, \kvd{let} binding and member access are unproblematic.
-We can evaluate them and provide live preview for both of them, including all their sub-expressions.
-Function values are more problematic, because their sub-expressions cannot be evaluated. For example:
-%
-\begin{equation*}
-\begin{array}{l}
-pd.read\_csv(\strf{demo.csv}).map)
-\kvd{let}~\ident{page} = \lambda x \rightarrow \ident{movies}.\ident{skip}(x*\num{10}).\ident{take}(\num{10})
-\end{array}
-\end{equation*}
-%
-We can provide live preview for the \ident{movies} sub-expression, but not for
-$\ident{movies}.\ident{skip}(x*\num{10})$ because we cannot obtain the value of $x$ without
-running the rest of the program and analysing how the function is called later.
-
-The method described in this paper obtains delayed previews for sub-expressions that contain
-free variables (which could be fully evaluated if values for free variables were provided), but
-we describe a more speculative design of live coding friendly functions in Section~\ref{sec:design}.
-
-\paragraph{Previews and delayed previews.}
-As discussed in Section~\ref{sec:formal}, the body of a function cannot be easily evaluated to
-a value if it uses the bound variable. We do not attempt to ``guess'' possible arguments and,
-instead, provide a full preview only for sub-expressions with free variables bound by a let binding.
-For a function body that uses the bound variable, we obtain a \emph{delayed preview}, which is
-an expression annotated with a list of variables that need to be provided before the expression
-can be evaluated. We use the following notation:
-%
-\begin{equation*}
-\begin{array}{rcll}
-p&\hspace{-0.25em}\in\hspace{-0.25em}&n~|~\lambda x\rightarrow e&\quad(\textit{Fully evaluated previews})\\
-d&\hspace{-0.25em}\in\hspace{-0.25em}&p~|~\llbracket e \rrbracket_\Gamma&\quad(\textit{Evaluated and delayed previews})\\
-\end{array}
-\end{equation*}
-%
-Here, $p$ ranges over fully evaluated values. It can be either a primitive value (such as number,
-string or an object) or a function value with no free variables. A possibly delayed preview $d$
-can then be either evaluated preview $p$ or an expression $e$ that requires variables $\Gamma$.
-For simplicity, we use an untyped language and so $\Gamma$ is a list of variables $x_1, \ldots, x_n$.
-
-\paragraph{Evaluation and splicing.}
-In this paper, we omit the specifics of the underlying programming language and we focus on the
-live coding mechanism. However, we assume that the language is equipped with an evaluation
-reduction $e \rightsquigarrow p$ that reduces a closed expression $e$ into a value $p$.
-
-For delayed previews, we construct a delayed expression using splicing. For example, assuming
-we have a delayed previews $\llbracket e_0 \rrbracket_x$ and $\llbracket e_1 \rrbracket_y$.
-If we need to invoke a member $m$ on $e_0$ using $e_1$ as an argument, we construct a new
-delayed preview $\llbracket e_0.m(e_1) \rrbracket_{x, y}$. This operation is akin to expression
-splicing from meta-programming \cite{metaml,quotations} and can be more formally captured by
-Contextual Modal Type Theory (CMTT) as outlined below.
-
-\paragraph{Evaluation of previews.}
+\subsection{Evaluation of previews}
 The evaluation of previews is defined in Figure~\ref{fig:eval}. Given a dependency graph $(V, E)$,
 we define a relation $\bndclr{v}\Downarrow d$ that evaluates a sub-expression corresponding to
-the node $\bndclr{v}$ to a (possibly delayed) preview $d$.
+the node $\bndclr{v}$ to a possibly delayed preview $d$. The nodes $V$ and edges $E$ of the
+dependency graph are parameters of the $\Downarrow$ relation, but they do not change during the
+evaluation and so we do not explicity write them.
 
 The auxiliary relation $\bndclr{v}\Downarrow_{\ident{lift}} d$ always evaluates
 to a delayed preview. If the ordinary evaluation returns a delayed preview, so does the auxiliary
-relation (\emph{lift-expr}). If the ordinary evaluation returns a value, the value is wrapped
-into a delayed preview requiring no variables (\emph{lift-prev}).
-
-Graph node representing a value is evaluated to a value (\emph{val}) and a graph node representing
+relation \rname{lift-expr}. If the ordinary evaluation returns a value, the value is wrapped
+into a delayed preview requiring no variables \rname{lift-prev}.
+%
+A node representing a value is evaluated to a value \rname{val} and a node representing
 an unbound variable is reduced to a delayed preview that requires the variable and returns its
-value (\emph{var}).
+value~\rname{var}.
 
-For member access, we distinguish two cases. If all arguments evaluate to values (\emph{member-val}),
-then we use the evaluation relation $\rightsquigarrow$, immediately evaluate the member access and
-produce a value. If one of the arguments is delayed (\emph{member-expr}), because the member access
-is in the body of a lambda function, then we produce a delayed member access expression that
-requires the union of the variables required by the individual arguments.
+For member access, we distinguish two cases. If all arguments evaluate to values \rname{member-val},
+then we use the evaluation relation defined by external libraries $\rightsquigarrow_\epsilon$ to
+immediately evaluate the member access and produce a value. If some of the arguments are
+delayed \rname{member-expr}, because the member access is inside the body of a lambda function,
+we produce a delayed member access expression that requires the union of the variables
+required by the individual arguments.
 
 The evaluation of function values is similar, but requires three cases. If the body can
-be reduced to a value with no unbound variables (\emph{fun-val}), we return a lambda function that
-returns the value. If the body requires only the bound variable (\emph{fun-bind}), we return a
+be reduced to a value with no unbound variables \rname{fun-val}, we return a lambda function that
+returns the value. If the body requires only the bound variable \rname{fun-bind}, we return a
 lambda function with the delayed preview as the body. If the body requires further variables,
 the result is a delayed preview.
 
-\paragraph{Caching previews.}
+\subsection{Caching of evaluated previews}
+\label{sec:previews-cache}
+
 For simplicity, the relation $\Downarrow$ in Figure~\ref{fig:eval} does not specify how previews
 are cached and linked to graph nodes. In practice, this is done by maintaining a lookup table
-from graph nodes $\bdnclr{v}$ to (possibly delayed) previews $p$.
+from graph nodes $\bndclr{v}$ to (possibly delayed) previews $p$.
 Whenever $\Downarrow$ is used to obtain a preview for a graph node, we first
 attempt to find an already evaluated preview using the lookup table. If the preview has not
 been previously evaluated, we evaluate it and add it to the lookup table.
 
-The evaluated previews can be reused in two ways. First, multiple nodes can
+The cached evaluated previews can be reused in two ways. First, multiple nodes can
 depend on one sub-graph in a single dependency graph (if the same sub-expression appears
 twice in the program). Second, the keys of the lookup table are graph nodes and nodes are
 reused when a new dependency graph is constructed after the user edits the source code.
 
-\paragraph{Semantics of delayed previews.}
-The focus of this paper is on the design and implementation of a live coding environment,
-but it is worth noting that the structure of delayed previews is closely linked to the work
-on Contextual Modal Type Theory (CMTT) \cite{cmtt} and comonads \cite{cmtt-denotation}.
+\subsection{Theories of delayed previews}
+The operational semantics presented in this paper serves two purposes. It gives a simple guide
+for implementing text-based live coding environments for data science and we use it to prove that
+our optimized way of producing live previews is correct. However, some aspects of our mechanism
+are related to important work in semantics of programming languages and deserve to be mentioned.
 
-In CMTT, $\lbrack \Psi \rbrack A$ denotes that a proposition $A$ is valid in context $\Psi$,
-which is closely related to our delayed previews written as $\llbracket A \rrbracket_\Psi$.
-CMTT defines rules for composing context-dependent propositions that would allow us to express
-the splicing operation used in (\emph{mem-expr}). In categorical terms, the context-dependent
-proposition can be modeled as an indexed comonad \cite{effectrev,graded}. The evaluation of a preview with no
-context dependencies (built implicitly into our evaluation rules) corresponds to the counit
-operation of a comonad and would be explicitly written as $\llbracket A \rrbracket_\emptyset \rightarrow A$.
+The construction of delayed previews is related to meta-programming. Assuming
+we have delayed previews $\llbracket e_0 \rrbracket_x$ and $\llbracket e_1 \rrbracket_y$ and
+we invoke a member $m$ on $e_0$ using $e_1$ as an argument. To do this, we construct a new
+delayed preview $\llbracket e_0.m(e_1) \rrbracket_{x, y}$. This operation is akin to expression
+splicing from meta-programming \cite{metaml,quotations}.
 
-% ==================================================================================================
-
-\begin{figure*}[t]
-\vspace{-0.5em}
-\begin{equation*}
-\begin{array}{ll}
-\ident{bind-expr}_{\Gamma, \Delta, c}(e_0.m(e_1, \ldots, e_n)) = &(2b)\\
-\qquad \bndclr{v}, (\{\bndclr{v}\} \cup V_0 \cup \ldots \cup V_n, E \cup E_0 \cup \ldots \cup E_n)\\
-\quad \textnormal{when}~\bndclr{v_0}, (V_0, E_0) = \ident{bind-expr}_{\Gamma, \Delta, \bot}(e_0)\\
-\quad \textnormal{and}~c_i = (\bndclr{v_0}, \blbl{callsite}(m,i))\hspace{4.8em} (i \in 1\ldots n)\\
-\quad \textnormal{and}~\bndclr{v_i}, (V_i, E_i) = \ident{bind-expr}_{\Gamma, \Delta, c_i}(e_i)\qquad (i\in 1\ldots n)\\
-\quad \textnormal{and}~(\bknd{mem}(m),[(\bndclr{v_0}, \blbl{arg}(0)), \ldots, (\bndclr{v_n}, \blbl{arg}(n))]) \notin \ident{dom}(\Delta)\hspace{-200em}.\\
-\quad \textnormal{let}~\bndclr{v} = \bnd{mem}(m, s), s~\textnormal{fresh}\\
-\quad \textnormal{let}~E = \{ (\bndclr{v}, \bndclr{v_0}, \blbl{arg}(0)), \ldots, (\bndclr{v},\bndclr{v_n}, \blbl{arg}(n)) \}
-\end{array}
-\qquad\qquad
-\begin{array}{ll}
-\ident{bind-expr}_{\Gamma, \Delta, (\bndclr{v_c}, \blblclr{l_c} )}(\lambda x \rightarrow e) = \bndclr{v}, (\{\bndclr{v}\} \cup V_0, E \cup E_0)&(7b)\\
-\quad \textnormal{when}~(\bknd{var}(x),[(\bndclr{v_c}, \blblclr{l_c} )])\notin \ident{dom}(\Delta)\\
-\quad \textnormal{let}~\bndclr{v_x} = \bnd{var}(x, s_x), s_x~\textnormal{fresh}\\
-\quad \textnormal{and}~\Gamma_1 = \Gamma \cup \{ x, \bndclr{v_x} \}\\
-\quad \textnormal{and}~\bndclr{v_0}, (V_0, E_0) = \ident{bind-expr}_{\Gamma_1, \Delta, \bot}(e)\\
-\quad \textnormal{when}~(\bknd{fun}(x),[(\bndclr{v_0}, \blbl{body}), (\bndclr{v_c}, \blblclr{l_c} )])\notin \ident{dom}(\Delta)\\
-\quad \textnormal{let}~\bndclr{v} = \bnd{fun}(x, s_f), s_f~\textnormal{fresh}\\
-\quad \textnormal{let}~E = \{ (\bndclr{v},\bndclr{v_0},\blbl{body}), (\bndclr{v},\bndclr{v_c},\blblclr{l_c}), (\bndclr{v_x},\bndclr{v_c},\blblclr{l_c}) \}
-\\[0.75em]
-\end{array}
-\end{equation*}
-\vspace{-0.5em}
-\caption{Revised binding rules, tracking call sites of function values.}
-\label{fig:binding-rules-callsite}
-\vspace{-0.5em}
-\end{figure*}
-
-% ==================================================================================================
-
-\section{Type checking}
-\label{sec:types}
-
-Evaluating live previews can be an expensive operations, so being able to cache partial previews
-is a must for a live coding environment. Type checking is typically fast, so the main focus of
-this paper is on live previews. However, asynchronous type providers in The Gamma (Section~\ref{sec:types-providers})
-can make type checking time consuming, and so we use the dependency graph also for type checking
-(Section~\ref{sec:types-graph}). Type checking lambda functions (Section~\ref{sec:types-funs})
-requires a slight extension of the model discussed in Section~\ref{sec:formal}.
-
-% --------------------------------------------------------------------------------------------------
-
-\subsection{Asynchronously provided types}
-\label{sec:types-providers}
-
-Data available in The Gamma can be defined using several kinds of type providers. The type provider
-used in Figure~\ref{fig:thegamma} as asynchronous \cite{async}. It downloads the sample URL and generates
-types based on the contents of the web page. The parameter to \ident{web.scrape} is a static
-parameter and is evaluated during type-checking. We omit details in this paper, but we note this
-works similarly to F\# type providers \cite{providers-fsharp}.
-
-Type providers can also be implemented as REST services \cite{rest} to allow anyone implement a data source
-in the language of their choice. In this case, each member of a call-chain returns a type that is
-generated based on the result of an HTTP request. For example, when the user types \ident{worldbank}
-(to access information about countries), the type provider makes a request to
-\url{http://thegamma-services.azurewebsites.net/worldbank}, which returns two members:
-%
-\begin{equation*}
-\begin{array}{l}
-[~\{\rstr{name}\!:\str{byYear},\rstr{returns}\!:\\
-~\quad \{\rstr{kind}\!:\str{nested},\rstr{endpoint}\!:\str{/pickYear}\}\}\\
-\hspace{0.55em}\{\rstr{name}\!:\str{byCountry},\rstr{returns}\!:\\
-~\quad \{\rstr{kind}\!:\str{nested},\rstr{endpoint}\!:\str{/pickCountry}\}\}~]
-\end{array}
-\end{equation*}
-%
-This indicates that \ident{worldbank} has members \ident{byYear} and \ident{byCountry}.
-If the user types \ident{worldbank.byCountry}, a request is made to the specified URL
-\url{http://thegamma-services.azurewebsites.net/worldbank/pickCountry}:
-%
-\begin{equation*}
-\begin{array}{l}
-[~\{\rstr{name}\!:\str{Andorra},\rstr{trace}\!:[\str{"country=AR"}], \\
-\quad \rstr{returns}\!:\{\rstr{kind}\!:\str{nested},\rstr{endpoint}\!:\str{/pickTopic}\}\}\\
-\hspace{0.55em}\{\rstr{name}\!:\str{Afghanistan},\rstr{trace}\!:[\str{"country=AF"}],\\
-\quad \rstr{returns}\!:\{\rstr{kind}\!:\str{nested},\rstr{endpoint}\!:\str{/pickTopic}\}\},\,..]
-\end{array}
-\end{equation*}
-%
-This returns a list of countries which can then be accessed as members via
-\ident{worldbank.byCountry.Andorra}, etc.
-
-This is one reason for why type checking in The Gamma can be time consuming. Other
-type providers may perform other more computationally intensive work to provide types and so
-it is desirable to reuse type-checking results during live coding. The rest of this section
-shows how this is done using the dependency graph discussed in Section~\ref{sec:formal}.
-
-\begin{figure}[!b]
-\vspace{-0.5em}
-\begin{equation*}
-\xymatrix{
-&\bnd{val}(o)\\
-&\bnd{mem}(m, s_0) \ar[u]_{\blbl{arg}(0)} \ar[dl]^{\blbl{arg}(1)} \\
-\bnd{fun}(x, s_2) \ar@/^/[uur]^{\blbl{callsite}(m, 1)} \ar[rr]^{\blbl{body}} && \bnd{var}(x, s_1) \ar@/_/[uul]_{\blbl{callsite}(m, 1)}
-}
-\end{equation*}
-\caption{Dependency graph for $o.m(\lambda x\rightarrow x)$}
-\label{fig:graph-func}
-\end{figure}
-
-% --------------------------------------------------------------------------------------------------
-
-\subsection{Revised binding of functions}
-\label{sec:types-funs}
-
-The Gamma script supports lambda functions, but only in a limited way. A function can be passed
-as a parameter to a method, which makes type checking of functions easier. For example, consider:
-%
-\begin{equation*}
-\begin{array}{l}
-\ident{movies}.\ident{sortBy}(\lambda x \rightarrow x.\ident{getBudget}())
-\end{array}
-\end{equation*}
-%
-If \ident{movies} is a collection of \ident{Movie} objects, the type of the lambda function must be
-$\ident{Movie}\rightarrow\ident{bool}$ and so the type of $x$ is \ident{Movie}. This is similar to
-type checking of lambda functions in C\# \cite{csharp}, where type is also inferred from the context (or has
-to be specified explicitly).
-
-We do not currently allow lambda functions as stand-alone let-bound
-values. This could be done by requiring explicit types, or introducing polymorphism, but it was not
-necessary for the limited domain of non-expert data exploration.
-
-\paragraph{Dependency graph for functions.}
-In the binding process specified in Section~\ref{sec:formal}, a variable is a leaf of the dependency
-graph. In the revised model, it depends on the context in which it appears. A new edge labeled
-$\blbl{callsite}(m, i)$ indicates that the source node is the input variable of a function
-passed as the $i^\textnormal{th}$ argument to the $m$ member of the expression represented by the
-target node. A node representing function is linked to the call site using the same edge.
-
-Figure~\ref{fig:graph-func} shows the result of binding $o.m(\lambda x\rightarrow x)$. Both
-$\bnd{fun}(x, s_2)$ and $\bnd{var}(x, s_1)$ now depend on the node representing $o$. The new
-$\blbl{callsite}$ edge makes it possible to type-check function and variable nodes just using their
-dependencies. As before, the member invocation $\bnd{mem}(m, s_0)$
-depends on the instance using $\blbl{arg}(0)$ and on its argument using $\blbl{arg}(1)$.
-
-% --------------------------------------------------------------------------------------------------
-
-\begin{figure*}
-\vspace{0.5em}
-\begin{equation*}
-\begin{array}{l}
-\qquad\inference[(val)~]
-  {\Sigma(n) = \alpha}
-  {\bnd{val}(n) \vdash \alpha }
-\quad\qquad
-\inference[(var)~]
-  { (\bnd{var}(x,s), \bndclr{v}, \blbl{callsite}(m, i)) \in E &
-    \bndclr{v} \vdash (.., m:(\tau_1, \ldots, \tau_k)\rightarrow \tau,..) & \tau_i=\tau'\rightarrow\tau'' }
-  { \bnd{var}(x, s) \vdash \tau' }
-\\[2.5em]
-\inference[(fun)~]
-  { \{(\bnd{fun}(x,s), \bndclr{v_b}, \blbl{body}), (\bnd{var}(x,s), \bndclr{v_c}, \blbl{callsite}(m, i))\} \subseteq E &
-    \bndclr{v_c} \vdash (.., m:(\tau_1, \ldots, \tau_k)\rightarrow \tau,..) &
-    \tau_i=\tau'\rightarrow\tau'' & \bndclr{v_b} \vdash \tau'' }
-  { \bnd{fun}(x, s) \vdash \tau' \rightarrow \tau'' }
-\\[2.5em]
-\qquad\qquad\quad\inference[(mem)~]
-  { \forall i\in\{0\ldots k\}.(\bnd{mem}(m, s), \bndclr{v_i}, \blbl{arg}(i)) \in E &
-    \bndclr{v_0} \vdash (.., m:(\tau_1, \ldots, \tau_k) \rightarrow \tau, ..)& \bndclr{v_i} \vdash \tau_i }
-  { \bnd{mem}(m, s) \vdash \tau }
-\\[1em]
-\end{array}
-\end{equation*}
-\caption{Rules that define evaluation of previews over a dependency graph for an expression}
-\vspace{0.5em}
-\label{fig:tc}
-\end{figure*}
-
-% --------------------------------------------------------------------------------------------------
-
-\paragraph{Revised binding process.}
-For the revised binding process, we introduce a new edge label $\blbl{callsite}$. Variable nodes
-now have dependencies and so we cache them and attach a symbol $s$ to \bnd{var}, so we also
-introduce a node kind $\bknd{var}$ as part of a lookup key for $\Delta$.
-
-The \ident{bind-expr} function now has a parameter $c$, in addition to $\Gamma$ and $\Delta$, which
-represents the context in which the binding happens. This is either a member invocation (labeled
-with instance node $\bndclr{v}$ and \blbl{callsite} label $\blblclr{l}$), or not a member
-invocation written as $\bot$. The updated definitions are:
-%
-\begin{equation*}
-\begin{array}{lcll}
-\bndclr{v} &\hspace{-0.5em}\in\hspace{-0.5em}&\bnd{val}(n)~|~\bnd{var}(x, s)~|~\bnd{mem}(m, s)~|~\bnd{fun}(x, s)&(\textit{Vertices})\\
-\blblclr{l}&\hspace{-0.5em}\in\hspace{-0.5em}&\blbl{body}~|~\blbl{arg}(i)~|~\blbl{callsite}(m,i)&(\textit{Edge labels})\\
-\bkndclr{k}&\hspace{-0.5em}\in\hspace{-0.5em}&\bknd{fun}(x)~|~\bknd{mem}(m)~|~\bknd{var}(x)&(\textit{Node kinds})\\
-          c&\hspace{-0.5em}\in\hspace{-0.5em}&\bot ~|~(\bndclr{v}, \blblclr{l})&(\textit{Call sites})\\
-\end{array}
-\end{equation*}
-%
-The key parts of the revised definition of the \ident{bind-expr} function are shown in Figure~\ref{fig:binding-rules-callsite}.
-We now write $\ident{bind-expr}_{\Gamma,\Delta,c}$ where $c$ represents the context in which the
-binding occurs. This is set to $\bot$ in all cases, except when binding arguments of a member call.
-In (2b), we first recursively bind the instance node using $\bot$ as the context and then
-bind all the arguments using $(\bndclr{v_0}, \blbl{callsite}(m, i))$ as the context for $i^{\textnormal{th}}$
-argument. The rest is as in case (2) before. The case (1) is updated similarly and is not shown
-here for brevity.
-
-When binding a function (7b), we now also store variable nodes in $\Delta$ and so we check if a
-variable with the given call site exists. If no, we create a fresh node $\bnd{var}(x, s_x)$.
-The node is added to $\Gamma$ as before. At the end, we now also include a call site edge from the
-variable node and from the function node in $E$. We omit a similar variant of the case (6).
-The remaining cases (3)-(5) are the same, except that \ident{bind-expr} has the additional $c$ parameter
-and recursive calls always set it to $\bot$.
-
-Finally, the \ident{update} function in Figure~\ref{fig:loop} also needs to be updated to store the
-newly created \bnd{var} nodes. This is done by adding the following single case:
-
-\begin{equation*}
-\begin{array}{l}
-\Delta_{i}(\bknd{var}(x), [(\bndclr{v},\blbl{callsite}(m,i))]) = \bnd{var}(x, s)\\
-\quad\quad \textnormal{for all}~\bnd{var}(x, s) \in V\\
-\quad\quad \textnormal{such that}~(\bnd{var}(x, s), \bndclr{v}, \blbl{callsite}(m,i)) \in E
-\end{array}
-\end{equation*}
-
-% --------------------------------------------------------------------------------------------------
-
-\subsection{Type checking over dependency graphs}
-\label{sec:types-graph}
-
-The type system for The Gamma supports a number of primitive types (such as integers and strings)
-written as $\alpha$. Composed types include functions and objects with members. Objects are be
-provided by type providers, but we omit the details here. Types of object members are written as
-$\sigma$ and can have multiple arguments:
-%
-\begin{equation*}
-\begin{array}{lcll}
-\tau&\in&\alpha ~|~ \tau \rightarrow \tau ~|~ \{m_1\!:\!\sigma_1, \ldots, m_n\!:\!\sigma_n\} &\quad(\textit{Types})\\
-\sigma &\in& (\tau_1, \ldots, \tau_n) \rightarrow \tau &\quad(\textit{Members})\\
-\end{array}
-\end{equation*}
-%
-The typing judgements are written in the form $\bnd{v}\vdash \tau$. They are parameterised by the
-dependency graph $(V, E)$, but this is not modified during type checking so we keep it implicit
-rather than writing e.g.~$\bnd{v}\vdash_{(V,E)} \tau$.
-
-\paragraph{Type checking.}
-The typing rules are shown in Figure~\ref{fig:tc}. Types of primitive values $n$ are obtained
-using a global lookup table $\Sigma$ (\emph{val}). When type checking a member call (\emph{mem}),
-we find its dependencies $\bndclr{v_i}$ and check that the first one (instance) is an object with
-the required member $m$. The types of input arguments of the member then need to match the types
-of the remaining (non-instance) nodes.
-
-Type checking a function (\emph{fun}) and a variable (\emph{var}) is similar. In both cases,
-we follow the \blbl{callsite} edge to find the member that accepts the function as an argument.
-We obtain the type of the function from the type of the $i^\textnormal{th}$ argument of the
-member. We use the input type as the type of variable (\emph{var}). For functions, we also check
-that the resulting type matches the type of the body (\emph{fun}).
-
-\paragraph{Caching results.}
-Performing type checking over the dependency graph, rather than over the abstract syntax tree,
-enables us to reuse the results of previously type checked parts of a program. As when
-caching evaluated previews (Section~\ref{sec:previews}), we build a lookup table mapping graph
-nodes to types. When type checking a node, we first check the cache and, only if it is new,
-follow the $\vdash$ relation to obtain the type.
-
-As a result, code can be type checked on-the-fly during editing, even when asynchronous type
-providers are used, and the programmer gets instant feedback without delays.
+The semantics of delayed previews can be more formally captured by Contextual Modal Type Theory
+(CMTT) \cite{cmtt} and comonads \cite{cmtt-denotation}. In CMTT, $\lbrack \Psi \rbrack A$ denotes
+that a proposition $A$ is valid in context $\Psi$, which is similar to our delayed previews written
+as $\llbracket A \rrbracket_\Psi$. CMTT defines rules for composing context-dependent propositions
+that would allow us to express the splicing operation used in \rname{mem-expr}. In categorical
+terms, the context-dependent proposition can be modeled as an indexed comonad \cite{effectrev,graded}.
+The evaluation of a preview with no context dependencies (built implicitly into our evaluation rules)
+corresponds to the counit operation of a comonad and would be explicitly written as
+$\llbracket A \rrbracket_\emptyset \rightarrow A$.
 
 % ==================================================================================================
 
 \section{Properties of live coding environment}
 \label{sec:properties}
 
-The dependency graph makes it possible to cache partial results when evaluating previews.
-The mechanism needs to satisfy two properties.
-First, if we evaluate a preview using dependency graph with caching, it should be the same as the
-value we would obtain by evaluating the expression directly. Second, the evaluation of previews
-using dependency graphs should -- in some cases -- reuse previously evaluated partial results.
-In other words, we show that the mechanism is correct and implements a useful optimization.
-
-\subsection{Modeling expression evaluation}
-In The Gamma language, computations are expressed using
-member access, written as $e.m(e_1,\ldots, e_n)$. In this paper, we do not define how member
-access evaluates. This has been done elsewhere \cite{gamma}, but more importantly, the evaluation of
-previews does not rely on the exact specifics of the evaluation, provided that the language
-satisfies certain basic conditions. The following definitions provides the necessary structure
-for discussing correctness of previews.
-
-Partial evaluation may reduce an expression under $\lambda$-abstraction. We do not require that
-the reduction of the host language does this. Instead, we define an extended reduction relation
-and use that in the proofs. The host language only needs to compose well with such extended reduction
-as captured by the \emph{compositionality} property below. We also require that the language allows
-elimination of let bindings.
-
-\begin{definition}[Host language]
-\label{def:host}
-Given a relation on expressions $e_1 \rightsquigarrow e_2$ that models small-step evaluation, we define:
-
-\begin{itemize}
-\item[--]
- A \emph{preview evaluation context} (also referred to as \emph{context}):
-
-\vspace{-1.25em}
-\begin{equation*}
-\begin{array}{lcl}
-C[-] &\hspace{-1em}=\hspace{-1em}& \kvd{let}~x = -~\kvd{in}~e ~|~ \kvd{let}~x = e~\kvd{in}~- ~|~ \lambda x\rightarrow - \\
-     &&  e_0.m(e_1, \ldots, e_{k-1}, -, e_{k+1}, \ldots e_n)
-\end{array}
-\end{equation*}
-
-\item[--]
-An extended reduction relation $\rightsquigarrow_\beta$ such that, for any context $C$,
-$C[e_1] \rightsquigarrow_\beta C[e_2]$ whenever $e_1 \rightsquigarrow e_2$.
-
-\item[--]
-Let elimination $\rightsquigarrow_\ident{let}$ such that, using  capture-avoiding substitution,
-  $C[\kvd{let}~x=e_1~\kvd{in}~e_2] \rightsquigarrow_\ident{let} C[e_2[x\leftarrow e_1]]$
-\end{itemize}
-
-\noindent
-We say that $\rightsquigarrow$ is a suitable \emph{host language reduction} if:
-\begin{itemize}
-\item[--] It satisfies the \emph{compositionality} property, that is if $e \rightsquigarrow e'$ and
-$C[e]\rightsquigarrow_\beta e''$ then also $C[e']\rightsquigarrow_\beta e''$.
-
-\item[--] Let elimination does not affect the result, i.e.~if $e \rightsquigarrow_{\ident{let}} e'$
-and $e'\rightsquigarrow_\beta e''$ then also $e\rightsquigarrow_\beta e''$
-\end{itemize}
-\end{definition}
-
-\noindent
-The host language in The Gamma is a simple call-by-value functional language without side-effects,
-and so it satisfies both compositionality and allows let bindings to be eliminated, although the
-latter affects the performance. The mechanism for preview evaluation presented here would also
-work for call-by-name languages, but it would suffer from the expected difficulties in the
-presence of side-effects or non-determinism.
+The use of a dependency graph when evaluating previews makes it possible to cache partial results
+through a mechanism discussed in Section~\ref{sec:formal-deps} and Section~\ref{sec:previews-cache}.
+The mechanism satisfies two properties. First, if we evaluate a preview using dependency
+graph with caching, it is the same as the value we would obtain by evaluating the expression
+directly. Second, the evaluation of previews using dependency graphs reuses -- in some cases --
+previously evaluated partial results. In other words, we show that the mechanism is correct
+and implements a useful optimization.
 
 % --------------------------------------------------------------------------------------------------
 
@@ -1381,48 +1043,48 @@ presence of side-effects or non-determinism.
 \label{sec:properties-correct}
 
 To show that the evaluated previews are correct, we prove two properties. Correctness
-(Theorem~\ref{thm:correcntess}) guarantees that, no matter how a graph is constructed, when we use
-it to evaluate a preview for an expression, the preview is the same as the value we would obtain
-by evaluating the expression directly. Determinacy (Theorem~\ref{thm:determinacy}) guarantees that if
-we cache a preview for a graph node and update the graph, the preview we would evaluate using the
-updated graph would be the same as the cached preview.
+(Theorem~\ref{thm:correcntess}) guarantees that, no matter how a dependency graph is constructed,
+when we use it to evaluate previews for a program, the previews are the same as the values we
+would obtain by evaluating the program commands directly. Determinacy (Theorem~\ref{thm:determinacy})
+guarantees that if we cache a preview for a graph node and update the graph, the preview we would
+evaluate using the updated graph would be the same as the cached preview.
 
-To simplify the proofs, we consider expressions without let bindings. This is possible, because
-eliminating let bindings does not change the result in the host language (Definition~\ref{def:host})
-and it also does not change the constructed dependency graph as shown in Lemma~\ref{thm:let-elimination}.
+To simplify the proofs, we consider programs without let bindings. This is possible, because
+eliminating let bindings does not change the result of evaluation, as shown earlier in
+Lemma~\ref{thm:let-lang-elimination}, and it also does not change the constructed dependency graph
+as shown below in Lemma~\ref{thm:let-grp-elimination}.
 
-\begin{lem}[Let elimintion]
-\label{thm:let-elimination}
-Given an expression $e_1$ such that $e_1 \rightsquigarrow_\ident{let} e_2$ and a lookup table $\Delta_0$
-then if $\bndclr{v_1}, (V_1, E_1) = \ident{bind-expr}_{\emptyset, \Delta_0}(e_1)$ and
-$\bndclr{v_2}, (V_2, E_2) = \ident{bind-expr}_{\emptyset, \Delta_1}(e_2)$ such that $\Delta_1 = \ident{update}_{V_1, E_1}(\Delta_0)$
-then it holds that $\bndclr{v_1} = \bndclr{v_2}$ and also $(V_1, E_1) = (V_2, E_2)$.
+\begin{lem}[Let elimintion for a dependency graph]
+\label{thm:let-grp-elimination}
+Given programs $p_1, p_2$ such that $p_1 \rightsquigarrow_\ident{let} p_2$ and a lookup table
+$\Delta_0$ then if $\bndclr{v_1}; \ldots; \bndclr{v_n}, (V, E) = \ident{bind-prog}_{\emptyset, \Delta_0}(p_1)$ and
+$\bndclr{v'_1};\ldots;\bndclr{v'_n}, (V', E') = \ident{bind-prog}_{\emptyset, \Delta_1}(p_2)$ such that $\Delta_1 = \ident{update}_{V, E}(\Delta_0)$
+then for all $i$, $\bndclr{v_i} = \bndclr{v'_i}$ and also $(V, E) = (V', E')$.
 \end{lem}
 \begin{proof}
-Assume $e_1 = C[\kvd{let}~x=e'~\kvd{in}~e'']$ and the resulting $e_2 = C[e''[x\leftarrow e']]$. The case
-$\ident{bind-expr}_{\Gamma,\Delta}(\kvd{let}~x=e'~\kvd{in}~e'')$ when binding $e_1$ is handled using
-(3).
-
-When binding $e_1$, the node resulting from binding $e'$ is added to the graph $V_1, E_1$ and is
-referenced each time $x$ is used. When binding $e_2$, the node representing $e'$ is a primitive value,
-or already present in $\Delta_1$ (added by $\ident{update}_{V_1, E_1}$) and is reused each time
-$\ident{bind-expr}_{\Gamma,\Delta_1}(e')$ is called.
+Assume $p_1 = c_1; \ldots; c_{k-1}; \kvd{let}~x=e; c_{k+1};\ldots; c_n$ and the let binding is
+eliminated resulting in $p_2 = c_1; \ldots; c_{k-1}; e; c_{k+1}[x\leftarrow e];\ldots; c_n[x\leftarrow e]$.
+When binding $p_1$, the case $\ident{bind-prog}_{\Gamma,\Delta}(\kvd{let}~x=e)$ is handled using (7)
+and the node resulting from binding $e$ is added to the graph $V, E$. It is then referenced each
+time $x$ appears in subsequent commands $c_{k+1}; \ldots; c_n$.
+When binding $p_2$, the node resulting from binding $e$ is a primitive value or a node already
+present in $\Delta_1$ (added by $\ident{update}_{V, E}$) and is reused each time
+$\ident{bind-expr}_{\Gamma,\Delta_1}(e)$ is called.
 \end{proof}
 
-The Lemma~\ref{thm:let-elimination} provides a way of removing let bindings from an expression,
-such that the resulting dependency graph remains the same. Here, we bind the original expression
-first, which adds the node for $e'$ to $\Delta$. In our implementation, this is not needed
+The Lemma~\ref{thm:let-grp-elimination} provides a way of removing let bindings from a program,
+such that the resulting dependency graph remains the same. Here, we bind the original program
+first, which adds the node for $e$ to $\Delta$. In our implementation, this is not needed
 because $\Delta$ is updated while the graph is being constructed using $\ident{bind-expr}$.
 To keep the formalisation simpler, we separate the process of building the dependency graph
-and updating $\Delta$.
+and updating $\Delta$ and thus Lemma~\ref{thm:let-grp-elimination} requires an extra binding step.
 
 Now, we can show that, given a let-free expression, the preview obtained using a correctly
 constructed dependency graph is the same as the one we would obtain by directly evaluating the
-expression. This requires a simple auxiliary lemma and the full proof is shown in
-Appendix~\ref{sec:app-correctness}.
+expression. This requires a simple auxiliary lemma.
 
-\begin{lem}
-\label{thm:lemma-lookup}[Lookup inversion]
+\begin{lem}[Lookup inversion]
+\label{thm:lemma-lookup}
 Given $\Delta$ obtained using \ident{update} as defined in Figure~\ref{fig:loop} then:
 \begin{itemize}
 \raggedright
@@ -1436,76 +1098,97 @@ then $\bndclr{v}=\bnd{mem}(m, s)$ for some $s$.
 By construction of $\Delta$ in Figure~\ref{fig:loop}.
 \end{proof}
 
-\begin{theorem}[Let-free correctness]
+\begin{theorem}[Term preview correctness]
 \label{thm:let-free-correct}
-Given an expression $e$ that has no free variables and does not contain let bindings, together
-with a lookup table $\Delta$ obtained from any sequence of expressions according to Figure~\ref{fig:loop}
-let $\bndclr{v}, (V, E) = \ident{bind-expr}_{\emptyset, \Delta}(e)$. If $\bndclr{v}\Downarrow d$
-over a graph $(V, E)$ then $d = p$ for some $p$ and $e \rightsquigarrow_\beta p$.
-\end{theorem}
-\begin{proof}
-First note that, when combining recursively constructed sub-graphs, the \ident{bind-expr} operation
-adds new nodes and edges leading from those new nodes. Therefore, an evaluation using $\Downarrow$
-over a sub-graph will also be valid over the new graph.
+Given a term $t$ that has no free variables, together with a lookup table $\Delta$ obtained
+from any sequence of programs using $\ident{bind-prog}$ (Figure~\ref{fig:binding-rules-prog}) and
+$\ident{update}$ (Figure~\ref{fig:loop}), then
+let $\bndclr{v}, (V, E) = \ident{bind-expr}_{\emptyset, \Delta}(t)$.
 
-Next, we prove a more general property using induction showing that for $e$ such
-that $\bndclr{v}, (V, E) = \ident{bind-expr}_{\emptyset, \Delta}(e)$:
+\vspace{0.25em}
+\noindent
+If $\bndclr{v}\Downarrow p$
+over a graph $(V, E)$ then $p = o$ for some value $o$ and $t \rightsquigarrow^{*} o$.
+\end{theorem}
+
+\begin{proof}
+First note that, when combining recursively constructed sub-graphs, the \ident{bind-expr} function
+adds new nodes and edges leading from those new nodes. Therefore, an evaluation using~$\Downarrow$
+over a sub-graph will also be valid over the new graph -- the newly added nodes and edges do not introduce
+non-determinism to the rules given in Figure~\ref{fig:eval}.
+
+We prove a more general property showing that for any $e$, its binding
+$\bndclr{v}, (V, E) = \ident{bind-expr}_{\emptyset, \Delta}(e)$ and any evaluation context $C$
+such that $C[e]\rightsquigarrow o$ for some $o$, one of the following holds:
+%
 \begin{enumerate}
-\item[a.] If $FV(e)\,=\,\emptyset$ then $\bndclr{v} \Downarrow p$ for some $p$ and $e \rightsquigarrow_\beta p$
-\item[b.] If $FV(e)\neq\emptyset$ then $\bndclr{v} \Downarrow \llbracket e_p \rrbracket_{FV(e)}$ for some $e_p$ and
-  for any evaluation context $C[-]$ such that $FV(C[e_p])=\emptyset$ it holds that if
-  $C[e] \rightsquigarrow_\beta C[e_p]$.
+\item[a.] If $FV(e)\,=\,\emptyset$ then $\bndclr{v} \Downarrow p$ for some $p$ and $C[p] \rightsquigarrow o$
+\item[b.] If $FV(e)\neq\emptyset$ then $\bndclr{v} \Downarrow \llbracket e_p \rrbracket_{FV(e)}$ for some $e_p$ and $C[e_p] \rightsquigarrow o$
 \end{enumerate}
 %
-The proof is done by induction over the binding process, which follows the structure
-of the expression $e$ and can be found in Appendix~\ref{sec:app-correctness}.
+In the first case, $p$ is a value, but it is not always the case that $e \rightsquigarrow^{*} p$,
+because $p$ may be lambda function and preview evaluation may reduce sub-expression in the body of
+the function. Using a context $C$ in which the value reduces to an object avoids this problem.
+
+The proof of the theorem follows from the more general property. Using a context $C[-]=-$, the
+term $t$ reduces $t \rightsquigarrow^{*}t' \rightsquigarrow_\epsilon o$ for some $o$ and the
+preview $p$ is a value $o$ because $C[p] = p = o$.
+The proof is by induction over the binding process, which follows the structure of the expression.
+The full proof is shown in Appendix~\ref{sec:app-correctness}.
 \end{proof}
 
 \noindent
 The correctness theorem combines the previous two results.
 
-\begin{theorem}[Correctness]
+\begin{theorem}[Program preview correctness]
 \label{thm:correcntess}
-Consider an expression $e_1$ that has no free variables together with a lookup table $\Delta_1$ obtained
-from any sequence of expressions according to Figure~\ref{fig:loop} and $e_2$ such that
-$e_1\rightsquigarrow_\beta e_2$ and let $\bndclr{v_1}, (V_1, E_1) = \ident{bind-expr}_{\emptyset, \Delta_1}(e_1)$.
+Consider a program $p=c_1;\ldots;c_n$ that has no free variables, together with a lookup table
+$\Delta_0$ obtained from any sequence of programs using $\ident{bind-prog}$
+(Figure~\ref{fig:binding-rules-prog}) and $\ident{update}$ (Figure~\ref{fig:loop}). Assume a
+let-free program $p'=t_1;\ldots;t_n$ such that $p\rightsquigarrow^{*}_\ident{let}p'$.
 
-Let $\Delta_2 = \ident{update}_{V_1, E_1}(\Delta_1)$ and $\bndclr{v_2}, (V_2, E_2) = \ident{bind-expr}_{\emptyset, \Delta_2}(e_2)$.
-If $\bndclr{v_2}\Downarrow d$ over a graph $(V_2, E_2)$ then $d = p$ for some $p$ and $e \rightsquigarrow_\beta p$.
+\vspace{0.25em}
+\noindent
+Let $\bndclr{v_1};\ldots;\bndclr{v_n}, (V, E) = \ident{bind-prog}_{\emptyset, \Delta_0}(p)$
+and define updated lookup table $\Delta_1=\ident{update}_{V, E}(\Delta_0)$ and
+let $\bndclr{v'_1};\ldots;\bndclr{v'_n}, (V', E') = \ident{bind-prog}_{\emptyset, \Delta_1}(p)$.
+
+\vspace{0.25em}
+\noindent
+If $\bndclr{v'_i}\Downarrow p_i$ over a graph $(V', E')$ then $p_i=o_i$ for some value $o_i$ and
+$t_i \rightsquigarrow o_i$.
 \end{theorem}
 \begin{proof}
-Direct consequence of Lemma~\ref{thm:let-elimination} and Theorem~\ref{thm:let-free-correct}.
+Direct consequence of Lemma~\ref{thm:let-grp-elimination} and Theorem~\ref{thm:let-free-correct}.
 \end{proof}
 
-As discussed above when introducing Lemma~\ref{thm:let-elimination}, in our implementation,
-$\Delta$ is updated during the recursive binding process and so a stronger version of the property
-holds -- namely, $e \rightsquigarrow_\beta p$ for a $p$ that is obtained by calculating preview
-over a graph obtained directly for the original expression $e$. We note that this is the case, but
-do not show it formally to keep aid the clarity of our formalisation.
+As discussed earlier, our implementation updates $\Delta$ during the recursive binding process and
+so a stronger version of the property holds -- namely, previews calculated over a graph obtained
+directly for the original program $p$ are the same as the values of the fully evaluated program.
+We note that this is the case, but do not show it formally to aid the clarity of our formalisation.
 
-The second important property that guarantees the correctness of previews shown by the user in
-our implementation is determinacy. This makes it possible to cache the previews evaluated using
-$\Downarrow$ using the corresponding graph node as a lookup key.
+The second important property that guarantees that our mechanism always displays correct previews
+is determinacy. This makes it possible to cache the previews evaluated using~$\Downarrow$ using
+the corresponding graph node as a lookup key.
 
-\begin{theorem}[Determinacy]
+\begin{theorem}[Program preview determinacy]
 \label{thm:determinacy}
-Let $\Delta_1 = \emptyset$, for any $e_1, e_2$, assume that the first expression is bound,
-i.e.~$\bndclr{v_1}, (V_1, E_1) = \ident{bind-expr}_{\emptyset, \Delta_1}(e_1)$, the graph node cache
-is updated $\Delta_2 = \ident{update}_{V_1, E_1}(\Delta_1)$ and a new expression is bound, i.e.~
-$\bndclr{v_2}, (V_2, E_2) = \ident{bind-expr}_{\emptyset, \Delta_2}(e_2)$. Now, for any $\bndclr{v}$,
-if $\bndclr{v} \Downarrow p$ over $(V_1, E_1)$ then also
- $\bndclr{v} \Downarrow p$ over $(V_2, E_2)$.
+For some $\Delta$ and for any programs $p, p'$, assume that the first program is bound,
+i.e.~$\bndclr{v_1};\ldots;\bndclr{v_n}, (V, E) = \ident{bind-prog}_{\emptyset, \Delta}(p)$,
+the graph node cache is updated $\Delta' = \ident{update}_{V, E}(\Delta)$ and the second program is
+bound, i.e.~$\bndclr{v'_1};\ldots;\bndclr{v'_m}, (V', E') = \ident{bind-prog}_{\emptyset, \Delta'}(p')$.
+Now, for any $\bndclr{v}$, if $\bndclr{v} \Downarrow p$ over $(V, E)$ then also
+ $\bndclr{v} \Downarrow p$ over $(V', E')$.
 \end{theorem}
 \begin{proof}
-By induction over $\Downarrow$ over $(V_1, E_1)$, we show that the same evaluation rules also
-apply over $(V_2, E_2)$.
-
-This is the case, because new graph nodes added to $\Delta_2$ by $\ident{update}_{V_1, E_2}$
-are only ever added as new nodes in $\ident{bind-expr}_{\emptyset, \Delta_2}$ and so the existing
-nodes and edges of $(V_1, E_1)$ used during the evaluation are unaffected.
+By induction over $\Downarrow$ over $(V, E)$, we show that the same evaluation rules also
+apply over $(V', E')$.
+This is the case, because new graph nodes added to $\Delta'$ by $\ident{update}_{V, E}$
+are only ever added as new nodes in $\ident{bind-prog}_{\emptyset, \Delta'}$ and so the existing
+nodes and edges of $(V, E)$ used during the evaluation are unaffected.
 \end{proof}
 
-The mechanism used for caching previews, as discussed at the end of Section~\ref{sec:previews},
+The mechanism used for caching previews, as discussed in Section~\ref{sec:previews-cache},
 keeps a preview or a partial preview $d$ in a lookup table indexed by nodes $\bndclr{v}$. The
 Theorem~\ref{thm:determinacy} guarantees that this is a valid strategy. As we update dependency
 graph during code editing, previous nodes will continue representing the same sub-expressions.
@@ -1607,6 +1290,272 @@ Consequence of Lemma~\ref{thm:sub-expr}, using appropriate contexts. In cases wi
 intermediate expressions (1)-(4), binding the intermediate expression introduces additional
 nodes to $\Delta$, but those are ignored when binding the final expression.
 \end{proof}
+
+% ==================================================================================================
+
+\section{Type checking}
+\label{sec:types}
+
+Evaluating live previews can be an expensive operations, so being able to cache partial previews
+is a must for a live coding environment. Type checking is typically fast, so the main focus of
+this paper is on live previews. However, asynchronous type providers in The Gamma (Section~\ref{sec:types-providers})
+can make type checking time consuming, and so we use the dependency graph also for type checking
+(Section~\ref{sec:types-graph}). Type checking lambda functions (Section~\ref{sec:types-funs})
+requires a slight extension of the model discussed in Section~\ref{sec:formal}.
+
+% --------------------------------------------------------------------------------------------------
+
+\subsection{Asynchronously provided types}
+\label{sec:types-providers}
+
+Data available in The Gamma can be defined using several kinds of type providers. The type provider
+used in Figure~\ref{fig:thegamma} as asynchronous \cite{async}. It downloads the sample URL and generates
+types based on the contents of the web page. The parameter to \ident{web.scrape} is a static
+parameter and is evaluated during type-checking. We omit details in this paper, but we note this
+works similarly to F\# type providers \cite{providers-fsharp}.
+
+Type providers can also be implemented as REST services \cite{rest} to allow anyone implement a data source
+in the language of their choice. In this case, each member of a call-chain returns a type that is
+generated based on the result of an HTTP request. For example, when the user types \ident{worldbank}
+(to access information about countries), the type provider makes a request to
+\url{http://thegamma-services.azurewebsites.net/worldbank}, which returns two members:
+%
+\begin{equation*}
+\begin{array}{l}
+[~\{\rstr{name}\!:\str{byYear},\rstr{returns}\!:\\
+~\quad \{\rstr{kind}\!:\str{nested},\rstr{endpoint}\!:\str{/pickYear}\}\}\\
+\hspace{0.55em}\{\rstr{name}\!:\str{byCountry},\rstr{returns}\!:\\
+~\quad \{\rstr{kind}\!:\str{nested},\rstr{endpoint}\!:\str{/pickCountry}\}\}~]
+\end{array}
+\end{equation*}
+%
+This indicates that \ident{worldbank} has members \ident{byYear} and \ident{byCountry}.
+If the user types \ident{worldbank.byCountry}, a request is made to the specified URL
+\url{http://thegamma-services.azurewebsites.net/worldbank/pickCountry}:
+%
+\begin{equation*}
+\begin{array}{l}
+[~\{\rstr{name}\!:\str{Andorra},\rstr{trace}\!:[\str{"country=AR"}], \\
+\quad \rstr{returns}\!:\{\rstr{kind}\!:\str{nested},\rstr{endpoint}\!:\str{/pickTopic}\}\}\\
+\hspace{0.55em}\{\rstr{name}\!:\str{Afghanistan},\rstr{trace}\!:[\str{"country=AF"}],\\
+\quad \rstr{returns}\!:\{\rstr{kind}\!:\str{nested},\rstr{endpoint}\!:\str{/pickTopic}\}\},\,..]
+\end{array}
+\end{equation*}
+%
+This returns a list of countries which can then be accessed as members via
+\ident{worldbank.byCountry.Andorra}, etc.
+
+This is one reason for why type checking in The Gamma can be time consuming. Other
+type providers may perform other more computationally intensive work to provide types and so
+it is desirable to reuse type-checking results during live coding. The rest of this section
+shows how this is done using the dependency graph discussed in Section~\ref{sec:formal}.
+
+\begin{figure}[!b]
+\vspace{-0.5em}
+\begin{equation*}
+\xymatrix{
+&\bnd{val}(o)\\
+&\bnd{mem}(m, s_0) \ar[u]_{\blbl{arg}(0)} \ar[dl]^{\blbl{arg}(1)} \\
+\bnd{fun}(x, s_2) \ar@/^/[uur]^{\blbl{callsite}(m, 1)} \ar[rr]^{\blbl{body}} && \bnd{var}(x, s_1) \ar@/_/[uul]_{\blbl{callsite}(m, 1)}
+}
+\end{equation*}
+\caption{Dependency graph for $o.m(\lambda x\rightarrow x)$}
+\label{fig:graph-func}
+\end{figure}
+
+% --------------------------------------------------------------------------------------------------
+
+\begin{figure*}[t]
+\vspace{-0.5em}
+\begin{equation*}
+\begin{array}{ll}
+\ident{bind-expr}_{\Gamma, \Delta, c}(e_0.m(e_1, \ldots, e_n)) = &(2b)\\
+\qquad \bndclr{v}, (\{\bndclr{v}\} \cup V_0 \cup \ldots \cup V_n, E \cup E_0 \cup \ldots \cup E_n)\\
+\quad \textnormal{when}~\bndclr{v_0}, (V_0, E_0) = \ident{bind-expr}_{\Gamma, \Delta, \bot}(e_0)\\
+\quad \textnormal{and}~c_i = (\bndclr{v_0}, \blbl{callsite}(m,i))\hspace{4.8em} (i \in 1\ldots n)\\
+\quad \textnormal{and}~\bndclr{v_i}, (V_i, E_i) = \ident{bind-expr}_{\Gamma, \Delta, c_i}(e_i)\qquad (i\in 1\ldots n)\\
+\quad \textnormal{and}~(\bknd{mem}(m),[(\bndclr{v_0}, \blbl{arg}(0)), \ldots, (\bndclr{v_n}, \blbl{arg}(n))]) \notin \ident{dom}(\Delta)\hspace{-200em}.\\
+\quad \textnormal{let}~\bndclr{v} = \bnd{mem}(m, s), s~\textnormal{fresh}\\
+\quad \textnormal{let}~E = \{ (\bndclr{v}, \bndclr{v_0}, \blbl{arg}(0)), \ldots, (\bndclr{v},\bndclr{v_n}, \blbl{arg}(n)) \}
+\end{array}
+\qquad\qquad
+\begin{array}{ll}
+\ident{bind-expr}_{\Gamma, \Delta, (\bndclr{v_c}, \blblclr{l_c} )}(\lambda x \rightarrow e) = \bndclr{v}, (\{\bndclr{v}\} \cup V_0, E \cup E_0)&(7b)\\
+\quad \textnormal{when}~(\bknd{var}(x),[(\bndclr{v_c}, \blblclr{l_c} )])\notin \ident{dom}(\Delta)\\
+\quad \textnormal{let}~\bndclr{v_x} = \bnd{var}(x, s_x), s_x~\textnormal{fresh}\\
+\quad \textnormal{and}~\Gamma_1 = \Gamma \cup \{ x, \bndclr{v_x} \}\\
+\quad \textnormal{and}~\bndclr{v_0}, (V_0, E_0) = \ident{bind-expr}_{\Gamma_1, \Delta, \bot}(e)\\
+\quad \textnormal{when}~(\bknd{fun}(x),[(\bndclr{v_0}, \blbl{body}), (\bndclr{v_c}, \blblclr{l_c} )])\notin \ident{dom}(\Delta)\\
+\quad \textnormal{let}~\bndclr{v} = \bnd{fun}(x, s_f), s_f~\textnormal{fresh}\\
+\quad \textnormal{let}~E = \{ (\bndclr{v},\bndclr{v_0},\blbl{body}), (\bndclr{v},\bndclr{v_c},\blblclr{l_c}), (\bndclr{v_x},\bndclr{v_c},\blblclr{l_c}) \}
+\\[0.75em]
+\end{array}
+\end{equation*}
+\vspace{-0.5em}
+\caption{Revised binding rules, tracking call sites of function values.}
+\label{fig:binding-rules-callsite}
+\vspace{-0.5em}
+\end{figure*}
+
+% --------------------------------------------------------------------------------------------------
+
+\subsection{Revised binding of functions}
+\label{sec:types-funs}
+
+The Gamma script supports lambda functions, but only in a limited way. A function can be passed
+as a parameter to a method, which makes type checking of functions easier. For example, consider:
+%
+\begin{equation*}
+\begin{array}{l}
+\ident{movies}.\ident{sortBy}(\lambda x \rightarrow x.\ident{getBudget}())
+\end{array}
+\end{equation*}
+%
+If \ident{movies} is a collection of \ident{Movie} objects, the type of the lambda function must be
+$\ident{Movie}\rightarrow\ident{bool}$ and so the type of $x$ is \ident{Movie}. This is similar to
+type checking of lambda functions in C\# \cite{csharp}, where type is also inferred from the context (or has
+to be specified explicitly).
+
+We do not currently allow lambda functions as stand-alone let-bound
+values. This could be done by requiring explicit types, or introducing polymorphism, but it was not
+necessary for the limited domain of non-expert data exploration.
+
+\paragraph{Dependency graph for functions.}
+In the binding process specified in Section~\ref{sec:formal}, a variable is a leaf of the dependency
+graph. In the revised model, it depends on the context in which it appears. A new edge labeled
+$\blbl{callsite}(m, i)$ indicates that the source node is the input variable of a function
+passed as the $i^\textnormal{th}$ argument to the $m$ member of the expression represented by the
+target node. A node representing function is linked to the call site using the same edge.
+
+Figure~\ref{fig:graph-func} shows the result of binding $o.m(\lambda x\rightarrow x)$. Both
+$\bnd{fun}(x, s_2)$ and $\bnd{var}(x, s_1)$ now depend on the node representing $o$. The new
+$\blbl{callsite}$ edge makes it possible to type-check function and variable nodes just using their
+dependencies. As before, the member invocation $\bnd{mem}(m, s_0)$
+depends on the instance using $\blbl{arg}(0)$ and on its argument using $\blbl{arg}(1)$.
+
+% --------------------------------------------------------------------------------------------------
+
+\begin{figure*}
+\vspace{0.5em}
+\begin{equation*}
+\begin{array}{l}
+\qquad\inference[\rname{val}~]
+  {\Sigma(n) = \alpha}
+  {\bnd{val}(n) \vdash \alpha }
+\quad\qquad
+\inference[\rname{var}~]
+  { (\bnd{var}(x,s), \bndclr{v}, \blbl{callsite}(m, i)) \in E &
+    \bndclr{v} \vdash (.., m:(\tau_1, \ldots, \tau_k)\rightarrow \tau,..) & \tau_i=\tau'\rightarrow\tau'' }
+  { \bnd{var}(x, s) \vdash \tau' }
+\\[2.5em]
+\inference[\rname{fun}~]
+  { \{(\bnd{fun}(x,s), \bndclr{v_b}, \blbl{body}), (\bnd{var}(x,s), \bndclr{v_c}, \blbl{callsite}(m, i))\} \subseteq E &
+    \bndclr{v_c} \vdash (.., m:(\tau_1, \ldots, \tau_k)\rightarrow \tau,..) &
+    \tau_i=\tau'\rightarrow\tau'' & \bndclr{v_b} \vdash \tau'' }
+  { \bnd{fun}(x, s) \vdash \tau' \rightarrow \tau'' }
+\\[2.5em]
+\qquad\qquad\quad\inference[\rname{mem}~]
+  { \forall i\in\{0\ldots k\}.(\bnd{mem}(m, s), \bndclr{v_i}, \blbl{arg}(i)) \in E &
+    \bndclr{v_0} \vdash (.., m:(\tau_1, \ldots, \tau_k) \rightarrow \tau, ..)& \bndclr{v_i} \vdash \tau_i }
+  { \bnd{mem}(m, s) \vdash \tau }
+\\[1em]
+\end{array}
+\end{equation*}
+\caption{Rules that define evaluation of previews over a dependency graph for an expression}
+\vspace{0.5em}
+\label{fig:tc}
+\end{figure*}
+
+% --------------------------------------------------------------------------------------------------
+
+\paragraph{Revised binding process.}
+For the revised binding process, we introduce a new edge label $\blbl{callsite}$. Variable nodes
+now have dependencies and so we cache them and attach a symbol $s$ to \bnd{var}, so we also
+introduce a node kind $\bknd{var}$ as part of a lookup key for $\Delta$.
+
+The \ident{bind-expr} function now has a parameter $c$, in addition to $\Gamma$ and $\Delta$, which
+represents the context in which the binding happens. This is either a member invocation (labeled
+with instance node $\bndclr{v}$ and \blbl{callsite} label $\blblclr{l}$), or not a member
+invocation written as $\bot$. The updated definitions are:
+%
+\begin{equation*}
+\begin{array}{lcll}
+\bndclr{v} &\hspace{-0.5em}\in\hspace{-0.5em}&\bnd{val}(n)~|~\bnd{var}(x, s)~|~\bnd{mem}(m, s)~|~\bnd{fun}(x, s)&(\textit{Vertices})\\
+\blblclr{l}&\hspace{-0.5em}\in\hspace{-0.5em}&\blbl{body}~|~\blbl{arg}(i)~|~\blbl{callsite}(m,i)&(\textit{Edge labels})\\
+\bkndclr{k}&\hspace{-0.5em}\in\hspace{-0.5em}&\bknd{fun}(x)~|~\bknd{mem}(m)~|~\bknd{var}(x)&(\textit{Node kinds})\\
+          c&\hspace{-0.5em}\in\hspace{-0.5em}&\bot ~|~(\bndclr{v}, \blblclr{l})&(\textit{Call sites})\\
+\end{array}
+\end{equation*}
+%
+The key parts of the revised definition of the \ident{bind-expr} function are shown in Figure~\ref{fig:binding-rules-callsite}.
+We now write $\ident{bind-expr}_{\Gamma,\Delta,c}$ where $c$ represents the context in which the
+binding occurs. This is set to $\bot$ in all cases, except when binding arguments of a member call.
+In (2b), we first recursively bind the instance node using $\bot$ as the context and then
+bind all the arguments using $(\bndclr{v_0}, \blbl{callsite}(m, i))$ as the context for $i^{\textnormal{th}}$
+argument. The rest is as in case (2) before. The case (1) is updated similarly and is not shown
+here for brevity.
+
+When binding a function (7b), we now also store variable nodes in $\Delta$ and so we check if a
+variable with the given call site exists. If no, we create a fresh node $\bnd{var}(x, s_x)$.
+The node is added to $\Gamma$ as before. At the end, we now also include a call site edge from the
+variable node and from the function node in $E$. We omit a similar variant of the case (6).
+The remaining cases (3)-(5) are the same, except that \ident{bind-expr} has the additional $c$ parameter
+and recursive calls always set it to $\bot$.
+
+Finally, the \ident{update} function in Figure~\ref{fig:loop} also needs to be updated to store the
+newly created \bnd{var} nodes. This is done by adding the following single case:
+
+\begin{equation*}
+\begin{array}{l}
+\Delta_{i}(\bknd{var}(x), [(\bndclr{v},\blbl{callsite}(m,i))]) = \bnd{var}(x, s)\\
+\quad\quad \textnormal{for all}~\bnd{var}(x, s) \in V\\
+\quad\quad \textnormal{such that}~(\bnd{var}(x, s), \bndclr{v}, \blbl{callsite}(m,i)) \in E
+\end{array}
+\end{equation*}
+
+% --------------------------------------------------------------------------------------------------
+
+\subsection{Type checking over dependency graphs}
+\label{sec:types-graph}
+
+The type system for The Gamma supports a number of primitive types (such as integers and strings)
+written as $\alpha$. Composed types include functions and objects with members. Objects are be
+provided by type providers, but we omit the details here. Types of object members are written as
+$\sigma$ and can have multiple arguments:
+%
+\begin{equation*}
+\begin{array}{lcll}
+\tau&\in&\alpha ~|~ \tau \rightarrow \tau ~|~ \{m_1\!:\!\sigma_1, \ldots, m_n\!:\!\sigma_n\} &\quad(\textit{Types})\\
+\sigma &\in& (\tau_1, \ldots, \tau_n) \rightarrow \tau &\quad(\textit{Members})\\
+\end{array}
+\end{equation*}
+%
+The typing judgements are written in the form $\bnd{v}\vdash \tau$. They are parameterised by the
+dependency graph $(V, E)$, but this is not modified during type checking so we keep it implicit
+rather than writing e.g.~$\bnd{v}\vdash_{(V,E)} \tau$.
+
+\paragraph{Type checking.}
+The typing rules are shown in Figure~\ref{fig:tc}. Types of primitive values $n$ are obtained
+using a global lookup table $\Sigma$ \rname{val}. When type checking a member call \rname{mem},
+we find its dependencies $\bndclr{v_i}$ and check that the first one (instance) is an object with
+the required member $m$. The types of input arguments of the member then need to match the types
+of the remaining (non-instance) nodes.
+
+Type checking a function \rname{fun} and a variable \rname{var} is similar. In both cases,
+we follow the \blbl{callsite} edge to find the member that accepts the function as an argument.
+We obtain the type of the function from the type of the $i^\textnormal{th}$ argument of the
+member. We use the input type as the type of variable \rname{var}. For functions, we also check
+that the resulting type matches the type of the body \rname{fun}.
+
+\paragraph{Caching results.}
+Performing type checking over the dependency graph, rather than over the abstract syntax tree,
+enables us to reuse the results of previously type checked parts of a program. As when
+caching evaluated previews (Section~\ref{sec:previews}), we build a lookup table mapping graph
+nodes to types. When type checking a node, we first check the cache and, only if it is new,
+follow the $\vdash$ relation to obtain the type.
+
+As a result, code can be type checked on-the-fly during editing, even when asynchronous type
+providers are used, and the programmer gets instant feedback without delays.
 
 % --------------------------------------------------------------------------------------------------
 
@@ -1774,6 +1723,12 @@ direction for rigorous analysis of the presented system.
 
 % ==================================================================================================
 
+\section{TODO}
+
+TBD: In section about dependency graphs, include a subsection discussing how this relates
+to incremental computation (just like "Semantics of delayed previews" links that to CMTT etc.)
+
+
 \section{Summary}
 We present The Gamma, a live coding environment for data exploration. The environment
 bridges the gap between spreadsheets and scripting -- live previews give users rapid feedback,
@@ -1803,79 +1758,97 @@ correct previews.
 \section{Appendix}
 \label{sec:app-correctness}
 
-\setcounter{thc}{-1}
-\begin{theorem}[Let-free correctness]
-Given an expression $e$ that has no free variables and does not contain let bindings, together
-with a lookup table $\Delta$ obtained from any sequence of expressions according to Figure~\ref{fig:loop}
-let $\bndclr{v}, (V, E) = \ident{bind-expr}_{\emptyset, \Delta}(e)$. If $\bndclr{v}\Downarrow d$
-over a graph $(V, E)$ then $d = p$ for some $p$ and $e \rightsquigarrow_\beta p$.
+\begin{theorem}[Term preview correctness]
+Given a term $t$ that has no free variables, together with a lookup table $\Delta$ obtained
+from any sequence of programs using $\ident{bind-prog}$ (Figure~\ref{fig:binding-rules-prog}) and
+$\ident{update}$ (Figure~\ref{fig:loop}), then
+let $\bndclr{v}, (V, E) = \ident{bind-expr}_{\emptyset, \Delta}(t)$. If $\bndclr{v}\Downarrow p$
+over a graph $(V, E)$ then $p = o$ for some value $o$ and $t \rightsquigarrow^{*} o$.
 \end{theorem}
+
 \begin{proof}
-First note that, when combining recursively constructed sub-graphs, the \ident{bind-expr} operation
-adds new nodes and edges leading from those new nodes. Therefore, an evaluation using $\Downarrow$
-over a sub-graph will also be valid over the new graph.
+First note that, when combining recursively constructed sub-graphs, the \ident{bind-expr} function
+adds new nodes and edges leading from those new nodes. Therefore, an evaluation using~$\Downarrow$
+over a sub-graph will also be valid over the new graph -- the newly added nodes and edges do not introduce
+non-determinism to the rules given in Figure~\ref{fig:eval}.
 
-Next, we prove a more general property using induction showing that for $e$ such
-that $\bndclr{v}, (V, E) = \ident{bind-expr}_{\emptyset, \Delta}(e)$:
+We prove a more general property showing that for any $e$, its binding
+$\bndclr{v}, (V, E) = \ident{bind-expr}_{\emptyset, \Delta}(e)$ and any evaluation context $C$
+such that $C[e]\rightsquigarrow o$ for some $o$, one of the following holds:
+%
 \begin{enumerate}
-\item[a.] If $FV(e)\,=\,\emptyset$ then $\bndclr{v} \Downarrow p$ for some $p$ and $e \rightsquigarrow_\beta p$
-\item[b.] If $FV(e)\neq\emptyset$ then $\bndclr{v} \Downarrow \llbracket e_p \rrbracket_{FV(e)}$ for some $e_p$ and
-  for any evaluation context $C[-]$ such that $FV(C[e_p])=\emptyset$ it holds that if
-  $C[e] \rightsquigarrow_\beta C[e_p]$.
+\item[a.] If $FV(e)\,=\,\emptyset$ then $\bndclr{v} \Downarrow p$ for some $p$ and $C[p] \rightsquigarrow o$
+\item[b.] If $FV(e)\neq\emptyset$ then $\bndclr{v} \Downarrow \llbracket e_p \rrbracket_{FV(e)}$ for some $e_p$ and $C[e_p] \rightsquigarrow o$
 \end{enumerate}
+%
+In the first case, $p$ is a value, but it is not always the case that $e \rightsquigarrow^{*} p$,
+because $p$ may be lambda function and preview evaluation may reduce sub-expression in the body of
+the function. Using a context $C$ in which the value reduces to an object avoids this problem.
 
-The proof is done by induction over the binding process, which follows the structure
-of the expression $e$:
+The proof of the theorem follows from the more general property. Using a context $C[-]=-$, the
+term $t$ reduces $t \rightsquigarrow^{*}t' \rightsquigarrow_\epsilon o$ for some $o$ and the
+preview $p$ is a value $o$ because $C[p] = p = o$.
+The proof is by induction over the binding process, which follows the structure of the expression:
 
 \vspace{0.75em}\noindent(1) $\ident{bind-expr}_{\Gamma, \Delta}(e_0.m(e_1, \ldots, e_n))$ --
   Here $e = e_0.m(e_1, \ldots, e_n)$, $\bndclr{v_i}$ are graph nodes obtained by induction for
   expressions $e_i$ and $\{ (\bndclr{v}, \bndclr{v_0}, \blbl{arg}(0)), \ldots, (\bndclr{v}, \bndclr{v_n}, \blbl{arg}(n))\} \subseteq E$.
-  From Lemma~\ref{thm:lemma-lookup}, $\bndclr{v} = \bnd{mem}(m, s)$ for some $s$.
+  From lookup inversion Lemma~\ref{thm:lemma-lookup}, $\bndclr{v} = \bnd{mem}(m, s)$ for some $s$.
 
   If $FV(e)=\emptyset$, then $\bndclr{v_i} \Downarrow p_i$ for $i\in 0\ldots n$ and
-  $\bndclr{v}\Downarrow p$ using (\emph{mem-val}) such that $p_0.m(p_1, \ldots, p_n) \rightsquigarrow p$.
-  From induction hypothesis, $e_i \rightsquigarrow_\beta p_i$ and so, using compositionality of $\rightsquigarrow$,
-  $e_0.m(e_1, \ldots, e_n) \rightsquigarrow_\beta p$.
+  $\bndclr{v}\Downarrow p$ using \rname{mem-val} such that $p_0.m(p_1, \ldots, p_n) \rightsquigarrow p$.
+  From induction hypothesis and \emph{compositionality} of external libraries (Definition~\ref{def:external}),
+  it holds that for any $C$ such that $C[e_0.m(e_1, \ldots, e_n)] \rightsquigarrow o$ for some $o$
+  then also $C[p_0.m(p_1, \ldots, p_n)] \rightsquigarrow C[p] \rightsquigarrow o$.
 
   If $FV(e)\neq\emptyset$, then $\bnclr{v_i} \Downarrow_\ident{lift} \llbracket e'_i \rrbracket$ for $i\in 0\ldots n$ and
-  using (\emph{mem-expr}), $\bndclr{v}\Downarrow \llbracket e'_0.m(e'_1, \ldots, e'_n) \rrbracket_{FV(e)}$.
-  From induction hypothesis, for any $C[-]$, it holds that $C[e_i] \rightsquigarrow_\beta C[e'_i]$.
-  Using compositionality, it also holds that for any $C[-]$, it is the case that
-  $C[e_0.m(e_1, \ldots, e_n)] \rightsquigarrow_\beta C[e'_0.m(e'_1, \ldots, e'_n)]$.
+  $\bndclr{v}\Downarrow \llbracket e'_0.m(e'_1, \ldots, e'_n) \rrbracket_{FV(e)}$ using \rname{mem-expr}.
+  From induction hypothesis and \emph{compositionality} of external libraries (Definition~\ref{def:external}),
+  it holds that for any $C$ such that $C[e_0.m(e_1, \ldots, e_n)] \rightsquigarrow o$ for some $o$
+  then also $C[e'_0.m(e'_1, \ldots, e'_n)] \rightsquigarrow o$.
 
-\newpage
 \vspace{0.75em}\noindent(2) $\ident{bind-expr}_{\Gamma, \Delta}(e_0.m(e_1, \ldots, e_n))$ --
   This case is similar to (1), except that the fact that $\bndclr{v} = \bnd{mem}(m, s)$
   holds by construction, rather than using Lemma~\ref{thm:lemma-lookup}.
 
-\vspace{0.75em}\noindent(3) We assume that the expression $e$ does not include let bindings and
-  so this case never happens.
+\vspace{0.75em}\noindent(3) $\ident{bind-expr}_{\Gamma, \Delta}(\lambda x\rightarrow e_b)$ --
+  Here $e = \lambda x\rightarrow e_b$, $\bndclr{v_b}$ is the graph node obtained by induction
+  for the expression $e_b$ and $(\bndclr{v}, \bndclr{v_b}, \blbl{body}) \in E$.
+  From lookup inversion Lemma~\ref{thm:lemma-lookup}, $\bndclr{v} = \bnd{fun}(x, s)$ for some $s$.
+  The evaluation can use one of three rules:
 
-\vspace{0.75em}\noindent(4) $\ident{bind-expr}_{\Gamma, \Delta}(n)$ -- In this case $e=n$ and $\bndclr{v} = \bnd{val}(n)$. The preview of
-  $\bnd{val}(n)$ is evaluated to $n$ using the (\emph{val}) case.
+  \begin{enumerate}
+  \item[i.]
+  If $FV(e)=\emptyset$ then $\bndclr{v_b}\Downarrow p_b$ for some $p_b$ and $\bndclr{v}\Downarrow \lambda x\rightarrow p_b$
+  using \rname{fun-val}. Let $e'_b=p_b$.
 
-\vspace{0.75em}\noindent(5) $\ident{bind-expr}_{\Gamma, \Delta}(x)$ -- The initial $\Gamma$ is empty and
-  there are no let bindings, so $x$ must have been added to $\Gamma$ by case (6) or (7). Hence,
-  $\bndclr{v}=\bnd{var}(x)$. Using (\emph{var}) $\bndclr{v}\Downarrow \llbracket x \rrbracket_{x}$
-  and so $e_p = e = x$ and the second case (b.) trivially holds.
+  \item[ii.]
+  If $FV(e_b)=\{x\}$ then $\bndclr{v_b}\Downarrow \llbracket e'_b \rrbracket_x$ for some $e'_b$ and
+  $\bndclr{v}\Downarrow \lambda x\rightarrow e'_b$ using \rname{fun-bind}.
 
-\vspace{0.75em}\noindent(6) $\ident{bind-expr}_{\Gamma, \Delta}(\lambda x\rightarrow e)$ -- Assume
-  $\bndclr{v_b}$ is a graph node representing the body. The evaluation can use one of three rules:
+  \item[iii.]
+  Otherwise, $\bndclr{v_b}\Downarrow \llbracket e'_b \rrbracket_{x,\Gamma}$ for some $e'_b$ and
+  $\bndclr{v}\Downarrow \llbracket\lambda x\rightarrow e'_b\rrbracket_\Gamma$ using \rname{fun-expr}.
+  \end{enumerate}
 
-  If $FV(e)=\emptyset$ then $\bndclr{v_b}\Downarrow p_b$ for some $p_b$ and $\bndclr{v}\Downarrow \lambda x.p_b$
-  using (\emph{fun-val}). From induction $e_b \rightsquigarrow_\beta p_b$
-  and so by definition also $\lambda x.e_b \rightsquigarrow_\beta \lambda x.p_b$.
+\noindent
+For i.) and ii.) we show that a.) is the case; for iii.) we show that b.) is the case; that is
+for any $C$, if $C[\lambda x\rightarrow e_b] \rightsquigarrow o$ then also
+$C[\lambda x\rightarrow e'_b] \rightsquigarrow o$. For a given $C$, let $C'[-] = C[\lambda x\rightarrow -]$
+and use the induction hypothesis, i.e.~if $C'[e_b] \rightsquigarrow o$ for some $o$ then also $C'[e'_b] \rightsquigarrow o$.
 
-  If $FV(e)=\{x\}$ then $\bndclr{v_b}\Downarrow \llbracket e_b \rrbracket_x$ for some $e_b$ and
-  $\bndclr{v}\Downarrow \lambda x.e_b$ using (\emph{fun-bind}). From
-  induction, for any context $C[-]$, it holds that $C[e] \rightsquigarrow_\beta C[e_b]$.
-  Using a context $C[-]=\lambda x.-$ it holds that $\lambda x.e \rightsquigarrow_\beta \lambda x.e_b$.
+\vspace{0.75em}\noindent(4) $\ident{bind-expr}_{\Gamma, \Delta}(\lambda x\rightarrow e)$  --
+  This case is similar to (3), except that the fact that $\bndclr{v} = \bnd{fun}(x, s)$
+  holds by construction, rather than using Lemma~\ref{thm:lemma-lookup}.
 
-  Otherwise, $\bndclr{v_b}\Downarrow \llbracket e_b \rrbracket_{x,\Gamma}$ for some $e_b$ and
-  $\bndclr{v}\Downarrow \llbracket\lambda x.e_b\rrbracket_\Gamma$ using (\emph{fun-expr}). From
-  induction, for any context $C[-]$, it holds that $C[e] \rightsquigarrow_\beta C[e_b]$
-  and for any context $C'[-]$, by definition of $\rightsquigarrow_\beta$ also
-  $C'[\lambda x.e] \rightsquigarrow C'[\lambda x.e_b]$.
+\vspace{0.75em}\noindent(5) $\ident{bind-expr}_{\Gamma, \Delta}(o)$ -- In this case $e=o$ and $\bndclr{v} = \bnd{val}(o)$
+  and $\bnd{val}(o)\Downarrow o$ using \rname{val} and so the case a.) trivially holds.
+
+\vspace{0.75em}\noindent(6) $\ident{bind-expr}_{\Gamma, \Delta}(x)$ -- The initial $\Gamma$ is empty,
+  so $x$ must have been added to $\Gamma$ by case (3) or (4). Hence,
+  $\bndclr{v}=\bnd{var}(x)$, $\bndclr{v}\Downarrow \llbracket x \rrbracket_{x}$ using \rname{var}
+  and so $e_p = e = x$ and the case b.) trivially holds.
+
 \end{proof}
 
 \end{document}
