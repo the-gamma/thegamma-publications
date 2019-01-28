@@ -399,12 +399,10 @@ used in incremental computation research. We do not attempt to combine the two, 
 this is an interesting future direction.
 \end{itemize}
 
-\newpage
 \begin{figure}
 \raggedright
-{\small\sffamily Programs, commands, terms, expressions and values}
+\hspace{1.5em}{\small\sffamily Programs, commands, terms, expressions and values}
 \begin{equation*}
-\hspace{-2em}
 \begin{array}{lcl}
 p &\narrow{=}& c_1; \ldots; c_n\\
 c &\narrow{=}& \kvd{let}~x = t \lsep t\\
@@ -422,9 +420,8 @@ v &\narrow{=}& o \lsep \lambda x\rightarrow e\\
 \end{equation*}
 
 \vspace{0.5em}
-{\small\sffamily Evaluation contexts of expressions}
+\hspace{1.5em}{\small\sffamily Evaluation contexts of expressions}
 \begin{equation*}
-\hspace{-2em}
 \begin{array}{lcl}
 C_e[-] &=& C_e[-].m(e_1, \ldots, e_n) ~\lsep~ o.m(v_1, \ldots, v_{m}, C_e[-], e_1,\ldots , e_n) ~\lsep~ -\\
 C_c[-] &=& \kvd{let}~x = C_e[-] ~\lsep~ C_e[-]\\
@@ -433,9 +430,8 @@ C_p[-] &=& o_1;\; \ldots;\; o_{k};\; C_c[-];\; c_{1};\; \ldots;\; c_n\\
 \end{equation*}
 
 \vspace{0.5em}
-{\small\sffamily Let elimination and member reduction}
+\hspace{1.5em}{\small\sffamily Let elimination and member reduction}
 \begin{equation*}
-\hspace{-2em}
 \begin{array}{ll}
 \hspace{-0.5em}\begin{array}{l}
 o_1;\; \ldots;\; o_{k};\; \kvd{let}~x=o;\; c_{1};\; \ldots; c_n \rightsquigarrow\\
@@ -452,44 +448,55 @@ o_1;\; \ldots;\; o_{k};\; \kvd{let}~x=o;\; c_{1};\; \ldots; c_n \rightsquigarrow
 \label{fig:dec-calculus}
 \end{figure}
 
+\newpage
+
 \section{Data exploration calculus}
 \label{sec:calculus}
 
 The \emph{data exploration calculus} is a small, formally tractable language for data exploration.
 The calculus is not Turing-complete and it can only be used together with external libraries that
-define what objects are available and what the behaviour of their members is. However, this is
+define what objects are available and what the behaviour of their members is. This is
 sufficient to capture the simple data analyses discussed in Section~\ref{sec:background}. We
 define the caluclus in this section and then use it as the basis for discussing our live preview
 mechanism in Section~\ref{sec:formal}.
 
+We initially present the data exploration calculus without a static type system. Our main focus
+is on the live preview mechanism which can be done equally well without types. We consider
+type checking in Section~\ref{sec:types}, because the same mechanism that is used for live previews
+can also be used for incremental type-checking.
+
 \subsection{Language syntax}
 The calculus combines object-oriented features such as member access with functional features
-such as lambda functions. The syntax is defined in Figure~\ref{fig:dec-calculus}. Object values
+including lambda functions. The syntax is defined in Figure~\ref{fig:dec-calculus}. Object values
 $o$ are defined by external libraries that are used in conjunction with the core calculus.
 
 A program $p$ in the data exploration calculus consists of a sequence of commands $c$. A command
-can be either let binding or a term. Let bindings define variables $x$ that can be used in
+can be either a let binding or a term. Let bindings define variables $x$ that can be used in
 subsequent commands. The calculus supports lambda functions, but they
 can only appear as arguments in method calls. A term $t$ can be a value, variable or a
 member access, while an expression $e$, which can appear as an argument in member access,
-can be a lambda function or a term.\footnote{Similar but weaker restrictions on the use of lambda functions
-exist in other languages. To guide type inference, lambda functions in C\# can appear as either
-method arguments or assigned to an explicitly typed variable.}
+can be a lambda function or a term.\footnote{Similar but weaker restrictions on the use of lambda
+functions exist in other languages. For example, in order to guide type inference, lambda functions
+in C\# can appear as either method arguments or assigned to an explicitly typed variable, but they
+cannot be assigned to an implicitly typed variable.}
 
 \subsection{Operational semantics}
 \label{sec:calculus-semantics}
 
 The data exploration calculus is a call-by-value language. We model the evaluation as a small-step
 reduction $\rightsquigarrow$. Fully evaluating a program results in an irreducible sequence of
-objects $o_1;\; \ldots;\; o_n$ which can be displayed as intermediate results of the data analysis. The
-operational semantics is parameterized by a relation $\rightsquigarrow_\epsilon$ that models
-the functionality of the external libraries used with the calculus and defines reduction rules
-for member accesses. The relation has the following form:
+objects $o_1;\; \ldots;\; o_n$ (one object for each command, including let bindings) which can be
+displayed as intermediate results of the data analysis. The operational semantics is parameterized
+by a relation $\rightsquigarrow_\epsilon$ that models the functionality of the external libraries
+used with the calculus and defines reduction rules for member accesses. The relation has the
+following form:
 %
 \begin{equation*}
 o_1.m(v_1, \ldots, v_n) \rightsquigarrow_\epsilon o_2
 \end{equation*}
 %
+The operation is invoked on an object and takes values (objects or function values) as arguments.
+It always results in an opaque object.
 Figure~\ref{fig:dec-calculus} defines the reduction rules in terms of $\rightsquigarrow_\epsilon$
 and evaluation contexts; $C_e$ specifies left-to-right evaluation of arguments of a method call,
 $C_c$ specifies evluation of a command and $C_p$ defines top-to-bottom evaluation of a program.
@@ -499,38 +506,83 @@ all subsequent commands. Note that \rname{let} leaves the value of the variable
 in the resulting list of commands.
 
 \subsection{Properties}
+The data exploration calculus is a very simple language and it has a number of desirable
+properties. However, some of those require that the relation $\rightsquigarrow_\epsilon$, which
+defines evaluation for external libraries, satisfies a number of conditions. Our main motivation
+is to capture properties that allow us to prove that our method of evaluating live previews,
+discussed in Section~\ref{sec:properties}, is correct.
 
-DEFINE $\rightsquigarrow^{*}$ as a reflexive, transitive closure of $\rightsquigarrow$
+\begin{definition}[Further reductions]
+\label{def:further-red}
+We define two additional reduction relations:
+\begin{itemize}
+\item[-] We write $\rightsquigarrow^{*}$ for the reflexive, transitive closure of $\rightsquigarrow$
+\item[-] We write $\rightsquigarrow_\ident{let}$ for a call-by-name let binding elimination\\
+  $c_1;\; \ldots;\; c_{k-1};\; \kvd{let}~x=t;\; c_{k+1};\; \ldots; c_n ~\rightsquigarrow_\ident{let}~
+  c_1;\; \ldots;\; c_{k-1};\; t; c_{k+1}[x\leftarrow t];\; \ldots; c_n[x\leftarrow t]$
+\end{itemize}
+\end{definition}
 
-DEFINE $\rightsquigarrow_\ident{let}$ (on a program) - CBN subsitution
+\noindent
+We say that two expressions
+$e$ and $e'$ are observationally equivalent if, for any context $C$, the expressions $C[e]$ and
+$C[e']$ reduce to the same value. Lambda functions $\lambda x\!\rightarrow\!2$ and
+$\lambda x\!\rightarrow\!1\!+\!1$ are not equal, but they are observationally equivalent.
+We require that external libraries satisfy two conditions. First, when a method is called with
+observationally equivalent values as arguments, it should return the same value. Second, the
+evaluation of $o.m(v_1,\ldots,v_n)$ should be defined for all $o, i$ and $v_i$. The external
+library will typically satisfy this by defining an error object and reducing all invalid calls
+to the error object, following the standard method of \citet{gowrong}.
 
 \begin{definition}[External library]
 \label{def:external}
-
-Satsifies \emph{compositionality} such that:
-
-Given $e_0, e_1, \ldots, e_n$ and $e'_0, e'_1, \ldots, e'_n$ and $m$ such that
-$e_0.m(e_1, \ldots, e_n) \rightsquigarrow^{*} o$ and
-$e'_0.m(e'_1, \ldots, e'_n) \rightsquigarrow^{*} o'$ then
-if for any contexts
-$C_0, C_1, \ldots, C_n$ it holds that if $C_i[e_i] \rightsquigarrow^{*} o_i$ and $C_i[e'_i] \rightsquigarrow^{*} o_i$ for some $o_i$
-then $o = o'$.
+An external library consists of a set of objects $O$ and a reduction relation
+$\rightsquigarrow_\epsilon$ that satsifies the following two properties:
+\begin{itemize}
+\item[-] \emph{Completeness.} For all $o, m, i$ and all $v_1, \ldots, v_i$, there exists $o'$ such
+  that $o.m(v_1, \ldots, v_i) \rightsquigarrow_\epsilon o'$.
+\vspace{0.5em}
+\item[-] \emph{Compositionality.} For observationally equivalent arguments, the reduction returns
+  the same object, i.e.~given $e_0, e_1, \ldots, e_n$ and $e'_0, e'_1, \ldots, e'_n$ and $m$ such that
+  $e_0.m(e_1, \ldots, e_n) \rightsquigarrow^{*} o$ and $e'_0.m(e'_1, \ldots, e'_n) \rightsquigarrow^{*} o'$ then
+  if for any contexts $C_0, C_1, \ldots, C_n$ it holds that if $C_i[e_i] \rightsquigarrow^{*} o_i$ and
+  $C_i[e'_i] \rightsquigarrow^{*} o_i$ for some $o_i$ then $o = o'$.
 \end{definition}
 
-TBD: LET above should leave the evaluated object in the list of commmands
+\noindent
+The compositionality condition is essential for proving the correctness of our live preview mechanism.
+Completeness allows us to prove normalization, i.e.~all programs reduce to
+a value -- although the resulting value may be an error value provided by the external library.
 
-LET ELIMINATION DOES NOT CHANGE RESULTS
+\begin{theorem}[Normalization]
+\label{thm:normalization}
+For all $p$, there exists $n$ and $o_1, \ldots, o_n$ such that $p\rightsquigarrow^{*} o_1;\ldots;o_n$.
+\end{lem}
+\begin{proof}
+A program that is not a sequence of values can be reduced and reduction decreases the size of the
+program. See Appendix~\ref{sec:app-normalization} for more detail.
+\end{proof}
 
-Let elimination $\rightsquigarrow_\ident{let}$ such that, using  capture-avoiding substitution,
-$C[\kvd{let}~x=e_1~\kvd{in}~e_2] \rightsquigarrow_\ident{let} C[e_2[x\leftarrow e_1]]$
-
-Let elimination does not affect the result, i.e.~if $e \rightsquigarrow_{\ident{let}} e'$
-and $e'\rightsquigarrow_\beta e''$ then also $e\rightsquigarrow_\beta e''$
+\noindent
+Although the reduction rules \rname{let} and \rname{external} of the data exploration calculus
+define an evaluation in a call-by-value order, eliminating let bindings in a call-by-name way
+using the $\rightsquigarrow_\ident{let}$ reduction does not affect the result. This
+simplifies our later proof of live preview correctness in Section~\ref{sec:properties-correct}.
 
 \begin{lem}[Let elimination for a program]
 \label{thm:let-lang-elimination}
-does not matter
+Given any program $p$ such that $p \rightsquigarrow^{*} o_1;\ldots;o_n$ for some $n$ and $o_1, \ldots, o_n$
+then if $p \rightsquigarrow_\ident{let} p'$ for some $p'$ then also $p' \rightsquigarrow^{*} o_1;\ldots;o_n$.
 \end{lem}
+\begin{proof}
+The elimination of let binding transforms a program $c_1;\; \ldots;\; c_{k-1};\; \kvd{let}~x=t;\; c_{k+1};\; \ldots; c_n$
+to a program $c_1;\; \ldots;\; c_{k-1};\; t; c_{k+1}[x\leftarrow t];\; \ldots; c_n[x\leftarrow t]$.
+The reduction steps for the new program can be constructed using the steps of $p \rightsquigarrow^{*} o_1;\ldots;o_n$.
+The new command $t$ reduces to an object $o$ using the same steps as the original term $t$
+in $\kvd{let}~x=t$ but with context $C_c = -$ rather than $C_c = \kvd{let}~x=-$; the terms $t$
+introduced by substitution also reduce using the same steps as before, but using
+contexts in which the variable $x$ originally appeared.
+\end{proof}
 
 \newpage
 
@@ -1756,6 +1808,33 @@ correct previews.
 \appendix
 
 \section{Appendix}
+
+\subsection{Normalization}
+\label{sec:app-normalization}
+
+\begin{theorem}[Normalization]
+For all $p$, there exists $n$ and $o_1, \ldots, o_n$ such that $p\rightsquigarrow^{*} o_1;\ldots;o_n$.
+\end{lem}
+\begin{proof}
+We define $\ident{size}$ of a program in data exploration calculus as follows:
+\begin{equation}
+\begin{array}{rcl}
+\ident{size}(c_1; \ldots; c_n) &=& 1 + \Sigma^{n}_{i=1} \ident{size}(c_i)\\
+\ident{size}(\kvd{let}~x=t) &=& 1 + \ident{size}(t)\\
+\ident{size}(e_0.m(e_1, \ldots, e_n)) &=& 1 + \Sigma^{n}_{i=0} \ident{size}(e_i)\\
+\ident{size}(\lambda x\rightarrow e) &=& 1 + \ident{size}(e)\\
+\ident{size}(o) = \ident{size}(x) &=& 1\\
+\end{array}
+\end{equation}
+
+\noindent
+The property holds because, first, both \rname{let} and \rname{external} decrease the \ident{size}
+of the program and, second, a program is either fully evaluated, i.e.~$o_1;\ldots;o_n$ for some $n$
+or, it can be reduced using one of the reduction rules.
+\end{proof}
+
+
+\subsection{Term preview correctness}
 \label{sec:app-correctness}
 
 \begin{theorem}[Term preview correctness]
