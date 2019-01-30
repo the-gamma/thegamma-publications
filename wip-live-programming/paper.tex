@@ -18,6 +18,7 @@
 \acmDOI{} % \acmDOI{10.1145/nnnnnnn.nnnnnnn}
 \startPage{1}
 
+\settopmatter{printfolios=true}
 %% Copyright information
 %% Supplied to authors (based on authors' rights management selection;
 %% see authors.acm.org) by publisher for camera-ready submission;
@@ -60,7 +61,7 @@
 \newtheorem{axiom}[dfc]{Axiom}
 \newtheorem{definition}[dfc]{Definition}
 
-\title{Live coding}
+\title{Live coding environment for a data exploration language}
 \author{Tomas Petricek}
 
 \affiliation{
@@ -124,105 +125,133 @@
 
 \begin{document}
 \begin{abstract}
-Data science can be done by directly manipulating data using spreadsheets, or by writing
-data manipulation scripts using a programming language. The former is error-prone and
-does not scale, while the latter requires expert skills. Live coding has the potential to
-bridge this gap and make writing of transparent, reproducible scripts more accessible.
 
-In this paper, we describe a live programming environment for data science that provides instant
-previews and contextual hints, while allowing the user to edit code in an unrestricted way in
-a text editor.
+A growing amount of code is written to explore and analyze data, but the way data analysts
+work with code differs from the way software engineers do. First, many data
+scientists write code that introduces few or no abstractions. Second, data exploration is an
+interactive process and it blurs the traditional distinction between development-time and run-time.
+This poses an interesting challenge for programming language research, because it allows us to
+revisit a number of traditional assumptions about programming languages and focus our attention
+on a new kind of programming tools that data analysts need.
 
-Supporting a text editor is challenging as any edit can significantly change the structure of code and
-fully recomputing previews after every change is too expensive. We present a technique that allows the type
-checker and the interpreter to run on the fly, while code is written, and reuse results of previous
-runs. This makes it possible to efficiently provide instant feedback and live previews during development.
+In this paper, we present \emph{data exploration calculus}, a formally tractable
+language that captures the structure of simple data analyses as done, for example, by journalists
+exploring open government data. We implement a programming environment for data exploration that
+evaluates code instantaneously during editing and shows previews of the results,
+while allowing the user to modify code in an unrestricted way in a text
+editor. Supporting a text editor is tricky as any edit can change the structure
+of code and fully recomputing program after every change would be too expensive.
+We present a new technique that allows evaluating and type-checking code while it is
+being written while reusing results of previous runs. We formalize the technique using the data
+exploration calculus, prove that it is correct and specify when previous results are reused.
+Finally, we also illustrate the practicality of our approach using empirical evaluation
+and a case study.
 
-We formalise how programs are interpreted and how previews are computed, prove correctness
-of the previews and formally specify when can previews be reused. We believe this work provides
-solid and easy to reuse foundations for the emerging trend of live programming environments.
+As data analysis becomes ever more important use of programming, research on programming languages
+and tools needs to consider new kinds of code that people need to write and new kinds of tools
+that can support them. The present paper is one step in this important direction.
 \end{abstract}
 \maketitle
 
 % ==================================================================================================
-% TODO: Change values from 'n' to 'o' to indicate they are objects and can have members
-% ==================================================================================================
 
 \section{Introduction}
 \label{sec:intro}
+One of the aspects that make spreadsheets easier to use than programming tools is their
+liveness. When you change a value in a cell in Excel, the whole spreadsheet updates instantly
+and you immediately see new results, without having to explicitly trigger re-computation
+and without having to wait for an extensive period of time.
 
-One of the aspects that make spreadsheet tools such as Excel more accessible than programming
-environments is their liveness. When you change a value in a cell in Excel \cite{spreadsheet}, the
-whole spreadsheet is updated instantly and you see the new results immediately.
-
-Increasing number of programming environments aim to provide the same live experience for more
-standard programming languages, but doing this is not easy. Fully recomputing the whole program after
-every single change is inefficient and calculating how a change in source code changes the result
-is extremely hard when the editor allows arbitrary manipulation of program text. For example,
-consider the following simple program that gets the release years of 10 most expensive movies
-in a data set \ident{movies}:
+Increasing number of programming environments aim to provide the same live development experience
+for standard programming languages, but doing this is not easy. Fully recomputing the whole program
+after every keystroke is inefficient and calculating how a change in the source code changes the
+result is extremely hard when the text editor allows arbitrary changes.
+Consider the following snippet that gets the release years of 10 most expensive movies from a
+data set \ident{movies}:
 %
 \begin{equation*}
 \begin{array}{l}
-\kvd{let}~\ident{top} =\ident{movies}\\
-\quad .\ident{sortBy}(\lambda x \rightarrow x.\ident{getBudget}())\ident{.take}(\num{10})\\
-\quad .\ident{map}(\lambda x \rightarrow x.\ident{getReleased()}.\ident{format}(\str{yyyy}))\\
+\kvd{let}~\ident{top} =\ident{movies}.\ident{sortBy}(\lambda x \rightarrow x.\ident{getBudget}())\\
+\qquad .\ident{take}(\num{10}).\ident{map}(\lambda x \rightarrow x.\ident{getReleased()}.\ident{format}(\str{yyyy}))\\
 \end{array}
 \end{equation*}
 %
-A live coding environment shows a preview of the list of dates. Next, assume that the programmer
-modifies the code by making the constant $\num{10}$ a variable and changing the date format to see
-the full date:
+A live coding environment computes and shows the list of years, but then the programmer modifies the code by
+making the constant $\num{10}$ a variable and changing the date format to see the full date:
 %
 \begin{equation*}
 \begin{array}{l}
 \kvd{let}~\ident{count} = \num{10}\\
-\kvd{let}~\ident{top} = \ident{movies}\\
-\quad .\ident{sortBy}(\lambda x \rightarrow x.\ident{getBudget}())\ident{.take}(\ident{count})\\
-\quad \ident{.map}(\lambda x \rightarrow x.\ident{getReleased()}.\ident{format}(\str{dd-mm-yyyy}))\\
+\kvd{let}~\ident{top} = \ident{movies}.\ident{sortBy}(\lambda x \rightarrow x.\ident{getBudget}())\\
+\qquad .\ident{take}(\ident{count}).\ident{map}(\lambda x \rightarrow x.\ident{getReleased()}.\ident{format}(\str{dd-mm-yyyy}))\\
 \end{array}
 \end{equation*}
 %
 Ideally, the live coding environment should understand the change, reuse a cached result of the
-first two transformations (sorting and taking 10 elements) and only evaluate the last \ident{map}
-to differently format the release dates of already computed top 10 movies.
+first two transformations (sorting and taking first 10 elements) and only evaluate the
+\ident{map} operation to differently format the release dates of already computed top 10 movies.
+We present such a live coding environment, describe it formally and empirically evaluate it.
+We discuss related work in Section~\ref{sec:future}, but we review the most important directions
+next, in order to situate our contributions.
 
-This is not difficult if we represent the program in a structured way \cite{structure-based,hazelnut}
-and allow the user to edit code via known operations such as ``extract variable'' (which has
-no effect on the result) or ``change constant value'' (which forces recomputation of subsequent
-transformations). However, many programmers prefer to edit programs as free form text.
+\subsection{Related work}
+We focus on simple data exploration as done, for example, by journalists \cite{ddj}
+and we aim to bring the experience of using transparent and reproducible programming tools
+closer to that of using spreadsheets. When a user edits a cell in a spreadsheet, the results
+automatically update. Recomputation in spreadsheets is well-studied,~e.g. by \citet{spreadsheet},
+but it is simpler than in our case, because editing is limited to individual cells.
 
-We present the design and implementation of a live coding system that is capable
-of reusing previously evaluated expressions as in the example above, yet, is integrated into an
-ordinary text editor. Our main contributions are:
+Many visual data exploration tools support interactivity \cite{control,tableau,vizdom} and some,
+can even export the workflow as a script \cite{wrangler}, but data anlysts who prefer working with
+code typically resort to notebook systems such as Jupyter or R Markdown \cite{jupyter,rmarkdown}.
+Those are text-based, but have a limited model of recomputation. Users have to structure code in
+cells and manually reevaluate cells after a change. Those systems also do not track
+dependencies between cells, which can lead to inconsistencies; an issue that has been addressed
+by e.g.~\citet{dataflow} or \citet{wrattler}.
+
+We aim to keep the transparency and reproducibility of notebooks, but add a correct and
+efficient instantaneous evaluation mechanism. Existing text-based editors that provide instant,
+such as Lighttable \cite{lighttable} and Chrome DevTools, often work only in certain
+situations or require full recomputation. A more principled approach has been used by
+systems based on structured editing \cite{livenut,lamdu}, which benefit from the fact that code
+can only be modified via known operations with known effect on the computation graph
+(``extract variable'' has no effect on the result; ``change constant value''
+forces recomputation of subsequent code). However, we aim to cater for the many users who
+prefer to edit programs as free-form text.
+
+The technical aspects of our technique for providing instantaneous feedback
+are related to the work on incremental computation \cite{selfadjusting,incremental}. This focuses
+on cases where \emph{data} changes but program stays the same, while our focus is on cases where
+\emph{program} changes but data stays. Yet, the technical aspects are related and,
+as noted in Section~\ref{sec:future}, language that supports incremental computation could be used
+to implement the kind of system presented in this paper.
+
+\subsection{Contributions}
+We present the design and implementation of a live coding environment for a data exploration
+language that provides a correct and efficient instantaneous feedback, yet, is integrated into an
+ordinary text editor. Our most important contributions are:
 
 \begin{itemize}[itemsep=3pt]
-\item We introduce The Gamma (Section~\ref{sec:live}), a simple live coding environment for
-  data science. We review its design and implementation and explain how it
-  bridges the gap between programming and spreadsheets.
+\item We introduce \emph{data exploration calculus} (Section~\ref{sec:calculus}), a small formally
+  tractable programming language for data exploration. The language is motivated by our review
+  of how data analysts work (Section~\ref{sec:background}) and captures the idea that scripts are
+  often lists of commands with few or no abstractions with most logic provided by external libraries.
 
-\item Implementing a live programming system requires different way of thinking about compilers
-  and interpreters than the one presented in classic programming language literature. Our
-  formalisation (Section~\ref{sec:formal}) captures the essence of the new perspective.
+\item Implementing a live coding environment requires a different way of thinking than the one
+  presented in classic compiler literature. We capture the essence of the new perspective
+  (Section~\ref{sec:formal}) and use it to build our \emph{live preview} mechanism
+  (Section~\ref{sec:previews}) evaluates code instantaneously during editing.
 
-\item We formalise the evaluation of previews (Section~\ref{sec:previews}) and prove that our
-  evaluation and caching mechanism is produces correct previews (Section~\ref{sec:properties-correct})
-  and can effectively reuse partial results (Section~\ref{sec:properties-reuse}).
+\item We prove that our live preview mechanism is correct (Section~\ref{sec:correctness}) and that
+  it reuses previously evaluated values when possible (Section~\ref{sec:evaluation-reuse}). We
+  illustrate the practicality of the mechanism using an empirical evaluation
+  (Section~\ref{sec:evaluation-empirical}) and a case study (Section~\ref{sec:case}).
 
-\item We follow the same method to implement a type checker (Section~\ref{sec:types}) for our
-  language that is capable of reusing previous results. This makes it possible to efficiently support
-  asynchronously provided types (Section~\ref{sec:types-providers}).
-
-\item In more speculative conclusions (Section~\ref{sec:design}), we consider alternative
-  language designs that would enable further live coding experiences, which are difficult to
-  build using our current system.
+\item We extend our core environment in two ways, First, we add instantaneous type checker
+  that relies on the same core infrastructure as live previews and enables richer user experience
+  through \emph{type providers} (Section~\ref{sec:types}). Second, we add an abstraction mechanism
+  that preserves the live coding experience (Section~\ref{sec:design}).
 \end{itemize}
-
-\noindent
-We hope the architecture and its formal presentation in this paper can contribute crucial
-foundations for the growing and important trend of text-based live coding environments.
-
-\newpage
 
 % ==================================================================================================
 
@@ -238,7 +267,7 @@ foundations for the growing and important trend of text-based live coding enviro
 
 Data scientists often use general-purpose programming languages such as Python, but the kind of
 code they write and the way they interact with the system is very different from how software
-engineers work. This paper focuses on simple data wrangling and data exploration as done, for
+engineers work \cite{workflow}. This paper focuses on simple data wrangling and data exploration as done, for
 example, by journalists analysing government datasets. This section illustrates how such data
 analyses look and provides a justification for the design of our data exploration calculus.
 
@@ -285,6 +314,12 @@ The code of the analysis has a number of remarkable properties:
   needs to be set to handle Namibia correctly. These are discovered interactively by writing and
   running a code snippet and examining the output, so providing a rapid feedback is essential.
 \end{itemize}
+
+~
+
+TODO: Most logic in external libs
+
+~
 
 Many Jupyter notebooks are more complex than the example discussed here. They might define
 helper functions or even structure code using object-oriented programming. However, simple
@@ -510,7 +545,7 @@ The data exploration calculus is a very simple language and it has a number of d
 properties. However, some of those require that the relation $\rightsquigarrow_\epsilon$, which
 defines evaluation for external libraries, satisfies a number of conditions. Our main motivation
 is to capture properties that allow us to prove that our method of evaluating live previews,
-discussed in Section~\ref{sec:properties}, is correct.
+discussed in Section~\ref{sec:correctness}, is correct.
 
 \begin{definition}[Further reductions]
 \label{def:further-red}
@@ -547,6 +582,7 @@ $\rightsquigarrow_\epsilon$ that satsifies the following two properties:
   $e_0.m(e_1, \ldots, e_n) \rightsquigarrow^{*} o$ and $e'_0.m(e'_1, \ldots, e'_n) \rightsquigarrow^{*} o'$ then
   if for any contexts $C_0, C_1, \ldots, C_n$ it holds that if $C_i[e_i] \rightsquigarrow^{*} o_i$ and
   $C_i[e'_i] \rightsquigarrow^{*} o_i$ for some $o_i$ then $o = o'$.
+\end{itemize}
 \end{definition}
 
 \noindent
@@ -557,7 +593,7 @@ a value -- although the resulting value may be an error value provided by the ex
 \begin{theorem}[Normalization]
 \label{thm:normalization}
 For all $p$, there exists $n$ and $o_1, \ldots, o_n$ such that $p\rightsquigarrow^{*} o_1;\ldots;o_n$.
-\end{lem}
+\end{theorem}
 \begin{proof}
 A program that is not a sequence of values can be reduced and reduction decreases the size of the
 program. See Appendix~\ref{sec:app-normalization} for more detail.
@@ -567,7 +603,7 @@ program. See Appendix~\ref{sec:app-normalization} for more detail.
 Although the reduction rules \rname{let} and \rname{external} of the data exploration calculus
 define an evaluation in a call-by-value order, eliminating let bindings in a call-by-name way
 using the $\rightsquigarrow_\ident{let}$ reduction does not affect the result. This
-simplifies our later proof of live preview correctness in Section~\ref{sec:properties-correct}.
+simplifies our later proof of live preview correctness in Section~\ref{sec:correctness-correct}.
 
 \begin{lem}[Let elimination for a program]
 \label{thm:let-lang-elimination}
@@ -894,7 +930,7 @@ previews for expressions (or sub-expressions) of a program can be reused when up
 In this section, we describe how previews are evaluated. The evaluation is done over the dependency
 graph, rather than over the structure of the program expressions as in the operational semantics
 given in Section~\ref{sec:calculus-semantics}. We analyse the preview evaluation formally in
-Section~\ref{sec:properties} and show that the resulting previews are the same as the result we
+Section~\ref{sec:correctness} and show that the resulting previews are the same as the result we
 would get by directly evaluating the code and, also, that no recomputation occurs when code is
 edited in certain ways.
 
@@ -1078,8 +1114,8 @@ $\llbracket A \rrbracket_\emptyset \rightarrow A$.
 
 % ==================================================================================================
 
-\section{Properties of live coding environment}
-\label{sec:properties}
+\section{Correctness of previews}
+\label{sec:correctness}
 
 The use of a dependency graph when evaluating previews makes it possible to cache partial results
 through a mechanism discussed in Section~\ref{sec:formal-deps} and Section~\ref{sec:previews-cache}.
@@ -1087,12 +1123,8 @@ The mechanism satisfies two properties. First, if we evaluate a preview using de
 graph with caching, it is the same as the value we would obtain by evaluating the expression
 directly. Second, the evaluation of previews using dependency graphs reuses -- in some cases --
 previously evaluated partial results. In other words, we show that the mechanism is correct
-and implements a useful optimization.
-
-% --------------------------------------------------------------------------------------------------
-
-\subsection{Correctness of previews}
-\label{sec:properties-correct}
+and implements an effective optimization. We discuss correctness in this section and evaluate
+the effectiveness of the optimization, both theoretically and empirically, in Section~\ref{sec:optimization}.
 
 To show that the evaluated previews are correct, we prove two properties. Correctness
 (Theorem~\ref{thm:correcntess}) guarantees that, no matter how a dependency graph is constructed,
@@ -1175,7 +1207,7 @@ such that $C[e]\rightsquigarrow o$ for some $o$, one of the following holds:
 %
 \begin{enumerate}
 \item[a.] If $FV(e)\,=\,\emptyset$ then $\bndclr{v} \Downarrow p$ for some $p$ and $C[p] \rightsquigarrow o$
-\item[b.] If $FV(e)\neq\emptyset$ then $\bndclr{v} \Downarrow \llbracket e_p \rrbracket_{FV(e)}$ for some $e_p$ and $C[e_p] \rightsquigarrow o$
+\item[b.] If $FV(e)\,\neq\,\emptyset$ then $\bndclr{v} \Downarrow \llbracket e_p \rrbracket_{FV(e)}$ for some $e_p$ and $C[e_p] \rightsquigarrow o$
 \end{enumerate}
 %
 In the first case, $p$ is a value, but it is not always the case that $e \rightsquigarrow^{*} p$,
@@ -1247,8 +1279,11 @@ graph during code editing, previous nodes will continue representing the same su
 
 % --------------------------------------------------------------------------------------------------
 
+\section{Evaluation}
+\label{sec:evaluation}
+
 \subsection{Reuse of previews}
-\label{sec:properties-reuse}
+\label{sec:evaluation-reuse}
 
 In the motivating example in Section~\ref{sec:intro}, the programmer first extracted a constant
 value into a let binding and then modified a parameter of the last method call in a call chain.
@@ -1342,6 +1377,33 @@ Consequence of Lemma~\ref{thm:sub-expr}, using appropriate contexts. In cases wi
 intermediate expressions (1)-(4), binding the intermediate expression introduces additional
 nodes to $\Delta$, but those are ignored when binding the final expression.
 \end{proof}
+
+% ==================================================================================================
+
+
+\subsection{Speed}
+\label{sec:evaluation-empirical}
+
+\includegraphics[scale=0.4]{drawing.png}
+
+image.load("shadow.png").greyScale().blur(5)
+
+image.load("shadow.png").greyScale().blur(10)
+
+let s = image.load("shadow.png").greyScale().blur(5)
+s
+
+let s = image.load("shadow.png").greyScale().blur(10)
+s.combine(image.load("pope.png"), 80)
+
+let r = 80
+let s = image.load("shadow.png").greyScale().blur(10)
+s.combine(image.load("pope.png"), r)
+
+\newpage
+
+\section{Case study}
+\label{sec:case}
 
 % ==================================================================================================
 
@@ -1618,7 +1680,7 @@ use the method based on reusing nodes in a dependency graph for type checking. W
 properties of type checking in detail, but we briefly note how the different properties of
 live previews extend to corresponding properties of type checking.
 
-\paragraph{Type checking result reuse.} In Section~\ref{sec:properties-reuse}, we show that
+\paragraph{Type checking result reuse.} In Section~\ref{sec:evaluation-reuse}, we show that
 certain source code edits do not cause the recomputation of previews for the whole expression
 or a sub-expression. The edits are given in Figure~\ref{fig:operations}. The proof uses the fact
 that the newly bound graph (after code edit) reuses nodes of the previous graph. This implies that
@@ -1727,6 +1789,8 @@ language perspective with a special focus on tooling for data science. Hence, th
 future work spans numerous areas.
 
 \paragraph{Design and human-computer interaction.}
+TODO: \citet{principle}
+
 From a design perspective, the idea of live programming environments has been popularised by
 Bret Victor \cite{learnable}. Active research on novel forms of interaction happens in areas
 such as live coded music \cite{beyond,sonic}.
@@ -1777,9 +1841,33 @@ direction for rigorous analysis of the presented system.
 
 \section{TODO}
 
+TBD: Define live preview somewhere
+
 TBD: In section about dependency graphs, include a subsection discussing how this relates
 to incremental computation (just like "Semantics of delayed previews" links that to CMTT etc.)
 
+
+\cite{selfadjusting}
+\cite{incremental}
+
+Incremental computation
+
+  Self-adjusting computation
+  http://www.cs.cmu.edu/~rwh/theses/acar.pdf
+
+  Incremental Computation with Names
+  https://www.cs.tufts.edu/~jfoster/papers/oopsla15.pdf
+  -> dsl interpreter
+
+  (and other adapton stuff http://adapton.org/)
+
+Type checking
+
+  co-contextual
+  http://www.informatik.uni-marburg.de/~seba/publications/cocontextual-type-checking.pdf
+  http://drops.dagstuhl.de/opus/volltexte/2017/7262/pdf/LIPIcs-ECOOP-2017-18.pdf
+
+https://dl.acm.org/citation.cfm?id=664109
 
 \section{Summary}
 We present The Gamma, a live coding environment for data exploration. The environment
@@ -1814,7 +1902,7 @@ correct previews.
 
 \begin{theorem}[Normalization]
 For all $p$, there exists $n$ and $o_1, \ldots, o_n$ such that $p\rightsquigarrow^{*} o_1;\ldots;o_n$.
-\end{lem}
+\end{theorem}
 \begin{proof}
 We define $\ident{size}$ of a program in data exploration calculus as follows:
 \begin{equation}
@@ -1880,7 +1968,7 @@ The proof is by induction over the binding process, which follows the structure 
   it holds that for any $C$ such that $C[e_0.m(e_1, \ldots, e_n)] \rightsquigarrow o$ for some $o$
   then also $C[p_0.m(p_1, \ldots, p_n)] \rightsquigarrow C[p] \rightsquigarrow o$.
 
-  If $FV(e)\neq\emptyset$, then $\bnclr{v_i} \Downarrow_\ident{lift} \llbracket e'_i \rrbracket$ for $i\in 0\ldots n$ and
+  If $FV(e)\neq\emptyset$, then $\bndclr{v_i} \Downarrow_\ident{lift} \llbracket e'_i \rrbracket$ for $i\in 0\ldots n$ and
   $\bndclr{v}\Downarrow \llbracket e'_0.m(e'_1, \ldots, e'_n) \rrbracket_{FV(e)}$ using \rname{mem-expr}.
   From induction hypothesis and \emph{compositionality} of external libraries (Definition~\ref{def:external}),
   it holds that for any $C$ such that $C[e_0.m(e_1, \ldots, e_n)] \rightsquigarrow o$ for some $o$

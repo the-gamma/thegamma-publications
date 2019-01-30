@@ -1,3 +1,4 @@
+node_modules
 paket.exe
 paket.targets
 paket.restore.targets
