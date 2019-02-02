@@ -258,9 +258,12 @@ ordinary text editor. Our most important contributions are:
 \begin{figure}[b]
 \includegraphics[scale=0.5]{notebook.png}
 \caption{An excerpt from a Jupyter notebook by Financial Times reporters, which loads trade
-  data from the UN trade database and adds ISO country codes.}
+  data from the UN trade database (stored in a local file) and adds ISO country codes (from
+  an Excel spreadsheet).}
 \label{fig:ft-uncomtrade}
 \end{figure}
+
+% --------------------------------------------------------------------------------------------------
 
 \section{Understanding how data scientists work}
 \label{sec:background}
@@ -276,33 +279,36 @@ analyses look and provides a justification for the design of our data exploratio
 \subsection{Data wrangling in Jupyter}
 \label{sec:background-jupyter}
 
-Data analysts increasingly use notebook systems such as Jupyter or R Markdown, which
+Data analysts increasingly use notebook systems such as Jupyter, which
 make it possible to combine text, equations and code with results of running the code such as tables
 or visualizations. Notebooks blur the distinction between development and execution.
 Data analysts write small snippets of code, run them to see results immediately and then revise
 them.
 
-% interactively based on the results. We aim to build foundations for such seamless integration
-% of development and execution in a notebook environment.
-
 Jupyter notebooks are used by a variety of users ranging from scientists who implement complex
-models to journalists who load data, perform simple aggregations and create visualizations. Our
+models of physical systems to journalists who load data, perform simple aggregations and create visualizations. Our
 initial focus is on simple use cases, such as those of journalists. Tooling that makes notebook
-systems more interactive and spreadsheet-like in such cases is of crucial importance as it enables
-more people to produce reproducible and transparent data analyses.
+systems more interactive and spreadsheet-like can encourage users to choose programming tools
+over spreadsheets and produce reproducible and transparent data analyses.
 
-As an example, consider the anlysis done by the Financial Times for an article on plastic
-waste. The analysis joins datasets from Eurostat, UN Comtrade and more, aggregates the data and
-builds a visualization comparing plastic waste flows in 2017 and 2018.
-Figure~\ref{fig:ft-uncomtrade} shows an extract from one notebook from the data analysis.
-The code of the analysis has a number of remarkable properties:
+As an example, the anlysis done by the Financial Times for an article on plastic waste
+\cite{ftnotebooks,ftarticle} joins datasets from Eurostat, UN Comtrade and more, aggregates the data and
+builds a visualization comparing waste flows in 2017 and 2018. Figure~\ref{fig:ft-uncomtrade} shows
+an extract from one notebook from the data analysis. The code has a number of remarkable properties:
 %
 \begin{itemize}
-\item There is no abstraction. The full analysis uses lambda functions as arguments to library calls,
+\item There is no abstraction. The analysis uses lambda functions as arguments to library calls,
   but it does not define any top-level functions. Parameterization is done by defining a list of
   inputs and then having a for loop, or by defining a top-level variable and setting its value.
   In our example, \ident{material} is set to \str{plastics} and a comment lists other options.
   This lets the analyst easily see and check the results of intermediate steps of the analysis.
+
+\vspace{0.5em}
+\item The code relies on external libraries. Our example uses Pandas \cite{pandas},
+  which provides opreations for data wrangling such as \ident{merge} to join datasets
+  or \ident{drop\_duplicates} to delete rows with duplicate column values. Those libraries are
+  external to the data analysis and may even be implemented in other languages -- many Python
+  libraries rely on C++.
 
 \vspace{0.5em}
 \item The code is structured as a sequence of commands. Some commands define a variable, either by
@@ -315,124 +321,110 @@ The code of the analysis has a number of remarkable properties:
   running a code snippet and examining the output, so providing a rapid feedback is essential.
 \end{itemize}
 
-~
-
-TODO: Most logic in external libs
-
-~
-
+\noindent
 Many Jupyter notebooks are more complex than the example discussed here. They might define
-helper functions or even structure code using object-oriented programming. However, simple
-data analyses such as the one discussed here are frequent enough to pose an interesting and
-important domain for programming tools research.
+helper functions or even structure code using object-oriented programming. However, this paper
+is motivated by our conviction that simple data analyses such as the one discussed here are frequent
+enough to pose an interesting and important domain for programming tools research.
 
 % --------------------------------------------------------------------------------------------------
 
 \begin{figure}[b]
   \centering
   \subcaptionbox{
-    \raggedright\footnotesize The Gamma script to aggregate Olympic medals. We select Rio 2016 games and
-    count the number of distinct events per athlete. We then type `.' to choose
-    further aggregation operations.
+    \raggedright\footnotesize The Gamma script to aggregate Olympic medals. The analyst selects
+      Rio 2016 games and counts the number of distinct events per athlete. After typing `.',
+      a type provider offers further aggregation operations.
     \label{fig:gamma-dot}
   }{\includegraphics[scale=0.26]{gamma1.png}}
   \subcaptionbox{
-    \raggedright\footnotesize Live preview in The Gamma programming environment. The table is produced as
+    \raggedright\footnotesize Live preview in The Gamma programming environment developed based on
+      the theory presented in this paper. The table is produced as
       the data anlyst types and updates on-the-fly to show result at the current cursor position.
     \label{fig:gamma-preview}
   }{\includegraphics[scale=0.26]{gamma2.png}}
-  \caption{\small TBD}
+  \caption{\small Data exploration in The Gamma -- using a type provider (left) and with a live
+    preview (right).}
   \label{first-figure-with-subfigures}
 \end{figure}
 
 \subsection{Dot-driven data exploration in The Gamma}
 \label{sec:background-gamma}
 
-Data exploration of the kind discussed in the previous section has been the motivation
-for a recent programming environment called The Gamma. The scripting language in The Gamma
-captures the structure discussed above.
+Data exploration of the kind discussed in the previous section has been the motivation for a
+recent work by \citet{gamma} that develops a small scripting language called The Gamma. The language
+follows the structure discussed above. A script is a sequence of commands that can either define a
+variable or produce an output. The language does not support top-level function declarations
+and lambda functions can be used only as method arguments.
 
-A script is a sequence of commands that can either define a
-variable or produce an output. The language does not support top-level function declarations,
-although we propose an extension that provides a simple abstraction mechanism and is compatible with
-providing live previews in Section~X. Lambda functions can be used only as method
-arguments.
+Given the limited expressiveness of The Gamma, libraries are implemented in other languages,
+such as JavaScript. The Gamma also supports type providers \cite{providers-fsharp},
+which can be used to generate types, on the fly, for accessing and exploring external data sources.
+Type providers provide object types with members and The Gamma makes using those convenient by
+providing auto-complete when the user types the dot symbol (`.') to access a member.
 
-Given the limited expressiveness of The Gamma, libraries for it are implemented in other languages, such as
-JavaScript. More importantly, The Gamma supports type providers, which can be used to generate types,
-on the fly, for accessing and exploring external data sources. Type providers provide object types
-with members and The Gamma makes using those convenient by providing auto-complete when the user
-types the dot symbol (`.') to access a member.
-
-The combination of type providers and auto-complete on~``.'' makes it possible to complete a
-large number of data exploration tasks through a very simple interaction of selecting operations from
-a list. An example in Figure~\ref{fig:gamma-dot} summarizes data on Olympic medals using a type provider.
-The names of identifiers such as \qident{sum Bronze} do not have
-any special meaning -- they are merely members generated by the type provider, based on information
+As illustrated by \citet{gamma}, the combination of type providers and auto-complete on~`.' makes it
+possible to complete a large number of data exploration tasks through a very simple interaction of
+selecting operations from a list. An example in Figure~\ref{fig:gamma-dot} summarizes data on
+Olympic medals using a type provider. The names of identifiers such as \qident{sum Bronze} do not have
+any special meaning. They are merely members generated by the type provider, based on information
 about the data source. The type provider used in this example generates an object with members for
 different data transformations, such as \qident{group data}, which return furhter objects with
 members for specifying transformation parameters, such as selecting the grouping key using
 \qident{by Athlete}.
 
-The Gamma is more complex than shown here -- it supports methods that can take
-functions as arguments -- but the above example illustrates the fact that non-trivial data
-exploration can be done using a very simple language.
+The Gamma language is richer, but the example in Figure~\ref{fig:gamma-dot} shows that non-trivial
+data exploration can be done using a very simple language. The assumptions about strucutre of
+code that are explicit in The Gamma are implicitly present in Python and R data analyses
+produced by journalists, economists and other users with other than programming background.
+When we refer to The Gamma in this paper, readers not familiar with it can assume that we focus
+on a subset of Python.
 
-We complement our theoretical work on foundations of live programming environments for data
-exploration with an implementation for The Gamma. As discussed in the previous
-section, the assumptions about structure of code that are explicit in The Gamma are also
-implicitly present in Python and R data analyses produced by journalists, economists and
-other users with other than  programming background. Consequently, our theoretical work
-applies to simple data analyses using Python and readers not familiar with The Gamma
-can assume that we use a small subset of Python.
+% --------------------------------------------------------------------------------------------------
+
+\subsection{Live coding for data exploration}
+
+The practical implementation work that complements the theory presented in this paper implements a live
+coding environment for The Gamma and is discussed in Section~\ref{sec:case} in detail. Earlier work by
+\citet{gamma} discussed The Gamma language and the type provider mechanism, but the implementation
+provided only a standard text editor with auto-completion. Our work brings the experience of using
+The Gamma closer to that of spreadsheets by developing an editor that evaluates scripts
+instantaneously in background and displays the results as \emph{live previews}.
+
+An example of a live preview is shown in Figure~\ref{fig:gamma-preview}. As noted earlier, The
+Gamma program consits of a list of commands which are either expressions or let bindings. Our
+editor displays a live preview below the command that the user is currently editing. The preview
+shows the result of evaluating the expression or the value assigned to a bound variable. When the
+user changes the code, the preview is updated automatically, without any additional interaction
+with the user.
+
+There is a number of guiding principles that our work follows. First, we allow the analyst
+to edit code in an unrestricted form in a text editor. Although structured editors provide an
+appearling alternative and make recomputation easier, we prefer the transparency
+and openness of plain text. Second, we focus on the scenario when code changes, but input
+does not. Rapid feedback allows the analyst to quickly adapt code to correctly handle
+corner cases that typical analysis involves. In contrast to work on incremental computation,
+we do not consider the case when data changes, although supporting interactive data exploration
+of streaming data is an interesting future direction.
 
 % ==================================================================================================
 
-% https://www.ft.com/content/360e2524-d71a-11e8-a854-33d6f82e62f8
-% https://github.com/ft-interactive/recycling-is-broken-notebooks
+\section{Data exploration calculus}
+\label{sec:calculus}
 
-\section{Live coding for data exploration}
+The \emph{data exploration calculus} is a small, formally tractable language for data exploration.
+The calculus is not Turing-complete and it can only be used together with external libraries that
+define what objects are available and what the behaviour of their members is. This is
+sufficient to capture the simple data analyses discussed in Section~\ref{sec:background}. We
+define the caluclus in this section and then use it as the basis for discussing our live preview
+mechanism in Section~\ref{sec:formal}.
 
-% TODO: What is live coding? (Show preview while typing!)
+We initially present the data exploration calculus without a static type system. The live preview
+mechanism can be discussed equally well without types. We consider type checking later in
+Section~\ref{sec:types} as the mechanism that is used for live previews can also be
+used for incremental type-checking.
 
-
-This paper presents the foundations of a live coding environment for data exploration that
-follows the analysis in the previous section. We consider simple data exploration tasks, such as
-those done by journalists and we implement our ideas in the editor for TheGamma.
-
-Figure~\ref{fig:gamma-preview} shows a TheGamma script exporing Olympic medal statistics in
-our live coding environment. Before discussing the technical details, it is worth highlighting
-a number of important points about our approach.
-
-\begin{itemize}
-\item\textbf{Real-world use cases.}
-Our work has been motivated by the needs outlined in the previous section. In particular, we
-have been focusing on a langauge that is simple, yet sufficient for completing basic data
-exploration tasks that a journalist might want to do. We have used our live coding environment
-to perform a number of simple data analyses looking at topics such as public government spending,
-crises in financial markets and activities of a research institute. Qualitative observations about
-our experience are reported in Section~X. Our tools can be used in any modern web browser and are
-available as an open-source package.
-
-\item\textbf{Text editor integration.}
-Our approach is based on an ordinary text editor that allows unrestricted modification of the
-code. Our parser supports error-recovery and we attempt to give previews whenever the code can be
-correctly parsed and type-checked up to the current location. Notably, we do not, in general, know
-how the user modified the code. This is in contrast with approaches based on structured editing
-where the editor tracks what changes to code have been made. Using an ordinary text editor makes
-providing live previews harder, but we believe that many users still favor the flexibility of
-plain text editors.
-
-\item\textbf{Data stay, code changes.}
-Our focus has been on the scenario when input data is a static file that does not change, but the
-data analyst modifies the source code. This is in contrast with work on incremental computation,
-which focuses on scenarios where code stays the same, but input data change.
-
-That said, many of the methods that we used for evaluating live previews such as maintaining
-the dependency graph with nodes for individual syntactic elements are closely related to methods
-used in incremental computation research. We do not attempt to combine the two, but note that
-this is an interesting future direction.
-\end{itemize}
+% --------------------------------------------------------------------------------------------------
 
 \begin{figure}
 \raggedright
@@ -483,22 +475,7 @@ o_1;\; \ldots;\; o_{k};\; \kvd{let}~x=o;\; c_{1};\; \ldots; c_n \rightsquigarrow
 \label{fig:dec-calculus}
 \end{figure}
 
-\newpage
-
-\section{Data exploration calculus}
-\label{sec:calculus}
-
-The \emph{data exploration calculus} is a small, formally tractable language for data exploration.
-The calculus is not Turing-complete and it can only be used together with external libraries that
-define what objects are available and what the behaviour of their members is. This is
-sufficient to capture the simple data analyses discussed in Section~\ref{sec:background}. We
-define the caluclus in this section and then use it as the basis for discussing our live preview
-mechanism in Section~\ref{sec:formal}.
-
-We initially present the data exploration calculus without a static type system. Our main focus
-is on the live preview mechanism which can be done equally well without types. We consider
-type checking in Section~\ref{sec:types}, because the same mechanism that is used for live previews
-can also be used for incremental type-checking.
+% --------------------------------------------------------------------------------------------------
 
 \subsection{Language syntax}
 The calculus combines object-oriented features such as member access with functional features
@@ -1124,9 +1101,9 @@ graph with caching, it is the same as the value we would obtain by evaluating th
 directly. Second, the evaluation of previews using dependency graphs reuses -- in some cases --
 previously evaluated partial results. In other words, we show that the mechanism is correct
 and implements an effective optimization. We discuss correctness in this section and evaluate
-the effectiveness of the optimization, both theoretically and empirically, in Section~\ref{sec:optimization}.
+the effectiveness of the optimization, both theoretically and empirically, in Section~\ref{sec:evaluation}.
 
-To show that the evaluated previews are correct, we prove two properties. Correctness
+To show that the previews are correct, we prove two properties. Correctness
 (Theorem~\ref{thm:correcntess}) guarantees that, no matter how a dependency graph is constructed,
 when we use it to evaluate previews for a program, the previews are the same as the values we
 would obtain by evaluating the program commands directly. Determinacy (Theorem~\ref{thm:determinacy})
@@ -1279,6 +1256,8 @@ graph during code editing, previous nodes will continue representing the same su
 
 % --------------------------------------------------------------------------------------------------
 
+\newpage
+
 \section{Evaluation}
 \label{sec:evaluation}
 
@@ -1303,41 +1282,6 @@ our approach allows this way of editing code.
 Finally, it is worth noting that our list is not exhaustive. In particular, cases 1-4 only cover
 let bindings where the bound variable is used once. However, previews can also be reused if the
 variable appears multiple times.
-
-% --------------------------------------------------------------------------------------------------
-
-\begin{figure}[t]
-\raggedright
-\subparagraph{1. Let introduction A.}
-The expression $C_1[C_2[e]]$ is changed to $C_1[\kvd{let}~x=e~\kvd{in}~C_2[x]]$
-via semantically non-equivalent expression $C_1[C_2[x]]$ where $x$ is unbound variable.
-
-\subparagraph{2. Let introduction B.}
-The expression $C_1[C_2[e]]$ is changed to $C_1[\kvd{let}~x=e~\kvd{in}~C_2[x]]$
-via $C_1[\kvd{let}~x=e~\kvd{in}~C_2[e]]$ where $x$ is unused variable.
-
-\subparagraph{3. Let elimination A.} The expression
-$C_1[\kvd{let}~x=e~\kvd{in}~C_2[x]]$ is changed to
-$C_1[C_2[e]]$ via semantically non-equivalent expression
-$C_1[C_2[x]]$ where $x$ is unbound variable.
-
-\subparagraph{4. Let elimination B.} The expression
-$C_1[\kvd{let}~x=e~\kvd{in}~C_2[x]]$ is changed to
-$C_1[C_2[e]]$ via $C_1[\kvd{let}~x=e~\kvd{in}~C_2[e]]$
-where $x$ is unused variable.
-
-\subparagraph{5. Editing a non-dependency in let.} Assuming $x\notin FV(e_2)$, the expression
-$C_1[\kvd{let}~x=e_1~\kvd{in}~C_2[e_2]]$ changes to an expression
-$C_1[\kvd{let}~x=e_1'~\kvd{in}~C_2[e_2]]$. The preview of a sub-expression $e_2$ is not recomputed.
-
-\subparagraph{6. Editing a non-dependency in a chain.} The expression
-$C[e.m(e_1, \ldots, e_n).m'(e'_1, \ldots, e'_k)]$ is changed to an expression
-$C[e.m(e_1, \ldots, e_n).m''(e''_1, \ldots, e''_k)]$. The preview of a sub-expression
-$e.m(e_1, \ldots, e_n)$ is not recomputed.
-
-\caption{Code edit operations that enable preview reuse}
-\label{fig:operations}
-\end{figure}
 
 % --------------------------------------------------------------------------------------------------
 
@@ -1378,6 +1322,43 @@ intermediate expressions (1)-(4), binding the intermediate expression introduces
 nodes to $\Delta$, but those are ignored when binding the final expression.
 \end{proof}
 
+% --------------------------------------------------------------------------------------------------
+
+\begin{figure}[t]
+\raggedright
+\subparagraph{1. Let introduction A.}
+The expression $C_1[C_2[e]]$ is changed to $C_1[\kvd{let}~x=e~\kvd{in}~C_2[x]]$
+via semantically non-equivalent expression $C_1[C_2[x]]$ where $x$ is unbound variable.
+
+\subparagraph{2. Let introduction B.}
+The expression $C_1[C_2[e]]$ is changed to $C_1[\kvd{let}~x=e~\kvd{in}~C_2[x]]$
+via $C_1[\kvd{let}~x=e~\kvd{in}~C_2[e]]$ where $x$ is unused variable.
+
+\subparagraph{3. Let elimination A.} The expression
+$C_1[\kvd{let}~x=e~\kvd{in}~C_2[x]]$ is changed to
+$C_1[C_2[e]]$ via semantically non-equivalent expression
+$C_1[C_2[x]]$ where $x$ is unbound variable.
+
+\subparagraph{4. Let elimination B.} The expression
+$C_1[\kvd{let}~x=e~\kvd{in}~C_2[x]]$ is changed to
+$C_1[C_2[e]]$ via $C_1[\kvd{let}~x=e~\kvd{in}~C_2[e]]$
+where $x$ is unused variable.
+
+\subparagraph{5. Editing a non-dependency in let.} Assuming $x\notin FV(e_2)$, the expression
+$C_1[\kvd{let}~x=e_1~\kvd{in}~C_2[e_2]]$ changes to an expression
+$C_1[\kvd{let}~x=e_1'~\kvd{in}~C_2[e_2]]$. The preview of a sub-expression $e_2$ is not recomputed.
+
+\subparagraph{6. Editing a non-dependency in a chain.} The expression
+$C[e.m(e_1, \ldots, e_n).m'(e'_1, \ldots, e'_k)]$ is changed to an expression
+$C[e.m(e_1, \ldots, e_n).m''(e''_1, \ldots, e''_k)]$. The preview of a sub-expression
+$e.m(e_1, \ldots, e_n)$ is not recomputed.
+
+\caption{Code edit operations that enable preview reuse}
+\label{fig:operations}
+\end{figure}
+
+% --------------------------------------------------------------------------------------------------
+
 % ==================================================================================================
 
 
@@ -1402,7 +1383,7 @@ s.combine(image.load("pope.png"), r)
 
 \newpage
 
-\section{Case study}
+\section{Case study / implementation}
 \label{sec:case}
 
 % ==================================================================================================
