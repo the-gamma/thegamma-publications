@@ -76,6 +76,9 @@ type GammaImage =
   { Data : Future<uint8[]> }
   member x.greyScale() =
     { Data = mapFuture greyScale x.Data }
+  member x.force() = async {
+    let! _ = Async.AwaitFuture x.Data
+    return () }
   member x.blur(pixels) =
     { Data = mapFuture (blur pixels) x.Data }
   member x.combine(img2, r) = 

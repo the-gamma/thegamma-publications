@@ -57,9 +57,10 @@ let render trigger state =
     ]
 
     h?table [] [
-      for t0, t1 in state.AllTimes -> h?tr [] [
-        h?td [] [ text (string (int (t1 - t0))) ]
-      ]
+      for t0, t1 in state.AllTimes -> 
+        h?tr [] [
+          h?td [] [ text (string (int (t1 - t0))) ]
+        ]
     ]
   ]
 
@@ -77,8 +78,10 @@ let update state evt = async {
           try
             let t2 = performance.now()
             // TODO: Switch to Evaluator.evaluateEntity ent
-            match Evaluator.evaluateEntity ent with
-            //match Evaluator.evaluateExpr state.Variables prog.Node with
+            let res = Evaluator.evaluateEntity ent 
+            //let res = Evaluator.evaluateExpr state.Variables prog.Node
+            //let! res = Evaluator.evaluateExprEager state.Variables prog.Node
+            match res with
             | :? GammaImage as img ->
                 let mutable times = None
                 let! a = img.render()

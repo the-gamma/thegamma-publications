@@ -48,6 +48,7 @@
 \usepackage{enumitem}
 \usepackage{enumerate}
 \usepackage{amsmath}
+\usepackage[T1]{fontenc}
 
 \setlist{leftmargin=6mm}
 \newcounter{thc}
@@ -122,6 +123,8 @@
 \newcommand{\blbl}[1]{\textnormal{\textcolor{numclr}{\sffamily #1}}}
 \newcommand{\narrow}[1]{\hspace{-0.6em}#1\hspace{-0.6em}}
 \newcommand{\rname}[1]{{\sffamily\small(#1)}}
+\newcommand{\ername}[1]{\vspace{0.75em}\rname{#1}\hspace{0.5em}}
+\newcommand{\preview}[1]{\,\textnormal{\guillemotleft} #1\textnormal{\guillemotright}\,}
 
 \begin{document}
 \begin{abstract}
@@ -242,7 +245,7 @@ ordinary text editor. Our most important contributions are:
   (Section~\ref{sec:formal}) and use it to build our \emph{live preview} mechanism
   (Section~\ref{sec:previews}) evaluates code instantaneously during editing.
 
-\item We prove that our live preview mechanism is correct (Section~\ref{sec:correctness}) and that
+\item We prove that our live preview mechanism is correct (Section~\ref{sec:evaluation-correctness}) and that
   it reuses previously evaluated values when possible (Section~\ref{sec:evaluation-reuse}). We
   illustrate the practicality of the mechanism using an empirical evaluation
   (Section~\ref{sec:evaluation-empirical}) and a case study (Section~\ref{sec:case}).
@@ -522,7 +525,7 @@ The data exploration calculus is a very simple language and it has a number of d
 properties. However, some of those require that the relation $\rightsquigarrow_\epsilon$, which
 defines evaluation for external libraries, satisfies a number of conditions. Our main motivation
 is to capture properties that allow us to prove that our method of evaluating live previews,
-discussed in Section~\ref{sec:correctness}, is correct.
+discussed in Section~\ref{sec:evaluation-correctness}, is correct.
 
 \begin{definition}[Further reductions]
 \label{def:further-red}
@@ -580,7 +583,7 @@ program. See Appendix~\ref{sec:app-normalization} for more detail.
 Although the reduction rules \rname{let} and \rname{external} of the data exploration calculus
 define an evaluation in a call-by-value order, eliminating let bindings in a call-by-name way
 using the $\rightsquigarrow_\ident{let}$ reduction does not affect the result. This
-simplifies our later proof of live preview correctness in Section~\ref{sec:correctness-correct}.
+simplifies our later proof of live preview correctness in Section~\ref{sec:evaluation-correctness}.
 
 \begin{lem}[Let elimination for a program]
 \label{thm:let-lang-elimination}
@@ -895,7 +898,7 @@ the same thanks to the way they are constructed.
 
 % ==================================================================================================
 
-\section{Evaluating previews}
+\section{Computing live previews}
 \label{sec:previews}
 
 The binding process described in the previous section constructs a dependency graph after code
@@ -907,7 +910,7 @@ previews for expressions (or sub-expressions) of a program can be reused when up
 In this section, we describe how previews are evaluated. The evaluation is done over the dependency
 graph, rather than over the structure of the program expressions as in the operational semantics
 given in Section~\ref{sec:calculus-semantics}. We analyse the preview evaluation formally in
-Section~\ref{sec:correctness} and show that the resulting previews are the same as the result we
+Section~\ref{sec:evaluation} and show that the resulting previews are the same as the result we
 would get by directly evaluating the code and, also, that no recomputation occurs when code is
 edited in certain ways.
 
@@ -1091,8 +1094,8 @@ $\llbracket A \rrbracket_\emptyset \rightarrow A$.
 
 % ==================================================================================================
 
-\section{Correctness of previews}
-\label{sec:correctness}
+\section{Evaluating correctness and effectiveness}
+\label{sec:evaluation}
 
 The use of a dependency graph when evaluating previews makes it possible to cache partial results
 through a mechanism discussed in Section~\ref{sec:formal-deps} and Section~\ref{sec:previews-cache}.
@@ -1100,8 +1103,14 @@ The mechanism satisfies two properties. First, if we evaluate a preview using de
 graph with caching, it is the same as the value we would obtain by evaluating the expression
 directly. Second, the evaluation of previews using dependency graphs reuses -- in some cases --
 previously evaluated partial results. In other words, we show that the mechanism is correct
-and implements an effective optimization. We discuss correctness in this section and evaluate
-the effectiveness of the optimization, both theoretically and empirically, in Section~\ref{sec:evaluation}.
+and implements an effective optimization. We discuss correctness first and then evaluate
+effectiveness, both theoretically (Section~\ref{sec:evaluation-reuse}) and empirically
+(Section~\ref{sec:evaluation-empirical}).
+
+% --------------------------------------------------------------------------------------------------
+
+\subsection{Correctness of previews}
+\label{sec:evaluation-correctness}
 
 To show that the previews are correct, we prove two properties. Correctness
 (Theorem~\ref{thm:correcntess}) guarantees that, no matter how a dependency graph is constructed,
@@ -1243,9 +1252,8 @@ Now, for any $\bndclr{v}$, if $\bndclr{v} \Downarrow p$ over $(V, E)$ then also
 \end{theorem}
 \begin{proof}
 By induction over $\Downarrow$ over $(V, E)$, we show that the same evaluation rules also
-apply over $(V', E')$.
-This is the case, because new graph nodes added to $\Delta'$ by $\ident{update}_{V, E}$
-are only ever added as new nodes in $\ident{bind-prog}_{\emptyset, \Delta'}$ and so the existing
+apply over $(V', E')$. This is the case, because graph nodes added to $\Delta'$ by $\ident{update}_{V, E}$
+are added as new nodes in $\ident{bind-prog}_{\emptyset, \Delta'}$ and
 nodes and edges of $(V, E)$ used during the evaluation are unaffected.
 \end{proof}
 
@@ -1256,116 +1264,169 @@ graph during code editing, previous nodes will continue representing the same su
 
 % --------------------------------------------------------------------------------------------------
 
-\newpage
-
-\section{Evaluation}
-\label{sec:evaluation}
-
 \subsection{Reuse of previews}
 \label{sec:evaluation-reuse}
 
-In the motivating example in Section~\ref{sec:intro}, the programmer first extracted a constant
-value into a let binding and then modified a parameter of the last method call in a call chain.
-We argued that the live coding environment should reuse partially evaluated previews for these
-two cases. In this section, we prove that this is, indeed, the case in our system.
+In the motivating example given in Section~\ref{sec:intro}, the data analyst first extracted a
+constant value into a let binding and then modified a parameter of the last method call in a call
+chain. We argued that a live coding environment should reuse partially evaluated previews for these
+two cases. We now show that this is, indeed, the case in our system.
 
-Figure~\ref{fig:operations} shows a list of six code edit operations where a preview of the
-expression (cases 1-4), or a sub-expression (cases 5-6), can be reused. This is the case, because
-the graph nodes that are bound to the sub-expression before and after the code is changed are the
-same and hence, a cached preview (stored using the graph node as the key) can be reused.
-
-In some of the operations (cases 1 and 3), the code is changed via an intermediate expression
-that is semantically different and has only partial preview. This illustrates a typical way of
-working with code in a text editor using cut and paste operations. Cases 1 and 3 illustrate how
-our approach allows this way of editing code.
-
-Finally, it is worth noting that our list is not exhaustive. In particular, cases 1-4 only cover
-let bindings where the bound variable is used once. However, previews can also be reused if the
-variable appears multiple times.
-
-% --------------------------------------------------------------------------------------------------
-
-\begin{lem}[Binding sub-expressions]
-\label{thm:sub-expr}
-Given any $\Delta_1$ together with $e_1 = C[C_1[e]]$ and $e_2 C[C_2[e]]$, such that all free
-variables of $e$ are bound in $C$, assume that the first expression is bound,
-i.e.~$\bndclr{v_1}, (V_1, E_1) = \ident{bind-expr}_{\emptyset, \Delta_1}(e_1)$, the graph node cache
-is updated $\Delta_2 = \ident{update}_{V_1, E_1}(\Delta_1)$ and the second expression is bound, i.e.~
-$\bndclr{v_2}, (V_2, E_2) = \ident{bind-expr}_{\emptyset, \Delta_2}(e_2)$.
-
-Now, assume $\bndclr{v}, G = \ident{bind-expr}_{\Gamma_1, \Delta_1}(e)$ and
-$\bndclr{v'}, G' = \ident{bind-expr}_{\Gamma_2, \Delta_2}(e)$ are the recursive calls to bind
-$e$ during the first and the second binding, respectively. Then, the graph nodes assigned to the
-sub-expression $e$ are the same, i.e.~$\bndclr{v} = \bndclr{v'}$.
-\end{lem}
-\begin{proof}
-First, assuming that $\forall x\in FV(e). \Gamma_1(x) = \Gamma_2(x)$, we show by induction over the binding process of $e$
-when binding $C[C_1[e]]$ that the result is the same. In cases (1) and (6), the updated $\Delta_2$
-contains the required key and so the second binding proceeds using the same case. In cases
-(2) and (7), the second binding reuses the node created by the first binding using case (1) and
-(6), respectively. Cases (4) and (5) are the same and case (3) follows directly via induction.
-
-Second, when binding let bindings in $C[-]$, the initial $\Gamma = \emptyset$ during both bindings
-and so the nodes added to $\Gamma_1$ and $\Gamma_2$ are the same. $C_1$ and $C_2$ do not add
-any new nodes used in $e$ to $\Gamma_1$ and $\Gamma_2$ and so $\bndclr{v} = \bndclr{v'}$
-using the above.
-\end{proof}
-
-\begin{theorem}[Preview reuse]
-Given the sequence of expressions as specified in Figure~\ref{fig:operations}, if the expressions
-are bound in sequence and graph node cache updated as specified in Figure~\ref{fig:loop}, then
-the graph nodes assigned to the specified sub-expressions are the same.
-\end{theorem}
-\begin{proof}
-Consequence of Lemma~\ref{thm:sub-expr}, using appropriate contexts. In cases with
-intermediate expressions (1)-(4), binding the intermediate expression introduces additional
-nodes to $\Delta$, but those are ignored when binding the final expression.
-\end{proof}
+In this section, we identify a number of code edit operations where the previously evaluated
+values for a sub-expression can be reused. The list of operations is shown in Figure~\ref{fig:operations}.
+To express the operations we define an editing context $K$ which is defined
+similarly to evaluation context $C$ from Figure~\ref{fig:dec-calculus}, but captures sub-expressions
+appearing anywhere in the program.
 
 % --------------------------------------------------------------------------------------------------
 
 \begin{figure}[t]
 \raggedright
-\subparagraph{1. Let introduction A.}
-The expression $C_1[C_2[e]]$ is changed to $C_1[\kvd{let}~x=e~\kvd{in}~C_2[x]]$
-via semantically non-equivalent expression $C_1[C_2[x]]$ where $x$ is unbound variable.
+\vspace{0.5em}
+\hspace{1.5em}{\small\sffamily Edit contexts of expressions}
+\begin{equation*}
+\begin{array}{lcl}
+K_e[-] &=& K_e[-].m(e_1, \ldots, e_n) ~\lsep~ e.m(e_1, \ldots, e_{l-1}, K_e[-], e_{l+1},\ldots , e_n) ~\lsep~ -\\
+K_c[-] &=& \kvd{let}~x = K_e[-] ~\lsep~ K_e[-]\\
+\end{array}
+\end{equation*}
 
-\subparagraph{2. Let introduction B.}
-The expression $C_1[C_2[e]]$ is changed to $C_1[\kvd{let}~x=e~\kvd{in}~C_2[x]]$
-via $C_1[\kvd{let}~x=e~\kvd{in}~C_2[e]]$ where $x$ is unused variable.
+\vspace{0.5em}
+\hspace{1.5em}{\small\sffamily Code edit operations preserving preview for a sub-expression}
 
-\subparagraph{3. Let elimination A.} The expression
-$C_1[\kvd{let}~x=e~\kvd{in}~C_2[x]]$ is changed to
-$C_1[C_2[e]]$ via semantically non-equivalent expression
-$C_1[C_2[x]]$ where $x$ is unbound variable.
+\hspace{4em}\begin{minipage}[c]{0.82\textwidth}
+  \raggedright\setlength{\parindent}{-1em}
 
-\subparagraph{4. Let elimination B.} The expression
-$C_1[\kvd{let}~x=e~\kvd{in}~C_2[x]]$ is changed to
-$C_1[C_2[e]]$ via $C_1[\kvd{let}~x=e~\kvd{in}~C_2[e]]$
-where $x$ is unused variable.
+  \ername{let-intro-var}
+  $\overline{c_1}; \preview{e}; \overline{c_2}$ changes to
+  $\overline{c_1}; \kvd{let}\,x = e; \preview{x}; \overline{c_2}$ where $x$ is a fresh name.
 
-\subparagraph{5. Editing a non-dependency in let.} Assuming $x\notin FV(e_2)$, the expression
-$C_1[\kvd{let}~x=e_1~\kvd{in}~C_2[e_2]]$ changes to an expression
-$C_1[\kvd{let}~x=e_1'~\kvd{in}~C_2[e_2]]$. The preview of a sub-expression $e_2$ is not recomputed.
+  \ername{let-intro-ins}
+  $\overline{c_1}; \overline{c_2}; \preview{K_c[e]}; \overline{c_3}$ is changed to
+  $\overline{c_1}; \kvd{let}\,x=e; \overline{c_2}; \preview{K_c[x]}; \overline{c_3}$ via
+  a semantically non-equivalent expression
+  $\overline{c_1}; \overline{c_2}; K_c[x]; \overline{c_3}$ where $x$ is free.
 
-\subparagraph{6. Editing a non-dependency in a chain.} The expression
-$C[e.m(e_1, \ldots, e_n).m'(e'_1, \ldots, e'_k)]$ is changed to an expression
-$C[e.m(e_1, \ldots, e_n).m''(e''_1, \ldots, e''_k)]$. The preview of a sub-expression
-$e.m(e_1, \ldots, e_n)$ is not recomputed.
+  \ername{let-intro-del}
+  $\overline{c_1}; \overline{c_2}; \preview{K_c[e]}; \overline{c_3}$ is changed to
+  $\overline{c_1}; \kvd{let}\,x=e; \overline{c_2}; \preview{K_c[x]}; \overline{c_3}$ via
+  an expression $\overline{c_1}; \kvd{let}\,x=e; \overline{c_2}; K_c[e]; \overline{c_3}$
+  with unused variable $x$.
 
-\caption{Code edit operations that enable preview reuse}
+  \ername{let-elim-del}
+  $\overline{c_1}; \kvd{let}\,x=e; \overline{c_2}; \preview{K_c[x]}; \overline{c_3}$ is changed to
+  $\overline{c_1}; \overline{c_2}; \preview{K_c[e]}; \overline{c_3}$ via
+  a semantically non-equivalent expression
+  $\overline{c_1}; \overline{c_2}; K_c[x]; \overline{c_3}$ where $x$ is free.
+
+  \ername{let-elim-ins}
+  $\overline{c_1}; \kvd{let}\,x=e; \overline{c_2}; \preview{K_c[x]}; \overline{c_3}$ is changed to
+  $\overline{c_1}; \overline{c_2}; \preview{K_c[e]}; \overline{c_3}$ via
+  an expression $\overline{c_1}; \kvd{let}\,x=e; \overline{c_2}; K_c[e]; \overline{c_3}$
+  with unused variable $x$.
+
+  \ername{edit-mem}
+  $\overline{c_1}; K_c[\preview{e_0}.m(\overline{e})]; \overline{c_2}$ is changed to
+  $\overline{c_1}; K_c[\preview{e_0}.m'(\overline{e'})]; \overline{c_2}$
+
+  \ername{edit-let}
+  $\overline{c_1}; \kvd{let}\,x=e_1; \overline{c_2}; K_c[\preview{e_2}]; \overline{c_3}$ is changed to
+  $\overline{c_1}; \kvd{let}\,x=e'_1; \overline{c_2}; K_c[\preview{e_2}]; \overline{c_3}$ \hspace{2em} when
+  $x\notin FV(e_2)$.
+\end{minipage}
+
+\caption{Code edit operations that preserve previously evaluated preview}
 \label{fig:operations}
 \end{figure}
 
 % --------------------------------------------------------------------------------------------------
 
-% ==================================================================================================
+We use the notation $\preview{e}$ to mark the part of the expressions before and after the edit
+that have the same value that will not need to be recomputed after the change and we write
+$\overline{c}$ and $\overline{e}$ for a list of commands and expressions, respectively.
+In some of the edit operations, we also specify an intermediate program that is, in some cases,
+semantically different and only has a partial preview. This illustrates a typical way of
+working with code in a text editor using cut and paste operations. For example, in
+\rname{let-intro-ins}, we assume that the analyst cuts a sub-expression $e$, replaces it with
+a variable $x$ and then adds a let binding for a variable $x$ and inserts the expression $e$
+from the clipboard. Edit with the same result is captured by \rname{let-intro-del} but here
+the analyst first inserts the let binding and then replaces the sub-expression $e$ with a
+variable $x$.
 
+The of preview-preserving code edit operations includes several ways of introducing a let
+binding, several ways of eliminating a let binding and two edit operations where the data anlyst
+modifies an unrelated part of the program. It is worth noting that the list is not exhaustive.
+Rather, it aims to illustrate some of the typical operations that the data analyst might perform
+when writing code.
 
-\subsection{Speed}
+Theorem~\ref{thm:preview-reuse} proves that the operations given in Figure~\ref{fig:operations}
+preserve the preview for a marked sub-expression. It relies on the following lemma that
+characterizes one of the common kinds of edits more generally. Given two versions of a program
+that both contain the same sub-expression $e$, if the let bindings that define the values of
+variables used in $e$ do not change, then the graph node assigned to $e$ will be the same
+when binding the original and the updated program.
+
+% --------------------------------------------------------------------------------------------------
+
+\begin{lem}[Binding sub-expressions]
+\label{thm:sub-expr}
+Assume we have programs $p_1 = c_1; \ldots; c_k; K_c[e]; c_{k+1};\ldots; c_n$ and
+$p_2 = c'_1; \ldots; c'_k; K'_c[e]; c'_{k+1};\ldots;c'_n$ and $I\subseteq \{1\ldots k\}$ such
+that $\forall i\!\in\!I.\,c_i\!=\!c'_i$ and for each $x \in \bigcup_{i\in I}FV(c_i) \cup FV(e)$
+there exists $j\in I$ such that $c_j = \kvd{let}\,x=e$ for some $e$.
+%
+Given any $\Delta$, assume that the the first program is bound,
+i.e.~$\bndclr{v_1};\ldots;\bndclr{v_n}, (V, E) = \ident{bind-prog}_{\emptyset, \Delta}(p_1)$,
+the cache is updated $\Delta' = \ident{update}_{V, E}(\Delta)$ and the second
+program is bound,
+i.e.~$\bndclr{v'_1};\ldots;\bndclr{v'_n}, (V', E') = \ident{bind-prog}_{\emptyset, \Delta'}(p_2)$.
+
+Now, assume $\bndclr{v}, G = \ident{bind-expr}_{\Gamma, \Delta}(e)$ and
+$\bndclr{v'}, G' = \ident{bind-expr}_{\Gamma', \Delta'}(e)$ are the recursive calls to bind
+$e$ during the first and the second binding, respectively. Then, the graph nodes assigned to the
+sub-expression $e$ are the same, i.e.~$\bndclr{v} = \bndclr{v'}$.
+\end{lem}
+\begin{proof}
+First, assuming that $\forall x\in FV(e). \Gamma(x) = \Gamma'(x)$, we show by induction over the binding process of $e$
+for the first program that the result is the same. In cases (1) and (3), the updated $\Delta'$
+contains the required key and so the second binding proceeds using the same case. In cases
+(2) and (4), the second binding reuses the node created by the first binding using case (1) and
+(3), respectively. Cases (5) and (6) are the same.
+
+Second, when binding let bindings in $c_1; \ldots; c_k$, the initial $\Gamma = \emptyset$ during
+both bindings. Nodes added to $\Gamma$ and $\Gamma'$ for commands $c_j$ such that $j\in I$ are
+the same and nodes added for remaining commands do not add any new nodes referenced from $e$ and
+so $\bndclr{v} = \bndclr{v'}$ using the above.
+\end{proof}
+
+\begin{theorem}[Preview reuse]
+\label{thm:preview-reuse}
+Given the sequence of expressions as specified in Figure~\ref{fig:operations}, if the expressions
+are bound in sequence and graph node cache updated as specified in Figure~\ref{fig:loop}, then
+the graph nodes assigned to the specified sub-expressions are the same.
+\end{theorem}
+\begin{proof}
+Cases \rname{edit-let} and \rname{edit-mem} are direct consequences of Lemma~\ref{thm:sub-expr};
+for \rname{let-intro-var}, the node assigned to $x$ is the node assigned to $e$ which is the
+same as before the edit from Lemma~\ret{thm:sub-expr}.
+Cases \rname{let-intro-ins} and \rname{let-intro-del} are similar to \rname{let-intro-var}, but
+also require using induction over the binding of $K_c[e]$. Finally, cases \rname{let-elim-ins}
+and \rname{let-elim-del} are similar and also use Lemma~\ref{thm:sub-expr}
+together with induction over the binding of $K_c[x]$.
+\end{proof}
+
+% --------------------------------------------------------------------------------------------------
+
+\subsection{Empirical evaluation of efficiency}
 \label{sec:evaluation-empirical}
 
-\includegraphics[scale=0.4]{drawing.png}
+\begin{figure}
+\includegraphics[scale=0.5]{drawing.png}
+\caption{Zzz}
+\label{fig:drawing}
+\end{figure}
+
+\subsubsection{Methodology}
 
 image.load("shadow.png").greyScale().blur(5)
 
@@ -1380,6 +1441,8 @@ s.combine(image.load("pope.png"), 80)
 let r = 80
 let s = image.load("shadow.png").greyScale().blur(10)
 s.combine(image.load("pope.png"), r)
+
+\subsubsection{Conclusions}
 
 \newpage
 

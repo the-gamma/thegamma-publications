@@ -20,17 +20,14 @@ let rec evaluateExpr vars = function
       | '-' -> box (unbox le - unbox re) 
       | _ -> failwith "Unsupported operator"
 
-  // TODO: Implement member access (getProperty)
   | Member(obj, { Node = Variable name }) -> 
       let inst = evaluateExpr vars obj.Node
       getProperty inst name.Node
 
-  // DEMO: Implement let binding
   | Let(var, assign, body) ->
       let value = evaluateExpr vars assign.Node
       evaluateExpr (Map.add var.Node value vars) body.Node
 
-  // DEMO: Show implementation of call
   | Call({ Node = Member(obj, {Node = Variable name }) }, args) -> 
       let obj = evaluateExpr vars obj.Node
       let args = [| for a in args.Node -> evaluateExpr vars a.Node |]
@@ -41,7 +38,56 @@ let rec evaluateExpr vars = function
   | Call _ -> failwith "Unsupported call structure" 
 
 
+let force work = async {
+    let! (v:obj) = work
+    Log.trace("force", "Value: %o", v)
+    if v <> null && getProperty v "force" <> null then
+        Log.trace("force", "Force evaluate:", v)
+        do! apply (getProperty v "force") v [| |]
+    return v }
 
+let rec evaluateExprEager vars e = force <| async {
+  match e with
+  | Number n -> return box n
+  | String s -> return box s
+  
+  | Variable(n) -> 
+      match Map.tryFind n.Node vars with
+      | Some res -> return res
+      | _ -> return failwithf "Variable '%s' is not defined." n.Node
+
+  | Binary(le, op, re) ->
+      let! le = evaluateExprEager vars le.Node
+      let! re = evaluateExprEager vars re.Node
+      match op with 
+      | '+' -> return box (unbox le + unbox re)
+      | '*' -> return box (unbox le * unbox re)
+      | '/' -> return box (unbox le / unbox re)
+      | '-' -> return box (unbox le - unbox re) 
+      | _ -> return failwith "Unsupported operator"
+
+  // TODO: Implement member access (getProperty)
+  | Member(obj, { Node = Variable name }) -> 
+      let! inst = evaluateExprEager vars obj.Node
+      return getProperty inst name.Node
+
+  // DEMO: Implement let binding
+  | Let(var, assign, body) ->
+      let! value = evaluateExprEager vars assign.Node
+      return! evaluateExprEager (Map.add var.Node value vars) body.Node
+
+  // DEMO: Show implementation of call
+  | Call({ Node = Member(obj, {Node = Variable name }) }, args) -> 
+      let! obj = evaluateExprEager vars obj.Node
+      let argVals = ResizeArray<_>()
+      for a in args.Node do 
+        let! a = evaluateExprEager vars a.Node
+        argVals.Add(a)
+      Log.trace("evaluator", "Method call: %s", name.Node)
+      return apply (getProperty obj name.Node) obj (argVals.ToArray())
+
+  | Member _ -> return failwith "Unsupported member access" 
+  | Call _ -> return failwith "Unsupported call structure" }
 
 let rec evaluateEntityKind = function
   | Root -> obj()
