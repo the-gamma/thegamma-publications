@@ -299,26 +299,23 @@ As an example, the anlysis done by the Financial Times for an article on plastic
 builds a visualization comparing waste flows in 2017 and 2018. Figure~\ref{fig:ft-uncomtrade} shows
 an extract from one notebook from the data analysis. The code has a number of remarkable properties:
 %
-\begin{itemize}
+\begin{itemize}[itemsep=3pt]
 \item There is no abstraction. The analysis uses lambda functions as arguments to library calls,
   but it does not define any top-level functions. Parameterization is done by defining a list of
   inputs and then having a for loop, or by defining a top-level variable and setting its value.
   In our example, \ident{material} is set to \str{plastics} and a comment lists other options.
   This lets the analyst easily see and check the results of intermediate steps of the analysis.
 
-\vspace{0.5em}
 \item The code relies on external libraries. Our example uses Pandas \cite{pandas},
   which provides opreations for data wrangling such as \ident{merge} to join datasets
   or \ident{drop\_duplicates} to delete rows with duplicate column values. Those libraries are
   external to the data analysis and may even be implemented in other languages -- many Python
   libraries rely on C++.
 
-\vspace{0.5em}
 \item The code is structured as a sequence of commands. Some commands define a variable, either by
   loading data, or by transforming data loaded previously. Even in Python, data is often treated
   as immutable. Other commands produce an output that is displayed in the notebook.
 
-\vspace{0.5em}
 \item There are many corner cases, such as the fact that the \ident{keep\_default\_na} parameter
   needs to be set to handle Namibia correctly. These are discovered interactively by writing and
   running a code snippet and examining the output, so providing a rapid feedback is essential.
@@ -1420,34 +1417,185 @@ together with induction over the binding of $K_c[x]$.
 \subsection{Empirical evaluation of efficiency}
 \label{sec:evaluation-empirical}
 
+The key performance claim about our method of providing instantaneous feedback is that it is more
+efficient than recomputing values for the whole program (or the current command) after every
+keystroke. In the previous section, we formally proved that this is true and gave examples of
+code edit operations that do not cause recomputation. In this section, we further support this
+claim with an empirical evaluation. The purpose of this section is not to precisely evaluate
+overheads of our implementation, but to compare how much recomputation different evaluation
+strategies perform.
+
+For the purpose of the evaluation, we use a simple image manipulation library that provides
+operations for loading, greyscaling, bluring and combining images. We compare delays in
+updating the preview for three different evaluation strategies, while performing the same
+sequence of code edit operations. Using image processing as an example gives us a way to
+visualize the reuse of previously computed values. As in a typical data exploration scenario,
+the individual operations are relatively expensive compared to the overheads of building the
+dependency graph.
+
+% --------------------------------------------------------------------------------------------------
+
 \begin{figure}
-\includegraphics[scale=0.5]{drawing.png}
-\caption{Zzz}
-\label{fig:drawing}
+\raggedright
+
+\vspace{0.5em}\hspace{1.5em}{\small\sffamily (1) Enter the following code and then change parameter of blur from 4 to 8:}
+\begin{equation*}
+\begin{array}{l}
+\ident{image}.\ident{load}(\str{shadow.png}).\ident{greyScale}().\ident{blur}(\num{4})
+\end{array}
+\end{equation*}
+
+\vspace{0.5em}\hspace{1.5em}{\small\sffamily (2) Assign the result to a variable and start writing code for further operations:}
+\begin{equation*}
+\begin{array}{l}
+\kvd{let}\,\ident{shadow}=\ident{image}.\ident{load}(\str{shadow.png}).\ident{greyScale}().\ident{blur}(\num{8})\\
+\ident{shadow}.\ident{combine}
+\end{array}
+\end{equation*}
+
+\vspace{0.5em}\hspace{1.5em}{\small\sffamily (3) Finish code to combine two images and then change parameter of combine from 20 to 80:}
+\begin{equation*}
+\begin{array}{l}
+\kvd{let}\,\ident{shadow}=\ident{image}.\ident{load}(\str{shadow.png}).\ident{greyScale}().\ident{blur}(\num{8})\\
+\ident{shadow}.\ident{combine}(\ident{image}.\ident{load}(\str{pope.png}), \num{20})
+\end{array}
+\end{equation*}
+
+\vspace{0.5em}\hspace{1.5em}{\small\sffamily (4) Extract the parameter of combine to a let bound variable:}
+\begin{equation*}
+\begin{array}{l}
+\kvd{let}\,\ident{ratio} = \num{80} \\
+\kvd{let}\,\ident{shadow}=\ident{image}.\ident{load}(\str{shadow.png}).\ident{greyScale}().\ident{blur}(\num{8})\\
+\ident{shadow}.\ident{combine}(\ident{image}.\ident{load}(\str{pope.png}), \ident{ratio})
+\end{array}
+\end{equation*}
+
+\caption{Code edit operations that are used in the experimental evaluation}
+\label{fig:image-edits}
 \end{figure}
 
-\subsubsection{Methodology}
+% --------------------------------------------------------------------------------------------------
 
-image.load("shadow.png").greyScale().blur(5)
+\begin{figure}[b]
+\vspace{-0.5em}
+\includegraphics[scale=0.425]{drawing.png}
+\caption{Time required to recompute the results of a sample program after individual tokens of
+  the program are added or modified for three different evaluations strategies.}
+\label{fig:drawing}
+\vspace{-0.5em}
+\end{figure}
 
-image.load("shadow.png").greyScale().blur(10)
+% --------------------------------------------------------------------------------------------------
 
-let s = image.load("shadow.png").greyScale().blur(5)
-s
+\subsubsection{Code edit operations and methodology}
 
-let s = image.load("shadow.png").greyScale().blur(10)
-s.combine(image.load("pope.png"), 80)
+To avoid clutter when visualizing the performance, we update the preview after complete tokens are
+added (such as identifier, number, dot or left parenthesis) rather than after individual keystrokes.
+Figure~\ref{fig:image-edits} shows the sequence of code edit operations that we use to measure
+the delays in updating a live preview. We first enter an expression to load, greyscale and blur
+an image (1) then introduce let binding (2) and add more operations (3). Finally, we extract
+one of the parameters into a variable (4). Most of the operations are simply adding code, but
+there are two cases where we modify existing code and change value of a parameter for \ident{blur}
+and \ident{combine} immediately after (1) and (3), respectively.
 
-let r = 80
-let s = image.load("shadow.png").greyScale().blur(10)
-s.combine(image.load("pope.png"), r)
+We implement the algorithm described in Sections~\ref{sec:formal} and \ref{sec:previews} in a
+simple web-based environment that allows the user to modify code and explicitly trigger
+recomputation. It then measures time needed to recompute values for the whole program and
+displays the resulting image. If the parsing fails, e.g.~because of an unclosed parenthesis,
+previews are not updated and we record only the time taken by parsing attempt. We compare the
+delays of three different evaluation strategies:
 
-\subsubsection{Conclusions}
+\begin{itemize}[itemsep=3pt]
+\item \emph{Call-by-value.} Following the semantics in Section~\ref{sec:calculus-semantics},
+  all sub-expressions are fully evaluated before an expression is evaluated. In this case, work may
+  be done even if the evaluation results in an error. For example, we parse
+  $\ident{image}.\ident{load}(\str{shadow.png}).\ident{blur}$ as member access with no arguments.
+  The evaluation loads the image, but then fails because blur requires one argument.
+
+\item \emph{Lazy.} To address the wastefulness of call-by-value strategy discussed above, we
+  simulate lazy evaluation by implementing a version of the image processing library where
+  operations build a delayed computation and only evaluate it when rendering an image. Using
+  this strategy, failing computations do not perform unnecessary work.
+
+\item \emph{Live.} Finally, the live strategy uses the algorithm described in
+  Sections~\ref{sec:formal} and \ref{sec:previews}. The cache is empty at the beginning of the
+  experiment and we update it after each token is added. This is the only strategy that does
+  not start afresh after reparsing code.
+\end{itemize}
+
+\subsubsection{Efficiency evaluation}
+The experimental environment is implemented in F\# and compiled to JavaScript using the Fable
+compiler. We run the experiments in Firefox (version 64.0.2, 32bit) on Windows 10
+(1809, 64bit) on a computer with Intel Core i7-7660U CPU and 16Gb RAM.
+
+Figure~\ref{fig:drawing} shows times needed to recompute previews after individual tokens
+of the program are added, deleted or modified, according to the script in
+Figure~\ref{fig:image-edits}, resulting in 38 measurements for each of the 3
+evaluation strategies. We mark a number of notable points in the chart:
+
+\begin{enumerate}[(a)]
+\item Loading image for the first time incurs small extra overhead in the live strategy.
+\item Greyscaling using the live strategy does not need to re-load the image.
+\item Accessing the blur member without arguments causes delay for call-by-value strategy.
+\item When varying the parameter of blur, the live strategy reuses previously greyscaled image.
+\item Introducing let binding does not cause recomputation when using live strategy.
+\item As in (c), accessing combine member without valud argument only affects call-by-value.
+\item Varying parameter of combine in live strategy does not recompute blur and is much faster.
+\item Introducing let binding, again, causes full recomputation for lazy can call-by-value.
+\end{enumerate}
+
+% --------------------------------------------------------------------------------------------------
+
+\begin{figure}
+\noindent
+\includegraphics[scale=0.48]{hist-all.png}
+\includegraphics[scale=0.48]{hist-slow.png}
+\caption{Histogram showing the distribution of delays incurred when updating previews.
+  We show a histogram computed from all delays (left) and only from delays larger
+  than 15ms (right).}
+\label{fig:drawing-hist}
+\end{figure}
+
+% --------------------------------------------------------------------------------------------------
+
+\noindent
+A summarized view of the delays is provided in Figure~\ref{fig:drawing-hist}, which shows
+histograms illustrating the distribution of delays for each of the three evaluation methods.
+A large proportion of delays is very small (less than 15ms) because the parser used in our
+experimental environment often fails (e.g.~for unclosed parentheses). The histogram
+on the right summarizes only delays for edit operations where the delay for at least one of
+the strategies was over 15ms. A more robust parser would be able to recover and the delays
+for call-by-value and lazy strategies would be even more significant.
+
+\subsubsection{Summary of results}
+The purpose of our empirical is not to exactly assess the overhead of our implementation
+of the live evaluation strategy algorithm. Instead, our goal is to
+illustrate how often can previously evaluated results be reused and the impact this has when
+writing code. The experiment presented in this section is small-scale, but it is sufficient
+to illustrate the main point.
+
+When recomputing results after every edit operation
+using the \emph{call-by-value} strategy, the time needed to update the results grows
+continually. The \emph{lazy} strategy removes the overhead for programs that fail to evaluate, but
+keeps the same trend. Using our \emph{live} strategy, the computation can reuse values computed
+previously and, as a result, expensive operations (such as (d) and (g) in Figure~\ref{fig:drawing})
+are significantly faster, because they do not need to recompute operations done previously when
+writing the code. As shown in Figure~\ref{fig:drawing-hist}, there are almost no very expensive
+operations (taking over 1 second) in the \emph{live} strategy in contrast to several in the
+other two strategies.
+
+% --------------------------------------------------------------------------------------------------
 
 \newpage
 
 \section{Case study / implementation}
 \label{sec:case}
+
+http://gallery.thegamma.net/75/gender-pay-gap
+http://gallery.thegamma.net/73/libraries
+http://gallery.thegamma.net/47/unemployment-in-italy
+http://gallery.thegamma.net/44/classification-of-the-functions-of-government-cofog
+http://gallery.thegamma.net/37/top-10-government-departments-by-201516-expenditure
 
 % ==================================================================================================
 
