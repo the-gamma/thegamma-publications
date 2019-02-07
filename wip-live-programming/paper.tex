@@ -248,12 +248,12 @@ ordinary text editor. Our most important contributions are:
 \item We prove that our live preview mechanism is correct (Section~\ref{sec:evaluation-correctness}) and that
   it reuses previously evaluated values when possible (Section~\ref{sec:evaluation-reuse}). We
   illustrate the practicality of the mechanism using an empirical evaluation
-  (Section~\ref{sec:evaluation-empirical}) and a case study (Section~\ref{sec:case}).
+  (Section~\ref{sec:evaluation-empirical}) and a case study (Section~\ref{sec:evaluation-case}).
 
 \item We extend our core environment in two ways, First, we add instantaneous type checker
   that relies on the same core infrastructure as live previews and enables richer user experience
-  through \emph{type providers} (Section~\ref{sec:types}). Second, we add an abstraction mechanism
-  that preserves the live coding experience (Section~\ref{sec:design}).
+  through \emph{type providers} (Section~\ref{sec:extra-types}). Second, we add an abstraction mechanism
+  that preserves the live coding experience (Section~\ref{sec:extra-abstraction}).
 \end{itemize}
 
 % ==================================================================================================
@@ -345,7 +345,7 @@ enough to pose an interesting and important domain for programming tools researc
   }{\includegraphics[scale=0.26]{gamma2.png}}
   \caption{\small Data exploration in The Gamma -- using a type provider (left) and with a live
     preview (right).}
-  \label{first-figure-with-subfigures}
+  \label{fig:gamma-intro}
 \end{figure}
 
 \subsection{Dot-driven data exploration in The Gamma}
@@ -385,7 +385,7 @@ on a subset of Python.
 \subsection{Live coding for data exploration}
 
 The practical implementation work that complements the theory presented in this paper implements a live
-coding environment for The Gamma and is discussed in Section~\ref{sec:case} in detail. Earlier work by
+coding environment for The Gamma and is discussed in Section~\ref{sec:evaluation-case} in detail. Earlier work by
 \citet{gamma} discussed The Gamma language and the type provider mechanism, but the implementation
 provided only a standard text editor with auto-completion. Our work brings the experience of using
 The Gamma closer to that of spreadsheets by developing an editor that evaluates scripts
@@ -419,10 +419,9 @@ sufficient to capture the simple data analyses discussed in Section~\ref{sec:bac
 define the caluclus in this section and then use it as the basis for discussing our live preview
 mechanism in Section~\ref{sec:formal}.
 
-We initially present the data exploration calculus without a static type system. The live preview
-mechanism can be discussed equally well without types. We consider type checking later in
-Section~\ref{sec:types} as the mechanism that is used for live previews can also be
-used for incremental type-checking.
+We initially present the data exploration calculus without a static type system as the live preview
+mechanism does not rely on types. We consider type checking later in Section~\ref{sec:extra-types}
+as the mechanism that is used for live previews can also be used for instantaneous type checking.
 
 % --------------------------------------------------------------------------------------------------
 
@@ -952,7 +951,7 @@ Our implementation does not currently display
 delayed previews to the user, but there is a number of possible approaches for doing that.
 Most interestingly, since lambda functions always appear as arguments of a member access, we could
 force the evaluation of the surrounding expression, capture (a number of) values passed as inputs
-to the lambda function and display a preview based on those. Finally, in Section~\ref{sec:design},
+to the lambda function and display a preview based on those. Finally, in Section~\ref{sec:extra-abstraction},
 we also consider a more speculative design for an abstraction mechanism that supports live previews
 that could, in some cases, replace lambda function.
 
@@ -1091,18 +1090,19 @@ $\llbracket A \rrbracket_\emptyset \rightarrow A$.
 
 % ==================================================================================================
 
-\section{Evaluating correctness and effectiveness}
+\section{Evaluating live coding environment}
 \label{sec:evaluation}
 
-The use of a dependency graph when evaluating previews makes it possible to cache partial results
-through a mechanism discussed in Section~\ref{sec:formal-deps} and Section~\ref{sec:previews-cache}.
+Evaluating previews using a dependency graph makes it possible to cache partial results.
 The mechanism satisfies two properties. First, if we evaluate a preview using dependency
 graph with caching, it is the same as the value we would obtain by evaluating the expression
 directly. Second, the evaluation of previews using dependency graphs reuses -- in some cases --
 previously evaluated partial results. In other words, we show that the mechanism is correct
 and implements an effective optimization. We discuss correctness first and then evaluate
 effectiveness, both theoretically (Section~\ref{sec:evaluation-reuse}) and empirically
-(Section~\ref{sec:evaluation-empirical}).
+(Section~\ref{sec:evaluation-empirical}). Finally, we describe a case study where we used the
+methods outlined in the paper to develop a larger online service for data exploration
+(Section~\ref{sec:evaluation-case}).
 
 % --------------------------------------------------------------------------------------------------
 
@@ -1526,7 +1526,7 @@ delays of three different evaluation strategies:
 \subsubsection{Efficiency evaluation}
 The experimental environment is implemented in F\# and compiled to JavaScript using the Fable
 compiler. We run the experiments in Firefox (version 64.0.2, 32bit) on Windows 10
-(1809, 64bit) on a computer with Intel Core i7-7660U CPU and 16Gb RAM.
+(build 1809, 64bit) on a computer with Intel Core i7-7660U CPU and 16Gb RAM.
 
 Figure~\ref{fig:drawing} shows times needed to recompute previews after individual tokens
 of the program are added, deleted or modified, according to the script in
@@ -1586,390 +1586,210 @@ other two strategies.
 
 % --------------------------------------------------------------------------------------------------
 
-\newpage
-
-\section{Case study / implementation}
-\label{sec:case}
-
-http://gallery.thegamma.net/75/gender-pay-gap
-http://gallery.thegamma.net/73/libraries
-http://gallery.thegamma.net/47/unemployment-in-italy
-http://gallery.thegamma.net/44/classification-of-the-functions-of-government-cofog
-http://gallery.thegamma.net/37/top-10-government-departments-by-201516-expenditure
-
-% ==================================================================================================
-
-\section{Type checking}
-\label{sec:types}
-
-Evaluating live previews can be an expensive operations, so being able to cache partial previews
-is a must for a live coding environment. Type checking is typically fast, so the main focus of
-this paper is on live previews. However, asynchronous type providers in The Gamma (Section~\ref{sec:types-providers})
-can make type checking time consuming, and so we use the dependency graph also for type checking
-(Section~\ref{sec:types-graph}). Type checking lambda functions (Section~\ref{sec:types-funs})
-requires a slight extension of the model discussed in Section~\ref{sec:formal}.
-
-% --------------------------------------------------------------------------------------------------
-
-\subsection{Asynchronously provided types}
-\label{sec:types-providers}
-
-Data available in The Gamma can be defined using several kinds of type providers. The type provider
-used in Figure~\ref{fig:thegamma} as asynchronous \cite{async}. It downloads the sample URL and generates
-types based on the contents of the web page. The parameter to \ident{web.scrape} is a static
-parameter and is evaluated during type-checking. We omit details in this paper, but we note this
-works similarly to F\# type providers \cite{providers-fsharp}.
-
-Type providers can also be implemented as REST services \cite{rest} to allow anyone implement a data source
-in the language of their choice. In this case, each member of a call-chain returns a type that is
-generated based on the result of an HTTP request. For example, when the user types \ident{worldbank}
-(to access information about countries), the type provider makes a request to
-\url{http://thegamma-services.azurewebsites.net/worldbank}, which returns two members:
-%
-\begin{equation*}
-\begin{array}{l}
-[~\{\rstr{name}\!:\str{byYear},\rstr{returns}\!:\\
-~\quad \{\rstr{kind}\!:\str{nested},\rstr{endpoint}\!:\str{/pickYear}\}\}\\
-\hspace{0.55em}\{\rstr{name}\!:\str{byCountry},\rstr{returns}\!:\\
-~\quad \{\rstr{kind}\!:\str{nested},\rstr{endpoint}\!:\str{/pickCountry}\}\}~]
-\end{array}
-\end{equation*}
-%
-This indicates that \ident{worldbank} has members \ident{byYear} and \ident{byCountry}.
-If the user types \ident{worldbank.byCountry}, a request is made to the specified URL
-\url{http://thegamma-services.azurewebsites.net/worldbank/pickCountry}:
-%
-\begin{equation*}
-\begin{array}{l}
-[~\{\rstr{name}\!:\str{Andorra},\rstr{trace}\!:[\str{"country=AR"}], \\
-\quad \rstr{returns}\!:\{\rstr{kind}\!:\str{nested},\rstr{endpoint}\!:\str{/pickTopic}\}\}\\
-\hspace{0.55em}\{\rstr{name}\!:\str{Afghanistan},\rstr{trace}\!:[\str{"country=AF"}],\\
-\quad \rstr{returns}\!:\{\rstr{kind}\!:\str{nested},\rstr{endpoint}\!:\str{/pickTopic}\}\},\,..]
-\end{array}
-\end{equation*}
-%
-This returns a list of countries which can then be accessed as members via
-\ident{worldbank.byCountry.Andorra}, etc.
-
-This is one reason for why type checking in The Gamma can be time consuming. Other
-type providers may perform other more computationally intensive work to provide types and so
-it is desirable to reuse type-checking results during live coding. The rest of this section
-shows how this is done using the dependency graph discussed in Section~\ref{sec:formal}.
-
-\begin{figure}[!b]
-\vspace{-0.5em}
-\begin{equation*}
-\xymatrix{
-&\bnd{val}(o)\\
-&\bnd{mem}(m, s_0) \ar[u]_{\blbl{arg}(0)} \ar[dl]^{\blbl{arg}(1)} \\
-\bnd{fun}(x, s_2) \ar@/^/[uur]^{\blbl{callsite}(m, 1)} \ar[rr]^{\blbl{body}} && \bnd{var}(x, s_1) \ar@/_/[uul]_{\blbl{callsite}(m, 1)}
-}
-\end{equation*}
-\caption{Dependency graph for $o.m(\lambda x\rightarrow x)$}
-\label{fig:graph-func}
+\begin{figure}[t]
+\noindent
+\hspace{-1em}
+\includegraphics[scale=0.245]{gallery1.png}
+\includegraphics[scale=0.245]{gallery2.png}
+\caption{\small Data analysis counting the number of libraries per county in the UK. We load
+  and aggregate data (left) and then create a chart with a label (right).
+  The example is adapted from \url{http://gallery.thegamma.net/73/}.}
+\label{fig:gallery}
 \end{figure}
 
 % --------------------------------------------------------------------------------------------------
 
-\begin{figure*}[t]
-\vspace{-0.5em}
-\begin{equation*}
-\begin{array}{ll}
-\ident{bind-expr}_{\Gamma, \Delta, c}(e_0.m(e_1, \ldots, e_n)) = &(2b)\\
-\qquad \bndclr{v}, (\{\bndclr{v}\} \cup V_0 \cup \ldots \cup V_n, E \cup E_0 \cup \ldots \cup E_n)\\
-\quad \textnormal{when}~\bndclr{v_0}, (V_0, E_0) = \ident{bind-expr}_{\Gamma, \Delta, \bot}(e_0)\\
-\quad \textnormal{and}~c_i = (\bndclr{v_0}, \blbl{callsite}(m,i))\hspace{4.8em} (i \in 1\ldots n)\\
-\quad \textnormal{and}~\bndclr{v_i}, (V_i, E_i) = \ident{bind-expr}_{\Gamma, \Delta, c_i}(e_i)\qquad (i\in 1\ldots n)\\
-\quad \textnormal{and}~(\bknd{mem}(m),[(\bndclr{v_0}, \blbl{arg}(0)), \ldots, (\bndclr{v_n}, \blbl{arg}(n))]) \notin \ident{dom}(\Delta)\hspace{-200em}.\\
-\quad \textnormal{let}~\bndclr{v} = \bnd{mem}(m, s), s~\textnormal{fresh}\\
-\quad \textnormal{let}~E = \{ (\bndclr{v}, \bndclr{v_0}, \blbl{arg}(0)), \ldots, (\bndclr{v},\bndclr{v_n}, \blbl{arg}(n)) \}
-\end{array}
-\qquad\qquad
-\begin{array}{ll}
-\ident{bind-expr}_{\Gamma, \Delta, (\bndclr{v_c}, \blblclr{l_c} )}(\lambda x \rightarrow e) = \bndclr{v}, (\{\bndclr{v}\} \cup V_0, E \cup E_0)&(7b)\\
-\quad \textnormal{when}~(\bknd{var}(x),[(\bndclr{v_c}, \blblclr{l_c} )])\notin \ident{dom}(\Delta)\\
-\quad \textnormal{let}~\bndclr{v_x} = \bnd{var}(x, s_x), s_x~\textnormal{fresh}\\
-\quad \textnormal{and}~\Gamma_1 = \Gamma \cup \{ x, \bndclr{v_x} \}\\
-\quad \textnormal{and}~\bndclr{v_0}, (V_0, E_0) = \ident{bind-expr}_{\Gamma_1, \Delta, \bot}(e)\\
-\quad \textnormal{when}~(\bknd{fun}(x),[(\bndclr{v_0}, \blbl{body}), (\bndclr{v_c}, \blblclr{l_c} )])\notin \ident{dom}(\Delta)\\
-\quad \textnormal{let}~\bndclr{v} = \bnd{fun}(x, s_f), s_f~\textnormal{fresh}\\
-\quad \textnormal{let}~E = \{ (\bndclr{v},\bndclr{v_0},\blbl{body}), (\bndclr{v},\bndclr{v_c},\blblclr{l_c}), (\bndclr{v_x},\bndclr{v_c},\blblclr{l_c}) \}
-\\[0.75em]
-\end{array}
-\end{equation*}
-\vspace{-0.5em}
-\caption{Revised binding rules, tracking call sites of function values.}
-\label{fig:binding-rules-callsite}
-\vspace{-0.5em}
-\end{figure*}
+\subsection{Transparent tools for data journalism}
+\label{sec:evaluation-case}
 
-% --------------------------------------------------------------------------------------------------
+In Section~\ref{sec:background-jupyter}, we motivated our work by considering how journalists
+explore open data. In addition to the theoretical and experimental work presented in this paper,
+we also implemented an online data exploration environment, equipped with live editor for The
+Gamma language that provides instananeous feedback during coding. The environment uses the
+principles presented in this paper to build a more comprehensive system that allows users,
+such as journalists, to analyse, summarize and visualize open data. In this section, we briefly
+report on our experience with the system.
 
-\subsection{Revised binding of functions}
-\label{sec:types-funs}
+The environment is available at \url{http://gallery.thegamma.net}. Two screenshots shown
+in Figure~\ref{fig:gallery} illustrate a number of interesting features:
 
-The Gamma script supports lambda functions, but only in a limited way. A function can be passed
-as a parameter to a method, which makes type checking of functions easier. For example, consider:
-%
-\begin{equation*}
-\begin{array}{l}
-\ident{movies}.\ident{sortBy}(\lambda x \rightarrow x.\ident{getBudget}())
-\end{array}
-\end{equation*}
-%
-If \ident{movies} is a collection of \ident{Movie} objects, the type of the lambda function must be
-$\ident{Movie}\rightarrow\ident{bool}$ and so the type of $x$ is \ident{Movie}. This is similar to
-type checking of lambda functions in C\# \cite{csharp}, where type is also inferred from the context (or has
-to be specified explicitly).
+\begin{itemize}[itemsep=3pt]
+\item The left screenshot uses a type provider for data aggregation introduced by \citet{gamma}
+  and briefly discussed in Secton~\ref{sec:background-gamma}. For the purpose of
+  this paper, the type provider is an external library (with objects, members and reduction relation).
+  Using the type provider relies on editor auto-complete which is based on type information. To support
+  this, we implement type checking, as discussed in Section~\ref{sec:extra-types}, reusing the mechanism
+  of live preview evaluation.
 
-We do not currently allow lambda functions as stand-alone let-bound
-values. This could be done by requiring explicit types, or introducing polymorphism, but it was not
-necessary for the limited domain of non-expert data exploration.
+\item The live preview for code written using the data agregation type provider (left) is shown
+  in a panel below the current command. This shows the preview for a sub-expression based on the
+  position of the cursor (i.e.~raw data before grouping in the screenshot). In addition to the
+  preview, our environment also generates tabs that let the user navigate to individual steps of
+  the data transformation for code using the data aggregation type provider.
 
-\paragraph{Dependency graph for functions.}
-In the binding process specified in Section~\ref{sec:formal}, a variable is a leaf of the dependency
-graph. In the revised model, it depends on the context in which it appears. A new edge labeled
-$\blbl{callsite}(m, i)$ indicates that the source node is the input variable of a function
-passed as the $i^\textnormal{th}$ argument to the $m$ member of the expression represented by the
-target node. A node representing function is linked to the call site using the same edge.
+\item The right screenshot uses a charting library, which is another external library available in
+  the environment. Unlike for data aggregation (left), live previews for charts (right) are not
+  handled in a special way and we show the result of evaluating the whole command. The screenshot
+  shows a case where the user modifies parameters of the chart. Thanks to our live evaluation
+  strategy, this is done efficiently without reevaluating the data transformation.
+\end{itemize}
 
-Figure~\ref{fig:graph-func} shows the result of binding $o.m(\lambda x\rightarrow x)$. Both
-$\bnd{fun}(x, s_2)$ and $\bnd{var}(x, s_1)$ now depend on the node representing $o$. The new
-$\blbl{callsite}$ edge makes it possible to type-check function and variable nodes just using their
-dependencies. As before, the member invocation $\bnd{mem}(m, s_0)$
-depends on the instance using $\blbl{arg}(0)$ and on its argument using $\blbl{arg}(1)$.
-
-% --------------------------------------------------------------------------------------------------
-
-\begin{figure*}
-\vspace{0.5em}
-\begin{equation*}
-\begin{array}{l}
-\qquad\inference[\rname{val}~]
-  {\Sigma(n) = \alpha}
-  {\bnd{val}(n) \vdash \alpha }
-\quad\qquad
-\inference[\rname{var}~]
-  { (\bnd{var}(x,s), \bndclr{v}, \blbl{callsite}(m, i)) \in E &
-    \bndclr{v} \vdash (.., m:(\tau_1, \ldots, \tau_k)\rightarrow \tau,..) & \tau_i=\tau'\rightarrow\tau'' }
-  { \bnd{var}(x, s) \vdash \tau' }
-\\[2.5em]
-\inference[\rname{fun}~]
-  { \{(\bnd{fun}(x,s), \bndclr{v_b}, \blbl{body}), (\bnd{var}(x,s), \bndclr{v_c}, \blbl{callsite}(m, i))\} \subseteq E &
-    \bndclr{v_c} \vdash (.., m:(\tau_1, \ldots, \tau_k)\rightarrow \tau,..) &
-    \tau_i=\tau'\rightarrow\tau'' & \bndclr{v_b} \vdash \tau'' }
-  { \bnd{fun}(x, s) \vdash \tau' \rightarrow \tau'' }
-\\[2.5em]
-\qquad\qquad\quad\inference[\rname{mem}~]
-  { \forall i\in\{0\ldots k\}.(\bnd{mem}(m, s), \bndclr{v_i}, \blbl{arg}(i)) \in E &
-    \bndclr{v_0} \vdash (.., m:(\tau_1, \ldots, \tau_k) \rightarrow \tau, ..)& \bndclr{v_i} \vdash \tau_i }
-  { \bnd{mem}(m, s) \vdash \tau }
-\\[1em]
-\end{array}
-\end{equation*}
-\caption{Rules that define evaluation of previews over a dependency graph for an expression}
-\vspace{0.5em}
-\label{fig:tc}
-\end{figure*}
-
-% --------------------------------------------------------------------------------------------------
-
-\paragraph{Revised binding process.}
-For the revised binding process, we introduce a new edge label $\blbl{callsite}$. Variable nodes
-now have dependencies and so we cache them and attach a symbol $s$ to \bnd{var}, so we also
-introduce a node kind $\bknd{var}$ as part of a lookup key for $\Delta$.
-
-The \ident{bind-expr} function now has a parameter $c$, in addition to $\Gamma$ and $\Delta$, which
-represents the context in which the binding happens. This is either a member invocation (labeled
-with instance node $\bndclr{v}$ and \blbl{callsite} label $\blblclr{l}$), or not a member
-invocation written as $\bot$. The updated definitions are:
-%
-\begin{equation*}
-\begin{array}{lcll}
-\bndclr{v} &\hspace{-0.5em}\in\hspace{-0.5em}&\bnd{val}(n)~|~\bnd{var}(x, s)~|~\bnd{mem}(m, s)~|~\bnd{fun}(x, s)&(\textit{Vertices})\\
-\blblclr{l}&\hspace{-0.5em}\in\hspace{-0.5em}&\blbl{body}~|~\blbl{arg}(i)~|~\blbl{callsite}(m,i)&(\textit{Edge labels})\\
-\bkndclr{k}&\hspace{-0.5em}\in\hspace{-0.5em}&\bknd{fun}(x)~|~\bknd{mem}(m)~|~\bknd{var}(x)&(\textit{Node kinds})\\
-          c&\hspace{-0.5em}\in\hspace{-0.5em}&\bot ~|~(\bndclr{v}, \blblclr{l})&(\textit{Call sites})\\
-\end{array}
-\end{equation*}
-%
-The key parts of the revised definition of the \ident{bind-expr} function are shown in Figure~\ref{fig:binding-rules-callsite}.
-We now write $\ident{bind-expr}_{\Gamma,\Delta,c}$ where $c$ represents the context in which the
-binding occurs. This is set to $\bot$ in all cases, except when binding arguments of a member call.
-In (2b), we first recursively bind the instance node using $\bot$ as the context and then
-bind all the arguments using $(\bndclr{v_0}, \blbl{callsite}(m, i))$ as the context for $i^{\textnormal{th}}$
-argument. The rest is as in case (2) before. The case (1) is updated similarly and is not shown
-here for brevity.
-
-When binding a function (7b), we now also store variable nodes in $\Delta$ and so we check if a
-variable with the given call site exists. If no, we create a fresh node $\bnd{var}(x, s_x)$.
-The node is added to $\Gamma$ as before. At the end, we now also include a call site edge from the
-variable node and from the function node in $E$. We omit a similar variant of the case (6).
-The remaining cases (3)-(5) are the same, except that \ident{bind-expr} has the additional $c$ parameter
-and recursive calls always set it to $\bot$.
-
-Finally, the \ident{update} function in Figure~\ref{fig:loop} also needs to be updated to store the
-newly created \bnd{var} nodes. This is done by adding the following single case:
-
-\begin{equation*}
-\begin{array}{l}
-\Delta_{i}(\bknd{var}(x), [(\bndclr{v},\blbl{callsite}(m,i))]) = \bnd{var}(x, s)\\
-\quad\quad \textnormal{for all}~\bnd{var}(x, s) \in V\\
-\quad\quad \textnormal{such that}~(\bnd{var}(x, s), \bndclr{v}, \blbl{callsite}(m,i)) \in E
-\end{array}
-\end{equation*}
-
-% --------------------------------------------------------------------------------------------------
-
-\subsection{Type checking over dependency graphs}
-\label{sec:types-graph}
-
-The type system for The Gamma supports a number of primitive types (such as integers and strings)
-written as $\alpha$. Composed types include functions and objects with members. Objects are be
-provided by type providers, but we omit the details here. Types of object members are written as
-$\sigma$ and can have multiple arguments:
-%
-\begin{equation*}
-\begin{array}{lcll}
-\tau&\in&\alpha ~|~ \tau \rightarrow \tau ~|~ \{m_1\!:\!\sigma_1, \ldots, m_n\!:\!\sigma_n\} &\quad(\textit{Types})\\
-\sigma &\in& (\tau_1, \ldots, \tau_n) \rightarrow \tau &\quad(\textit{Members})\\
-\end{array}
-\end{equation*}
-%
-The typing judgements are written in the form $\bnd{v}\vdash \tau$. They are parameterised by the
-dependency graph $(V, E)$, but this is not modified during type checking so we keep it implicit
-rather than writing e.g.~$\bnd{v}\vdash_{(V,E)} \tau$.
-
-\paragraph{Type checking.}
-The typing rules are shown in Figure~\ref{fig:tc}. Types of primitive values $n$ are obtained
-using a global lookup table $\Sigma$ \rname{val}. When type checking a member call \rname{mem},
-we find its dependencies $\bndclr{v_i}$ and check that the first one (instance) is an object with
-the required member $m$. The types of input arguments of the member then need to match the types
-of the remaining (non-instance) nodes.
-
-Type checking a function \rname{fun} and a variable \rname{var} is similar. In both cases,
-we follow the \blbl{callsite} edge to find the member that accepts the function as an argument.
-We obtain the type of the function from the type of the $i^\textnormal{th}$ argument of the
-member. We use the input type as the type of variable \rname{var}. For functions, we also check
-that the resulting type matches the type of the body \rname{fun}.
-
-\paragraph{Caching results.}
-Performing type checking over the dependency graph, rather than over the abstract syntax tree,
-enables us to reuse the results of previously type checked parts of a program. As when
-caching evaluated previews (Section~\ref{sec:previews}), we build a lookup table mapping graph
-nodes to types. When type checking a node, we first check the cache and, only if it is new,
-follow the $\vdash$ relation to obtain the type.
-
-As a result, code can be type checked on-the-fly during editing, even when asynchronous type
-providers are used, and the programmer gets instant feedback without delays.
-
-% --------------------------------------------------------------------------------------------------
-
-\subsection{Properties of type checking}
-
-As noted in Section~\ref{sec:types}, the focus of this paper is on live previews, but we also
-use the method based on reusing nodes in a dependency graph for type checking. We do not discuss
-properties of type checking in detail, but we briefly note how the different properties of
-live previews extend to corresponding properties of type checking.
-
-\paragraph{Type checking result reuse.} In Section~\ref{sec:evaluation-reuse}, we show that
-certain source code edits do not cause the recomputation of previews for the whole expression
-or a sub-expression. The edits are given in Figure~\ref{fig:operations}. The proof uses the fact
-that the newly bound graph (after code edit) reuses nodes of the previous graph. This implies that
-type checking results can be reused in exactly the same way as live previews -- they are also
-stored in a lookup table with graph nodes as keys.
-
-\paragraph{Correctness.} The correctness property (Theorem~\ref{thm:correctness}) shows that
-graph-based preview evaluation matches direct evaluation of expressions. To show a corresponding
-property for type checking, we would need to provide ordinary type system based on the structure
-of the expression and prove that the two are equivalent. In our implementation, we only use the
-presented graph-based type checking method, so we do not provide an alternate account in this paper.
-
-\paragraph{Determinacy.} The determinacy property (Theorem~\ref{thm:determinacy}) guarantees that
-previews can be cached, because evaluating them again, using $\Downarrow$ over an updated graph,
-would yield the same result. The same property holds for $\vdash$, meaning that type checking
-results can be cached. Although the Theorem~\ref{thm:determinacy} talks explicitly about
-$\Downarrow$, it can be easily extended for $\vdash$, because the proof depends on how the graph
-is updated using $\ident{update}_{V,E}$ and the binding process.
+\noindent
+Conducting an extensive user study that would evaluate the usability of the system from a
+human-computer ineraction perspective is left for future work. To give anecdotal evidence of
+the usability, the example shown in Figure~\ref{fig:gallery} is an analysis developed by an
+attendee of our tutorial at Mozilla Festival 2017 who had no prior programming experience.
 
 % ==================================================================================================
 
-\section{Design lessons}
-\label{sec:design}
-
-The motivation for the presented work, briefly outlined in Section~\ref{sec:live}, is to build a
-simple data exploration environment that would allow non-experts, like data journalists,
-transparently work with data. In this paper, we focused on providing live coding experience,
-which is one important step toward the goal. However, the language we use is a mix of established
-object-oriented (member access) and functional (function values) features with type providers.
-
-If we were to design a new programming language, there are lessons we can learn from the
-cases that make type checking and preview evaluation in this paper difficult. This section
-briefly considers those.
-
-\paragraph{Functions and type providers.} When using type providers in a nominally-typed language,
-the provided types are named, but the names are typically not easy to type \cite{fsdata}. This is
-not a problem in typical usage where provided members are accessed via dot. Using the \ident{worldbank}
-example from Section~\ref{sec:types-providers}, we can access population of two countries using:
-%
+\begin{figure}
+\vspace{-0.5em}
 \begin{equation*}
+\hspace{3em}
+\xymatrix{
+\bnd{mem}(m, s_0) \ar@/_1pc/[drr]_{\blbl{arg}(1)} \ar[rr]^{\blbl{arg}(0)} && \bnd{val}(o) && \bnd{var}(x, s_1)\ar[ll]_{\blbl{callsite}(m, 1)} \\
+&&\bnd{fun}(x, s_2) \ar[u]_{\blbl{callsite}(m, 1)} \ar@/_1pc/[rru]_{\blbl{body}} &&
+}
+\end{equation*}
+\vspace{-0.5em}
+\caption{Dependency graph for $o.m(\lambda x\rightarrow x)$ with a newly added \blbl{callsite} edges.}
+\label{fig:graph-func}
+\vspace{-0.5em}
+\end{figure}
+
+% ==================================================================================================
+
+\section{Extending data exploration calculus}
+\label{sec:extra}
+
+The data exploration calculus presented in Section~\ref{sec:calculus} allowed us to formalise the
+live preview mechanism, but it lacks many important features. We outline two extensions.
+First, we discuss how to add instantaneous type checking by using the dependency graph construction
+described in Section~\ref{sec:formal}. Second, we consider an abstraction mechanism that preserves
+the live coding experience.
+
+% --------------------------------------------------------------------------------------------------
+
+\subsection{Type checking}
+\label{sec:extra-types}
+
+Instantaneous live previews give analysts quick feedback when they write incorrect code, but
+having type information is still valuable. First, it can help give better error messages. Second,
+types can be used to provide auto-complete -- when the user types `.' we can offer available
+members without having to evaluate the wait until the value of the object is available.
+
+\subsubsection{Revised dependency graph}
+Type checking of small programs is typically fast enough that no caching is necessary. However,
+The Gamma supports \emph{type providers} \cite{providers-fsharp,providers-idris}, which can
+generate types based on an external file or a REST service call, e.g.~\cite{fsdata}. For this
+reason, type checking can be relatively time consuming and can benefit from the same caching
+facilities as those available for live previews.
+
+Adding type checking requires revising the way we construct the dependency graph introduced in
+Section~\ref{sec:formal}. Previously, a variable bound by a lambda function had no dependencies.
+However, the type of the variable depends on the context in which it appears. Given an expression
+$o.m(\lambda x\rightarrow x)$, we infer the type of $x$ from the type of the first argument
+of the member $m$. A variable node for $x$ thus needs to depend on the call site of $m$.
+We capture that by adding an edge $\blbl{callsite}(m, i)$ from $x$ to $o$ which indicates that
+$x$ is the input variable of a function passes as the $i^\textnormal{th}$ argument to the $m$
+member of the expression represented by the target node. We also add $\blbl{callsite}(m, i)$
+as an edge from the node of the function. Figure~\ref{fig:graph-func} shows the
+revised dependency graph for $o.m(\lambda x\rightarrow x)$. A revised version of the algorithm
+that constructs the dependency graph is included in Appendix~\ref{sec:app-types}.
+
+\subsubsection{Type checking}
+The structure of typing rules is similar to the evaluation relation $\bndclr{v}\Downarrow d$
+defined earlyer. Given a dependency graph $(V, E)$, we define typing judgements in the form
+$\bndclr{v}\vdash \tau$. The type $\tau$ can be a primitive type, a function $\tau \rightarrow \tau$
+or an object type $\{m_1\!:\!\sigma_1, \ldots, m_n\!:\!\sigma_n\}$ with member types
+$\sigma = (\tau_1, \ldots, \tau_n) \rightarrow \tau$.
+
+The typing rules for variables, functions and member access are shown in Figure~\ref{fig:tc}.
+Remaining rules are available in Appendix~\ref{sec:app-types}.
+When type checking a member access \rname{mem}, we find its dependencies $\bndclr{v_i}$ and
+check that the instance is an object with the required member $m$. The types of arguments of the
+member then need to match the types of the remaining (non-instance) nodes.
+Type checking a function \rname{fun} and a variable \rname{var} is similar. In both cases,
+we follow the \blbl{callsite} edge to find the member that accepts the function as an argument
+and use the type of the argument to check the type of the function or infer the type of the
+variable.
+
+The results of type checking can be cached and reused in the same way as live previews, although
+we leave out the details. A property aking to correctness (Theorem~\ref{thm:correcntess})
+requires defining standard type checking over the structure of expressions, which we also
+omit for space reasons.
+
+% --------------------------------------------------------------------------------------------------
+
+\begin{figure}
+\begin{equation*}
+\hspace{-3.5em}
 \begin{array}{l}
-\ident{worldbank.byCountry.\textquotesingle United Kingdom\textquotesingle}.\\
-\quad \ident{Indicators.\textquotesingle Population (total)\textquotesingle}\\[0.5em]
-\ident{worldbank.byCountry.\textquotesingle Czech Republic\textquotesingle}.\\
-\quad \ident{Indicators.\textquotesingle Population (total)\textquotesingle}\hspace{9em}
+\inference[\rname{mem}~]
+  { \forall i\in\{0\ldots k\}.(\bnd{mem}(m, s), \bndclr{v_i}, \blbl{arg}(i)) \in E &
+  \bndclr{v_0} \vdash \{.., m:(\tau_1, \ldots, \tau_k) \rightarrow \tau, ..\} & \bndclr{v_i} \vdash \tau_i }
+  { \bnd{mem}(m, s) \vdash \tau }
+\\[1.5em]
+\inference[\rname{var}~]
+  { (\bnd{var}(x,s), \bndclr{v}, \blbl{callsite}(m, i)) \in E &
+    \bndclr{v} \vdash \{.., m:(\tau_1, \ldots, \tau_k)\rightarrow \tau,..\} & \tau_i=\tau'\rightarrow\tau'' }
+  { \bnd{var}(x, s) \vdash \tau' }
+\\[1.5em]
+\inference[\rname{fun}~]
+  { \{(\bnd{fun}(x,s), \bndclr{v_b}, \blbl{body}), (\bnd{var}(x,s), \bndclr{v_c}, \blbl{callsite}(m, i))\} \subseteq E \\
+    \bndclr{v_c} \vdash \{.., m:(\tau_1, \ldots, \tau_k)\rightarrow \tau,..\} &
+    \tau_i=\tau'\rightarrow\tau'' & \bndclr{v_b} \vdash \tau'' }
+  { \bnd{fun}(x, s) \vdash \tau' \rightarrow \tau'' }
 \end{array}
 \end{equation*}
-%
-However, the fact that the provided types do not have nice names becomes a problem when want to
-extract code to access population into a function:
-%
-\begin{equation*}
-\begin{array}{l}
-\kvd{let}~\ident{getPopulation}~c=\\
-\quad c.\ident{Indicators.\textquotesingle Population (total)\textquotesingle}\hspace{8.5em}
-\end{array}
-\end{equation*}
-%
-Here, the compiler cannot infer the type of $c$ from usage and so we are required to provide a
-type annotation using an automatically generated name.
+\caption{Rules that define type checking of terms and expressions over a dependency graph $(V, E)$}
+\label{fig:tc}
+\end{figure}
 
-\paragraph{Functions and live previews.}
-Providing live previews in a language with ordinary functions suffers from the same problem as
-type checking of functions.
+% --------------------------------------------------------------------------------------------------
 
-Our live preview evaluation, discussed in Section~\ref{sec:previews}, can obtain only a delayed
-preview for the body of \ident{getPopulation}. The delayed preview we would obtain in this case
-is $\llbracket c.\ident{Indicators}.\ident{\textquotesingle Population (total)\textquotesingle} \rrbracket_{c}$.
+\subsection{Feedback-friendly abstraction}
+\label{sec:extra-abstraction}
 
-If we know the type of $c$, we can provide a user interface that lets the user specify a value
-for $c$ (or, more generally, free variables of the preview) and then evaluate the preview, but
-it is difficult to provide a meaningful preview automatically.
+The sample data analysis by Financial Times in Section~\ref{sec:background-jupyter} illustrates why
+notebook users often avoid abstraction. Wrapping code in a function would make it impossible to
+split code into cells, and see results of intermediate steps. Instead, the sample analysis used a
+global variable at the top of the notebook with possible values in a comment.
 
-\paragraph{Wormhole abstractions.}
-In data science scripting, we start with a concrete example and then turn code into a reusable
-function. This pattern could be supported by the language in a way that makes type checking
-and preview evaluation easier. Using an imaginary notation, we could write:
+Providing live previews inside ordinary functions is problematic, because we do not have readily
+available values for input parameters and our mechanism for lambda functions only provides
+delayed previews inside body of a function. We believe that extending the data exploration calculus
+with an abstraction mechanism that would support development with instantaneous feedaback is an
+interesting design problem and we briefly outline a possible solution here.
+
+Data scientists often write code interactively using a sample data set and, when it works well,
+wrap it into a function that they then call on other data. Similarly, spreadsheet users
+often write equation in the first row of a table and then use the ``drag down'' operation to
+apply it to other rows. One way of adding similar functionality to the data exploration calculus
+is to label a sequence of commands such that the sequence can be reused later with different
+inputs:
 %
 \begin{equation*}
-\begin{array}{l}
-\kvd{let}~\ident{uk}~=~\ident{worldbank.byCountry.\textquotesingle United Kingdom\textquotesingle}\hspace{1.5em}\\[0.5em]
-\kvd{def}~\ident{getPopulation}~=\\
-\quad\lbrack\ident{country}\!:\!\ident{uk}\rbrack.\ident{Indicators.\textquotesingle Population (total)\textquotesingle}\\[0.5em]
-\ident{getPopulation}~\ident{worldbank.byCountry.China}\\
-\ident{getPopulation}~\ident{worldbank.byCountry.India}
+\begin{array}{rcl}
+p &=& c_1; \ldots; c_n\\
+c &=& \kvd{let}\,x=t \lsep t \lsep \textit{lbl}\!:\,p \lsep \textit{lbl}
 \end{array}
 \end{equation*}
-%
-We tentatively call this notation \emph{wormhole} abstraction and we intend to implement it in future prototypes of The Gamma.
-The second line is an expression that accesses the population of the UK, using a concrete
-data source as the input, but it also defines a named function \ident{getPopulation} that has a
-parameter \ident{country}. In a way, we are providing \emph{type annotation} by example, together
-with a \emph{value annotation} that can be used for live previews.
 
-This way of constructing abstractions is perhaps more akin to how spreadsheets are used -- we often
-write a formula using a concrete cell and then use the ``drag down'' operation to extend it to
-other inputs.
+\noindent
+As before, a program is a sequence of commands and a command can be either a let binding or a term.
+Additionally, a command can be a labelled sequence of commands or a reference to a label. When
+evaluating, the command $\textit{lbl}$ is replaced with the associated sequence of commands $p$
+before any other reduction occurs. Consequently, variables used in the labelled block are
+dynamically scoped and we can use let binding to redefine a value of a variable before invoking
+the block repeatedly. The correct use of dynamically scoped variables can be checked using
+coeffects \cite{coeffects}.
+
+This minimalistic abstraction mechanism supports code reuse without affecting how live previews
+are computed. The commands in the labelled block still require all let bound variables to be
+defined before the block. Those define sample data for development and can be later redefined before
+reusing the block. This functionality is not yet available in the data exploration environment
+discussed in Section~\ref{sec:evaluation-case}, but we intend to add it in a future version.
 
 % ==================================================================================================
 
@@ -1980,7 +1800,7 @@ This paper approaches the problem of live coding environments from a theoretical
 language perspective with a special focus on tooling for data science. Hence, the related and
 future work spans numerous areas.
 
-\paragraph{Design and human-computer interaction.}
+\subsubsection*{Design and human-computer interaction.}
 TODO: \citet{principle}
 
 From a design perspective, the idea of live programming environments has been popularised by
@@ -2017,7 +1837,7 @@ on text-based editors.
 Our use of dependency graphs \cite{dependencies} is first-order. Building dependency graphs
 involving function calls using modern compiler methods \cite{optimizing} or program slicing
 \cite{slicing} would allow us to deduce possible inputs for functions and use those for
-previews rather than changing the language as suggested in Section~\ref{sec:design}. This direction
+previews rather than changing the language as suggested in Section~\ref{sec:extra-abstraction}. This direction
 is worth considering, but it requires more empirical usability testing.
 
 \paragraph{Semantics and partial evaluation.}
@@ -2030,37 +1850,37 @@ in turn, can be understood in terms of comonads \cite{cmtt-denotation}. This pro
 direction for rigorous analysis of the presented system.
 
 % ==================================================================================================
-
-\section{TODO}
-
-TBD: Define live preview somewhere
-
-TBD: In section about dependency graphs, include a subsection discussing how this relates
-to incremental computation (just like "Semantics of delayed previews" links that to CMTT etc.)
-
-
-\cite{selfadjusting}
-\cite{incremental}
-
-Incremental computation
-
-  Self-adjusting computation
-  http://www.cs.cmu.edu/~rwh/theses/acar.pdf
-
-  Incremental Computation with Names
-  https://www.cs.tufts.edu/~jfoster/papers/oopsla15.pdf
-  -> dsl interpreter
-
-  (and other adapton stuff http://adapton.org/)
-
-Type checking
-
-  co-contextual
-  http://www.informatik.uni-marburg.de/~seba/publications/cocontextual-type-checking.pdf
-  http://drops.dagstuhl.de/opus/volltexte/2017/7262/pdf/LIPIcs-ECOOP-2017-18.pdf
-
-https://dl.acm.org/citation.cfm?id=664109
-
+%
+% \section{TODO}
+%
+% TBD: Define live preview somewhere
+%
+% TBD: In section about dependency graphs, include a subsection discussing how this relates
+% to incremental computation (just like "Semantics of delayed previews" links that to CMTT etc.)
+%
+%
+% \cite{selfadjusting}
+% \cite{incremental}
+%
+% Incremental computation
+%
+%   Self-adjusting computation
+%   http://www.cs.cmu.edu/~rwh/theses/acar.pdf
+%
+%   Incremental Computation with Names
+%   https://www.cs.tufts.edu/~jfoster/papers/oopsla15.pdf
+%   -> dsl interpreter
+%
+%   (and other adapton stuff http://adapton.org/)
+%
+% Type checking
+%
+%   co-contextual
+%   http://www.informatik.uni-marburg.de/~seba/publications/cocontextual-type-checking.pdf
+%   http://drops.dagstuhl.de/opus/volltexte/2017/7262/pdf/LIPIcs-ECOOP-2017-18.pdf
+%
+% https://dl.acm.org/citation.cfm?id=664109
+%
 \section{Summary}
 We present The Gamma, a live coding environment for data exploration. The environment
 bridges the gap between spreadsheets and scripting -- live previews give users rapid feedback,
@@ -2210,4 +2030,299 @@ and use the induction hypothesis, i.e.~if $C'[e_b] \rightsquigarrow o$ for some 
 
 \end{proof}
 
+\section{Appenidx - Type checking}
+\label{sec:app-types}
+
+tbd
+
+% Evaluating live previews can be an expensive operations, so being able to cache partial previews
+% is a must for a live coding environment. Type checking is typically fast, so the main focus of
+% this paper is on live previews. However, asynchronous type providers in The Gamma (Section~\ref{sec:types-providers})
+% can make type checking time consuming, and so we use the dependency graph also for type checking
+% (Section~\ref{sec:types-graph}). Type checking lambda functions (Section~\ref{sec:types-funs})
+% requires a slight extension of the model discussed in Section~\ref{sec:formal}.
+%
+% % --------------------------------------------------------------------------------------------------
+%
+% \subsection{Asynchronously provided types}
+% \label{sec:types-providers}
+%
+% Data available in The Gamma can be defined using several kinds of type providers. The type provider
+% used in Figure~\ref{fig:thegamma} as asynchronous \cite{async}. It downloads the sample URL and generates
+% types based on the contents of the web page. The parameter to \ident{web.scrape} is a static
+% parameter and is evaluated during type-checking. We omit details in this paper, but we note this
+% works similarly to F\# type providers \cite{providers-fsharp}.
+%
+% Type providers can also be implemented as REST services \cite{rest} to allow anyone implement a data source
+% in the language of their choice. In this case, each member of a call-chain returns a type that is
+% generated based on the result of an HTTP request. For example, when the user types \ident{worldbank}
+% (to access information about countries), the type provider makes a request to
+% \url{http://thegamma-services.azurewebsites.net/worldbank}, which returns two members:
+% %
+% \begin{equation*}
+% \begin{array}{l}
+% [~\{\rstr{name}\!:\str{byYear},\rstr{returns}\!:\\
+% ~\quad \{\rstr{kind}\!:\str{nested},\rstr{endpoint}\!:\str{/pickYear}\}\}\\
+% \hspace{0.55em}\{\rstr{name}\!:\str{byCountry},\rstr{returns}\!:\\
+% ~\quad \{\rstr{kind}\!:\str{nested},\rstr{endpoint}\!:\str{/pickCountry}\}\}~]
+% \end{array}
+% \end{equation*}
+% %
+% This indicates that \ident{worldbank} has members \ident{byYear} and \ident{byCountry}.
+% If the user types \ident{worldbank.byCountry}, a request is made to the specified URL
+% \url{http://thegamma-services.azurewebsites.net/worldbank/pickCountry}:
+% %
+% \begin{equation*}
+% \begin{array}{l}
+% [~\{\rstr{name}\!:\str{Andorra},\rstr{trace}\!:[\str{"country=AR"}], \\
+% \quad \rstr{returns}\!:\{\rstr{kind}\!:\str{nested},\rstr{endpoint}\!:\str{/pickTopic}\}\}\\
+% \hspace{0.55em}\{\rstr{name}\!:\str{Afghanistan},\rstr{trace}\!:[\str{"country=AF"}],\\
+% \quad \rstr{returns}\!:\{\rstr{kind}\!:\str{nested},\rstr{endpoint}\!:\str{/pickTopic}\}\},\,..]
+% \end{array}
+% \end{equation*}
+% %
+% This returns a list of countries which can then be accessed as members via
+% \ident{worldbank.byCountry.Andorra}, etc.
+%
+% This is one reason for why type checking in The Gamma can be time consuming. Other
+% type providers may perform other more computationally intensive work to provide types and so
+% it is desirable to reuse type-checking results during live coding. The rest of this section
+% shows how this is done using the dependency graph discussed in Section~\ref{sec:formal}.
+%
+% \begin{figure}[!b]
+% \vspace{-0.5em}
+% \begin{equation*}
+% \xymatrix{
+% &\bnd{val}(o)\\
+% &\bnd{mem}(m, s_0) \ar[u]_{\blbl{arg}(0)} \ar[dl]^{\blbl{arg}(1)} \\
+% \bnd{fun}(x, s_2) \ar@/^/[uur]^{\blbl{callsite}(m, 1)} \ar[rr]^{\blbl{body}} && \bnd{var}(x, s_1) \ar@/_/[uul]_{\blbl{callsite}(m, 1)}
+% }
+% \end{equation*}
+% \caption{Dependency graph for $o.m(\lambda x\rightarrow x)$}
+% \label{fig:graph-func}
+% \end{figure}
+%
+% % --------------------------------------------------------------------------------------------------
+%
+% \begin{figure*}[t]
+% \vspace{-0.5em}
+% \begin{equation*}
+% \begin{array}{ll}
+% \ident{bind-expr}_{\Gamma, \Delta, c}(e_0.m(e_1, \ldots, e_n)) = &(2b)\\
+% \qquad \bndclr{v}, (\{\bndclr{v}\} \cup V_0 \cup \ldots \cup V_n, E \cup E_0 \cup \ldots \cup E_n)\\
+% \quad \textnormal{when}~\bndclr{v_0}, (V_0, E_0) = \ident{bind-expr}_{\Gamma, \Delta, \bot}(e_0)\\
+% \quad \textnormal{and}~c_i = (\bndclr{v_0}, \blbl{callsite}(m,i))\hspace{4.8em} (i \in 1\ldots n)\\
+% \quad \textnormal{and}~\bndclr{v_i}, (V_i, E_i) = \ident{bind-expr}_{\Gamma, \Delta, c_i}(e_i)\qquad (i\in 1\ldots n)\\
+% \quad \textnormal{and}~(\bknd{mem}(m),[(\bndclr{v_0}, \blbl{arg}(0)), \ldots, (\bndclr{v_n}, \blbl{arg}(n))]) \notin \ident{dom}(\Delta)\hspace{-200em}.\\
+% \quad \textnormal{let}~\bndclr{v} = \bnd{mem}(m, s), s~\textnormal{fresh}\\
+% \quad \textnormal{let}~E = \{ (\bndclr{v}, \bndclr{v_0}, \blbl{arg}(0)), \ldots, (\bndclr{v},\bndclr{v_n}, \blbl{arg}(n)) \}
+% \end{array}
+% \qquad\qquad
+% \begin{array}{ll}
+% \ident{bind-expr}_{\Gamma, \Delta, (\bndclr{v_c}, \blblclr{l_c} )}(\lambda x \rightarrow e) = \bndclr{v}, (\{\bndclr{v}\} \cup V_0, E \cup E_0)&(7b)\\
+% \quad \textnormal{when}~(\bknd{var}(x),[(\bndclr{v_c}, \blblclr{l_c} )])\notin \ident{dom}(\Delta)\\
+% \quad \textnormal{let}~\bndclr{v_x} = \bnd{var}(x, s_x), s_x~\textnormal{fresh}\\
+% \quad \textnormal{and}~\Gamma_1 = \Gamma \cup \{ x, \bndclr{v_x} \}\\
+% \quad \textnormal{and}~\bndclr{v_0}, (V_0, E_0) = \ident{bind-expr}_{\Gamma_1, \Delta, \bot}(e)\\
+% \quad \textnormal{when}~(\bknd{fun}(x),[(\bndclr{v_0}, \blbl{body}), (\bndclr{v_c}, \blblclr{l_c} )])\notin \ident{dom}(\Delta)\\
+% \quad \textnormal{let}~\bndclr{v} = \bnd{fun}(x, s_f), s_f~\textnormal{fresh}\\
+% \quad \textnormal{let}~E = \{ (\bndclr{v},\bndclr{v_0},\blbl{body}), (\bndclr{v},\bndclr{v_c},\blblclr{l_c}), (\bndclr{v_x},\bndclr{v_c},\blblclr{l_c}) \}
+% \\[0.75em]
+% \end{array}
+% \end{equation*}
+% \vspace{-0.5em}
+% \caption{Revised binding rules, tracking call sites of function values.}
+% \label{fig:binding-rules-callsite}
+% \vspace{-0.5em}
+% \end{figure*}
+%
+% % --------------------------------------------------------------------------------------------------
+%
+% \subsection{Revised binding of functions}
+% \label{sec:types-funs}
+%
+% The Gamma script supports lambda functions, but only in a limited way. A function can be passed
+% as a parameter to a method, which makes type checking of functions easier. For example, consider:
+% %
+% \begin{equation*}
+% \begin{array}{l}
+% \ident{movies}.\ident{sortBy}(\lambda x \rightarrow x.\ident{getBudget}())
+% \end{array}
+% \end{equation*}
+% %
+% If \ident{movies} is a collection of \ident{Movie} objects, the type of the lambda function must be
+% $\ident{Movie}\rightarrow\ident{bool}$ and so the type of $x$ is \ident{Movie}. This is similar to
+% type checking of lambda functions in C\# \cite{csharp}, where type is also inferred from the context (or has
+% to be specified explicitly).
+%
+% We do not currently allow lambda functions as stand-alone let-bound
+% values. This could be done by requiring explicit types, or introducing polymorphism, but it was not
+% necessary for the limited domain of non-expert data exploration.
+%
+% \paragraph{Dependency graph for functions.}
+% In the binding process specified in Section~\ref{sec:formal}, a variable is a leaf of the dependency
+% graph. In the revised model, it depends on the context in which it appears. A new edge labeled
+% $\blbl{callsite}(m, i)$ indicates that the source node is the input variable of a function
+% passed as the $i^\textnormal{th}$ argument to the $m$ member of the expression represented by the
+% target node. A node representing function is linked to the call site using the same edge.
+%
+% Figure~\ref{fig:graph-func} shows the result of binding $o.m(\lambda x\rightarrow x)$. Both
+% $\bnd{fun}(x, s_2)$ and $\bnd{var}(x, s_1)$ now depend on the node representing $o$. The new
+% $\blbl{callsite}$ edge makes it possible to type-check function and variable nodes just using their
+% dependencies. As before, the member invocation $\bnd{mem}(m, s_0)$
+% depends on the instance using $\blbl{arg}(0)$ and on its argument using $\blbl{arg}(1)$.
+%
+% % --------------------------------------------------------------------------------------------------
+%
+% \begin{figure*}
+% \vspace{0.5em}
+% \begin{equation*}
+% \begin{array}{l}
+% \qquad\inference[\rname{val}~]
+%   {\Sigma(n) = \alpha}
+%   {\bnd{val}(n) \vdash \alpha }
+% \quad\qquad
+% \inference[\rname{var}~]
+%   { (\bnd{var}(x,s), \bndclr{v}, \blbl{callsite}(m, i)) \in E &
+%     \bndclr{v} \vdash (.., m:(\tau_1, \ldots, \tau_k)\rightarrow \tau,..) & \tau_i=\tau'\rightarrow\tau'' }
+%   { \bnd{var}(x, s) \vdash \tau' }
+% \\[2.5em]
+% \inference[\rname{fun}~]
+%   { \{(\bnd{fun}(x,s), \bndclr{v_b}, \blbl{body}), (\bnd{var}(x,s), \bndclr{v_c}, \blbl{callsite}(m, i))\} \subseteq E &
+%     \bndclr{v_c} \vdash (.., m:(\tau_1, \ldots, \tau_k)\rightarrow \tau,..) &
+%     \tau_i=\tau'\rightarrow\tau'' & \bndclr{v_b} \vdash \tau'' }
+%   { \bnd{fun}(x, s) \vdash \tau' \rightarrow \tau'' }
+% \\[2.5em]
+% \qquad\qquad\quad\inference[\rname{mem}~]
+%   { \forall i\in\{0\ldots k\}.(\bnd{mem}(m, s), \bndclr{v_i}, \blbl{arg}(i)) \in E &
+%     \bndclr{v_0} \vdash (.., m:(\tau_1, \ldots, \tau_k) \rightarrow \tau, ..)& \bndclr{v_i} \vdash \tau_i }
+%   { \bnd{mem}(m, s) \vdash \tau }
+% \\[1em]
+% \end{array}
+% \end{equation*}
+% \caption{Rules that define evaluation of previews over a dependency graph for an expression}
+% \vspace{0.5em}
+% \label{fig:tc}
+% \end{figure*}
+%
+% % --------------------------------------------------------------------------------------------------
+%
+% \paragraph{Revised binding process.}
+% For the revised binding process, we introduce a new edge label $\blbl{callsite}$. Variable nodes
+% now have dependencies and so we cache them and attach a symbol $s$ to \bnd{var}, so we also
+% introduce a node kind $\bknd{var}$ as part of a lookup key for $\Delta$.
+%
+% The \ident{bind-expr} function now has a parameter $c$, in addition to $\Gamma$ and $\Delta$, which
+% represents the context in which the binding happens. This is either a member invocation (labeled
+% with instance node $\bndclr{v}$ and \blbl{callsite} label $\blblclr{l}$), or not a member
+% invocation written as $\bot$. The updated definitions are:
+% %
+% \begin{equation*}
+% \begin{array}{lcll}
+% \bndclr{v} &\hspace{-0.5em}\in\hspace{-0.5em}&\bnd{val}(n)~|~\bnd{var}(x, s)~|~\bnd{mem}(m, s)~|~\bnd{fun}(x, s)&(\textit{Vertices})\\
+% \blblclr{l}&\hspace{-0.5em}\in\hspace{-0.5em}&\blbl{body}~|~\blbl{arg}(i)~|~\blbl{callsite}(m,i)&(\textit{Edge labels})\\
+% \bkndclr{k}&\hspace{-0.5em}\in\hspace{-0.5em}&\bknd{fun}(x)~|~\bknd{mem}(m)~|~\bknd{var}(x)&(\textit{Node kinds})\\
+%           c&\hspace{-0.5em}\in\hspace{-0.5em}&\bot ~|~(\bndclr{v}, \blblclr{l})&(\textit{Call sites})\\
+% \end{array}
+% \end{equation*}
+% %
+% The key parts of the revised definition of the \ident{bind-expr} function are shown in Figure~\ref{fig:binding-rules-callsite}.
+% We now write $\ident{bind-expr}_{\Gamma,\Delta,c}$ where $c$ represents the context in which the
+% binding occurs. This is set to $\bot$ in all cases, except when binding arguments of a member call.
+% In (2b), we first recursively bind the instance node using $\bot$ as the context and then
+% bind all the arguments using $(\bndclr{v_0}, \blbl{callsite}(m, i))$ as the context for $i^{\textnormal{th}}$
+% argument. The rest is as in case (2) before. The case (1) is updated similarly and is not shown
+% here for brevity.
+%
+% When binding a function (7b), we now also store variable nodes in $\Delta$ and so we check if a
+% variable with the given call site exists. If no, we create a fresh node $\bnd{var}(x, s_x)$.
+% The node is added to $\Gamma$ as before. At the end, we now also include a call site edge from the
+% variable node and from the function node in $E$. We omit a similar variant of the case (6).
+% The remaining cases (3)-(5) are the same, except that \ident{bind-expr} has the additional $c$ parameter
+% and recursive calls always set it to $\bot$.
+%
+% Finally, the \ident{update} function in Figure~\ref{fig:loop} also needs to be updated to store the
+% newly created \bnd{var} nodes. This is done by adding the following single case:
+%
+% \begin{equation*}
+% \begin{array}{l}
+% \Delta_{i}(\bknd{var}(x), [(\bndclr{v},\blbl{callsite}(m,i))]) = \bnd{var}(x, s)\\
+% \quad\quad \textnormal{for all}~\bnd{var}(x, s) \in V\\
+% \quad\quad \textnormal{such that}~(\bnd{var}(x, s), \bndclr{v}, \blbl{callsite}(m,i)) \in E
+% \end{array}
+% \end{equation*}
+%
+% % --------------------------------------------------------------------------------------------------
+%
+% \subsection{Type checking over dependency graphs}
+% \label{sec:types-graph}
+%
+% The type system for The Gamma supports a number of primitive types (such as integers and strings)
+% written as $\alpha$. Composed types include functions and objects with members. Objects are be
+% provided by type providers, but we omit the details here. Types of object members are written as
+% $\sigma$ and can have multiple arguments:
+% %
+% \begin{equation*}
+% \begin{array}{lcll}
+% \tau&\in&\alpha ~|~ \tau \rightarrow \tau ~|~ \{m_1\!:\!\sigma_1, \ldots, m_n\!:\!\sigma_n\} &\quad(\textit{Types})\\
+% \sigma &\in& (\tau_1, \ldots, \tau_n) \rightarrow \tau &\quad(\textit{Members})\\
+% \end{array}
+% \end{equation*}
+% %
+% The typing judgements are written in the form $\bnd{v}\vdash \tau$. They are parameterised by the
+% dependency graph $(V, E)$, but this is not modified during type checking so we keep it implicit
+% rather than writing e.g.~$\bnd{v}\vdash_{(V,E)} \tau$.
+%
+% \paragraph{Type checking.}
+% The typing rules are shown in Figure~\ref{fig:tc}. Types of primitive values $n$ are obtained
+% using a global lookup table $\Sigma$ \rname{val}. When type checking a member call \rname{mem},
+% we find its dependencies $\bndclr{v_i}$ and check that the first one (instance) is an object with
+% the required member $m$. The types of input arguments of the member then need to match the types
+% of the remaining (non-instance) nodes.
+%
+% Type checking a function \rname{fun} and a variable \rname{var} is similar. In both cases,
+% we follow the \blbl{callsite} edge to find the member that accepts the function as an argument.
+% We obtain the type of the function from the type of the $i^\textnormal{th}$ argument of the
+% member. We use the input type as the type of variable \rname{var}. For functions, we also check
+% that the resulting type matches the type of the body \rname{fun}.
+%
+% \paragraph{Caching results.}
+% Performing type checking over the dependency graph, rather than over the abstract syntax tree,
+% enables us to reuse the results of previously type checked parts of a program. As when
+% caching evaluated previews (Section~\ref{sec:previews}), we build a lookup table mapping graph
+% nodes to types. When type checking a node, we first check the cache and, only if it is new,
+% follow the $\vdash$ relation to obtain the type.
+%
+% As a result, code can be type checked on-the-fly during editing, even when asynchronous type
+% providers are used, and the programmer gets instant feedback without delays.
+%
+% % --------------------------------------------------------------------------------------------------
+%
+% \subsection{Properties of type checking}
+%
+% As noted in Section~\ref{sec:types}, the focus of this paper is on live previews, but we also
+% use the method based on reusing nodes in a dependency graph for type checking. We do not discuss
+% properties of type checking in detail, but we briefly note how the different properties of
+% live previews extend to corresponding properties of type checking.
+%
+% \paragraph{Type checking result reuse.} In Section~\ref{sec:evaluation-reuse}, we show that
+% certain source code edits do not cause the recomputation of previews for the whole expression
+% or a sub-expression. The edits are given in Figure~\ref{fig:operations}. The proof uses the fact
+% that the newly bound graph (after code edit) reuses nodes of the previous graph. This implies that
+% type checking results can be reused in exactly the same way as live previews -- they are also
+% stored in a lookup table with graph nodes as keys.
+%
+% \paragraph{Correctness.} The correctness property (Theorem~\ref{thm:correctness}) shows that
+% graph-based preview evaluation matches direct evaluation of expressions. To show a corresponding
+% property for type checking, we would need to provide ordinary type system based on the structure
+% of the expression and prove that the two are equivalent. In our implementation, we only use the
+% presented graph-based type checking method, so we do not provide an alternate account in this paper.
+%
+% \paragraph{Determinacy.} The determinacy property (Theorem~\ref{thm:determinacy}) guarantees that
+% previews can be cached, because evaluating them again, using $\Downarrow$ over an updated graph,
+% would yield the same result. The same property holds for $\vdash$, meaning that type checking
+% results can be cached. Although the Theorem~\ref{thm:determinacy} talks explicitly about
+% $\Downarrow$, it can be easily extended for $\vdash$, because the proof depends on how the graph
+% is updated using $\ident{update}_{V,E}$ and the binding process.
+%
 \end{document}
