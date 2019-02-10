@@ -207,10 +207,10 @@ but it is simpler than in our case, because editing is limited to individual cel
 Many visual data exploration tools support interactivity \cite{control,tableau,vizdom} and some,
 can even export the workflow as a script \cite{wrangler}, but data anlysts who prefer working with
 code typically resort to notebook systems such as Jupyter or R Markdown \cite{jupyter,rmarkdown}.
-Those are text-based, but have a limited model of recomputation. Users have to structure code in
-cells and manually reevaluate cells after a change. Those systems also do not track
-dependencies between cells, which can lead to inconsistencies; an issue that has been addressed
-by e.g.~\citet{dataflow} or \citet{wrattler}.
+Those are text-based, but have a limited model of recomputation. Users structure code in
+cells and manually reevaluate cells. Many notebook systems do not track dependencies
+between cells, which can lead to inconsistencies; an issue that has been addressed
+by e.g.~\citet{dataflow,noworkflow} or \citet{wrattler}.
 
 We aim to keep the transparency and reproducibility of notebooks, but add a correct and
 efficient instantaneous evaluation mechanism. Existing text-based editors that provide instant,
@@ -1722,6 +1722,7 @@ omit for space reasons.
 % --------------------------------------------------------------------------------------------------
 
 \begin{figure}
+\vspace{-0.5em}
 \begin{equation*}
 \hspace{-3.5em}
 \begin{array}{l}
@@ -1742,8 +1743,10 @@ omit for space reasons.
   { \bnd{fun}(x, s) \vdash \tau' \rightarrow \tau'' }
 \end{array}
 \end{equation*}
+\vspace{-0.5em}
 \caption{Rules that define type checking of terms and expressions over a dependency graph $(V, E)$}
 \label{fig:tc}
+\vspace{-0.5em}
 \end{figure}
 
 % --------------------------------------------------------------------------------------------------
@@ -1751,10 +1754,10 @@ omit for space reasons.
 \subsection{Feedback-friendly abstraction}
 \label{sec:extra-abstraction}
 
-The sample data analysis by Financial Times in Section~\ref{sec:background-jupyter} illustrates why
-notebook users often avoid abstraction. Wrapping code in a function would make it impossible to
-split code into cells, and see results of intermediate steps. Instead, the sample analysis used a
-global variable at the top of the notebook with possible values in a comment.
+The data analysis by Financial Times in Section~\ref{sec:background-jupyter} illustrates why
+notebook users often avoid abstraction. Wrapping code in a function makes it impossible to
+split code into cells and see results of intermediate steps. Instead, the analysis used a
+global variable with possible values in a comment.
 
 Providing live previews inside ordinary functions is problematic, because we do not have readily
 available values for input parameters and our mechanism for lambda functions only provides
@@ -1777,70 +1780,70 @@ c &=& \kvd{let}\,x=t \lsep t \lsep \textit{lbl}\!:\,p \lsep \textit{lbl}
 \end{equation*}
 
 \noindent
-As before, a program is a sequence of commands and a command can be either a let binding or a term.
-Additionally, a command can be a labelled sequence of commands or a reference to a label. When
-evaluating, the command $\textit{lbl}$ is replaced with the associated sequence of commands $p$
-before any other reduction occurs. Consequently, variables used in the labelled block are
+We introduce two new kinds of commands: a labelled sequence of commands and a referenceto a label.
+When evaluating, the command $\textit{lbl}$ is replaced with the associated sequence of
+commands $p$ before any other reductions. Consequently, variables used in the labelled block are
 dynamically scoped and we can use let binding to redefine a value of a variable before invoking
-the block repeatedly. The correct use of dynamically scoped variables can be checked using
+the block repeatedly. The correct use of dynamic scoping can be checked using
 coeffects \cite{coeffects}.
 
 This minimalistic abstraction mechanism supports code reuse without affecting how live previews
-are computed. The commands in the labelled block still require all let bound variables to be
-defined before the block. Those define sample data for development and can be later redefined before
-reusing the block. This functionality is not yet available in the data exploration environment
-discussed in Section~\ref{sec:evaluation-case}, but we intend to add it in a future version.
+are computed. Commands in a labelled block require variables to be defined before the block.
+Those define sample data for development and can be redefined before reusing the block. We
+intend to implement this mechanism in a future version of our data
+exploration environment (Section~\ref{sec:evaluation-case}).
 
 % ==================================================================================================
 
 \section{Related and future work}
 \label{sec:future}
 
-This paper approaches the problem of live coding environments from a theoretical programming
-language perspective with a special focus on tooling for data science. Hence, the related and
-future work spans numerous areas.
+We aim to make creating transparent data analyses, such as those done by journalists, easier and we
+present a tool that provides instantaneous feedback when writing code in a text editor. Many our
+design decisions have alternatives that have been explored in a rich body of literature.
 
-\subsubsection*{Design and human-computer interaction.}
-TODO: \citet{principle}
+\subsubsection*{Notebooks and data science tools.}
+Basic feedback mechanism, the REPL (read-eval-print-loop), originated in Lisp
+\cite{lisp} and is now common in many languages \cite{drscheme}. Notebook systems
+such as Jupyter and R markdown \cite{rmarkdown,jupyter,ipython} structure code in cells,
+but still rely on explicitly executing individual cells using a stateful REPL environment.
+Integrating provenance tracking with notebooks \cite{dataflow,noworkflow,wrattler} addresses
+the reproducibility issues of this model, but keeps cells as units of work. Ideas such as
+dependency tracking and efficient recomputation exist in many visual data exploration tools
+\cite{control,tableau,vizdom} and scientific workflow systems \cite{taverna,kepler}. Some of the
+implementation techniques are related to our work, but we focus on text-based scripts.
+Tempe \cite{tempe} focuses on streaming data, but provides a text-based scripting environment
+with automatic code update and \citet{ripple} empirically evaluate its usability in contrast to
+REPLs. The challenges faced by Tempe are more akin to dynamic software update \cite{dsu}.
 
-From a design perspective, the idea of live programming environments has been popularised by
-Bret Victor \cite{learnable}. Active research on novel forms of interaction happens in areas
-such as live coded music \cite{beyond,sonic}.
-The idea of live previews can be extended to direct manipulation \cite{direct}. The Gamma
-provides limited support for directly manipulating data (Section~\ref{sec:live}), but we
-intend to explore this direction further.
+\subsubsection*{Live coding and editing.}
+Live coding based on textual programs has been popularised by \citet{principle,learnable} and
+is actively developed in domains such as live coded music \cite{beyond,sonic}. \citet{liveroad}
+reviews the use of live coding in a Smalltalk derived environment. Lighttable by \citet{lighttable}
+and Chrome DevTools provide limited live previews akin to those presented in this paper,
+but without well specified recomputation model. Finally, work on keeping state during
+code edits \cite{alive,livingit} would be relevant for supporting streaming data. In the future,
+we also plan to explore how direct manipulation \cite{direct} could be integrated with our preview
+mechanism. \citet{liveroad}
 
-\paragraph{Data science tooling.}
-An essential tool in data science is REPL (read-eval-print-loop) \cite{drscheme}, which is now
-widely available. This has been integrated with rich graphical outputs in tools such as Jupyter
-notebooks \cite{jupyter,ipython}, but such previews are updated using an explicit command.
-Integrating our work with Jupyter to provide instant live previews for R or Python would be
-an interesting extension of the presented work.
+Using structured editors \cite{structure-based} rather than text editors is a promising alternative
+direction as editors can recompute program based on understanding of edit operations
+\cite{interactive,livenut,lamdu}. This can be elegantly implemented using bi-directional
+lambda calculus \cite{hazelnut}, but it also makes us consider more human-centric abstractions
+\cite{subtext,directprog} along the lines of the one outlined in Section~\ref{sec:extra-abstraction}.
 
-\paragraph{Live coding and live previews.}
-Live previews have been implemented in LightTable \cite{lighttable} and, more recently, in
-editors such as Chrome Developer Tools, but neither presents a simple description of their
-inner workings. An issue that attracts much attention is keeping state during code edits
-\cite{alive,livingit}. This would be an interesting problem if we extended our work to
-event-based reactive programming.
+\subsubsection*{Incremental computation and dependency analysis.}
+Work on self-adjusting and incremental computation \cite{selfadjusting,adapton} handles
+recomputation when the program stays the same, but input changes. It relies on dependency tracking
+similar to ours. We rely on static code analysis whereas most incremental systems,
+e.g.~\cite{incremental,adaptivefp,deltaml} evaluate the program and use programmer-supplied
+information to build a dependency graph. \citet{adapton} implement a small adaptive interpreter
+that treats code as changing input data, suggesting an interesting implementation technique for
+live coding systems. Our use of dependency graphs \cite{dependencies} is static and first-order
+and can be seen as a form of program slicing \cite{slicing}, although our binding process is
+more directly inspired by Roslyn \cite{roslyn}, which uses it for efficient background type-checking.
 
-\paragraph{Structured editing.}
-An alternative approach to ours is to avoid using text editors. Structured editors
-\cite{structure-based} allow the user to edit the AST and could, in principle, recompute previews
-based on the performed operations, or preview evaluation as in interactive functional programming
-\cite{interactive}. A promising direction is using bi-directional lambda calculus~\cite{hazelnut}.
-Finally, abandoning text also enables building richer, more human-centric
-abstractions as illustrated by Subtext~\cite{subtext}. Our current focus, however, remains
-on text-based editors.
-
-\paragraph{Dependency analysis.}
-Our use of dependency graphs \cite{dependencies} is first-order. Building dependency graphs
-involving function calls using modern compiler methods \cite{optimizing} or program slicing
-\cite{slicing} would allow us to deduce possible inputs for functions and use those for
-previews rather than changing the language as suggested in Section~\ref{sec:extra-abstraction}. This direction
-is worth considering, but it requires more empirical usability testing.
-
-\paragraph{Semantics and partial evaluation.}
+\subsubsection*{Semantics and partial evaluation.}
 The evaluation of previews can be seen as a form of partial evaluation \cite{partial}, done in a
 way that allows reuse of results. This can be done implicitly or explicitly in the form of
 multi-stage programming \cite{metaml}. Both can provide useful perspective for formally analysing
@@ -1848,6 +1851,14 @@ how previews are evaluated. Semantically, the evaluation of previews can be seen
 \cite{modal} and delayed previews are linked to contextual modal type theory \cite{cmtt}, which,
 in turn, can be understood in terms of comonads \cite{cmtt-denotation}. This provides an intriguing
 direction for rigorous analysis of the presented system.
+
+
+
+
+
+
+
+
 
 % ==================================================================================================
 %
