@@ -1229,14 +1229,14 @@ $t_i \rightsquigarrow o_i$.
 Direct consequence of Lemma~\ref{thm:let-grp-elimination} and Theorem~\ref{thm:let-free-correct}.
 \end{proof}
 
-As discussed earlier, our implementation updates $\Delta$ during the recursive binding process and
-so a stronger version of the property holds -- namely, previews calculated over a graph obtained
-directly for the original program $p$ are the same as the values of the fully evaluated program.
-We note that this is the case, but do not show it formally to aid the clarity of our formalisation.
+\noindent
+Our implementation updates $\Delta$ during the recursive binding process and so a stronger version
+of the property holds: previews calculated over a graph obtained directly for the original program
+$p$ are the same as the values of the fully evaluated program. Our formalisation omits this for
+simplicity.
 
-The second important property that guarantees that our mechanism always displays correct previews
-is determinacy. This makes it possible to cache the previews evaluated using~$\Downarrow$ using
-the corresponding graph node as a lookup key.
+The second important property is determinacy, which makes it possible to cache the previews
+evaluated using~$\Downarrow$ using the corresponding graph node as a lookup key.
 
 \begin{theorem}[Program preview determinacy]
 \label{thm:determinacy}
@@ -1254,9 +1254,10 @@ are added as new nodes in $\ident{bind-prog}_{\emptyset, \Delta'}$ and
 nodes and edges of $(V, E)$ used during the evaluation are unaffected.
 \end{proof}
 
-The mechanism used for caching previews, as discussed in Section~\ref{sec:previews-cache},
-keeps a preview or a partial preview $d$ in a lookup table indexed by nodes $\bndclr{v}$. The
-Theorem~\ref{thm:determinacy} guarantees that this is a valid strategy. As we update dependency
+\noindent
+The mechanism used for caching previews (Section~\ref{sec:previews-cache}),
+keeps a preview preview $d$ in a lookup table indexed by nodes $\bndclr{v}$.
+Theorem~\ref{thm:determinacy} guarantees that this is a valid -- as we update dependency
 graph during code editing, previous nodes will continue representing the same sub-expressions.
 
 % --------------------------------------------------------------------------------------------------
@@ -1279,7 +1280,7 @@ appearing anywhere in the program.
 
 \begin{figure}[t]
 \raggedright
-\vspace{0.5em}
+\vspace{-0.5em}
 \hspace{1.5em}{\small\sffamily Edit contexts of expressions}
 \begin{equation*}
 \begin{array}{lcl}
@@ -1334,21 +1335,21 @@ K_c[-] &=& \kvd{let}~x = K_e[-] ~\lsep~ K_e[-]\\
 
 \caption{Code edit operations that preserve previously evaluated preview}
 \label{fig:operations}
+\vspace{-0.5em}
 \end{figure}
 
 % --------------------------------------------------------------------------------------------------
 
 We use the notation $\preview{e}$ to mark the part of the expressions before and after the edit
-that have the same value that will not need to be recomputed after the change and we write
+that have the same value and will not need to be recomputed after the change; we write
 $\overline{c}$ and $\overline{e}$ for a list of commands and expressions, respectively.
-In some of the edit operations, we also specify an intermediate program that is, in some cases,
+In some of the edit operations, we also specify an intermediate program that may be
 semantically different and only has a partial preview. This illustrates a typical way of
-working with code in a text editor using cut and paste operations. For example, in
-\rname{let-intro-ins}, we assume that the analyst cuts a sub-expression $e$, replaces it with
+working with code in a text editor using cut and paste. For example, in
+\rname{let-intro-ins}, we the analyst cuts a sub-expression $e$, replaces it with
 a variable $x$ and then adds a let binding for a variable $x$ and inserts the expression $e$
-from the clipboard. Edit with the same result is captured by \rname{let-intro-del} but here
-the analyst first inserts the let binding and then replaces the sub-expression $e$ with a
-variable $x$.
+from the clipboard. The \rname{let-intro-del} operation captures the same edit, but
+done in a different order.
 
 The of preview-preserving code edit operations includes several ways of introducing a let
 binding, several ways of eliminating a let binding and two edit operations where the data analyst
@@ -1435,7 +1436,7 @@ dependency graph.
 
 % --------------------------------------------------------------------------------------------------
 
-\begin{figure}
+\begin{figure}[b]
 \raggedright
 
 \vspace{0.5em}\hspace{1.5em}{\small\sffamily (1) Enter the following code and then change parameter of blur from 4 to 8:}
@@ -1476,7 +1477,7 @@ dependency graph.
 
 % --------------------------------------------------------------------------------------------------
 
-\begin{figure}[b]
+\begin{figure}[t]
 \vspace{-0.5em}
 \includegraphics[scale=0.425]{drawing.png}
 \caption{Time required to recompute the results of a sample program after individual tokens of
@@ -1547,13 +1548,16 @@ evaluation strategies. We mark a number of notable points in the chart:
 % --------------------------------------------------------------------------------------------------
 
 \begin{figure}
+\vspace{-0.5em}
 \noindent
 \includegraphics[scale=0.48]{hist-all.png}
 \includegraphics[scale=0.48]{hist-slow.png}
+\vspace{-0.25em}
 \caption{Histogram showing the distribution of delays incurred when updating previews.
   We show a histogram computed from all delays (left) and only from delays larger
   than 15ms (right).}
 \label{fig:drawing-hist}
+\vspace{-0.75em}
 \end{figure}
 
 % --------------------------------------------------------------------------------------------------
@@ -1568,17 +1572,14 @@ the strategies was over 15ms. A more robust parser would be able to recover and 
 for call-by-value and lazy strategies would be even more significant.
 
 \subsubsection{Summary of results}
-The purpose of our empirical is not to exactly assess the overhead of our implementation
-of the live evaluation strategy algorithm. Instead, our goal is to
-illustrate how often can previously evaluated results be reused and the impact this has when
-writing code. The experiment presented in this section is small-scale, but it is sufficient
-to illustrate the main point.
-
-When recomputing results after every edit operation
-using the \emph{call-by-value} strategy, the time needed to update the results grows
-continually. The \emph{lazy} strategy removes the overhead for programs that fail to evaluate, but
-keeps the same trend. Using our \emph{live} strategy, the computation can reuse values computed
-previously and, as a result, expensive operations (such as (d) and (g) in Figure~\ref{fig:drawing})
+The purpose of our experiment is not to exactly assess the overhead of our implementation.
+Our goal is to illustrate how often can previously evaluated results be reused and the impact
+this has when writing code. The experiment presented in this section is small-scale, but it is
+sufficient for this purpose. When recomputing results after every edit
+using the \emph{call-by-value} strategy, the time needed to update results grows
+continually. The \emph{lazy} strategy removes the overhead for programs that fail, but
+keeps the same trend. Our \emph{live} strategy reuses values computed
+previously. Consequently, expensive operations (such as (d) and (g) in Figure~\ref{fig:drawing})
 are significantly faster, because they do not need to recompute operations done previously when
 writing the code. As shown in Figure~\ref{fig:drawing-hist}, there are almost no very expensive
 operations (taking over 1 second) in the \emph{live} strategy in contrast to several in the
@@ -1595,6 +1596,7 @@ other two strategies.
   and aggregate data (left) and then create a chart with a label (right).
   The example is adapted from \url{http://gallery.thegamma.net/73/}.}
 \label{fig:gallery}
+\vspace{-1em}
 \end{figure}
 
 % --------------------------------------------------------------------------------------------------
@@ -1614,33 +1616,41 @@ The environment is available at \url{http://gallery.thegamma.net}. Two screensho
 in Figure~\ref{fig:gallery} illustrate a number of interesting features:
 
 \begin{itemize}[itemsep=3pt]
-\item The left screenshot uses a type provider for data aggregation introduced by \citet{gamma}
-  and briefly discussed in Section~\ref{sec:background-gamma}. For the purpose of
-  this paper, the type provider is an external library (with objects, members and reduction relation).
-  Using the type provider relies on editor auto-complete which is based on type information. To support
-  this, we implement type checking, as discussed in Section~\ref{sec:extra-types}, reusing the mechanism
-  of live preview evaluation.
+\item The left screenshot uses a type provider for data aggregation \cite{gamma}
+  (Section~\ref{sec:background-gamma}). Our system views the type provider as an external library
+  (with objects, members and reduction relation). Type providers rely on type information to
+  provide editor auto-complete, which we support by implementing type checking over a
+  dependency graph as discussed in Section~\ref{sec:extra-types}.
 
-\item The live preview for code written using the data aggregation type provider (left) is shown
-  in a panel below the current command. This shows the preview for a sub-expression based on the
-  position of the cursor (i.e.~raw data before grouping in the screenshot). In addition to the
-  preview, our environment also generates tabs that let the user navigate to individual steps of
-  the data transformation for code using the data aggregation type provider.
+\item When displaying live preview for code written using the data aggregation type provider (left),
+  our environment also generates tabes that show individual steps of the data transformation.
+  A tab is selected based on the cursor position and shows preview for the current sub-expression
+  (e.g.~raw data before grouping in the screenshot).
 
-\item The right screenshot uses a charting library, which is another external library available in
-  the environment. Unlike for data aggregation (left), live previews for charts (right) are not
-  handled in a special way and we show the result of evaluating the whole command. The screenshot
-  shows a case where the user modifies parameters of the chart. Thanks to our live evaluation
+\item Another external library provides support for charting (right). The environment does not
+  handle charts in a special way and displays the result of evaluating the whole command. The
+  screenshot shows a case where the user modifies parameters of the chart. Thanks to our live evaluation
   strategy, this is done efficiently without reevaluating the data transformation.
 \end{itemize}
 
 \noindent
-Conducting an extensive user study that would evaluate the usability of the system from a
-human-computer interaction perspective is left for future work. To give anecdotal evidence of
-the usability, the example shown in Figure~\ref{fig:gallery} is an analysis developed by an
-attendee of our tutorial at Mozilla Festival 2017 who had no prior programming experience.
+A user study to evaluate the usability of the system from a human-computer interaction perspective
+is left for future work. As an anecdotal evidence of the usability, the code in
+Figure~\ref{fig:gallery} was developed by an attendee of a tutorial at Mozilla Festival 2017
+who had no prior programming experience.
 
 % ==================================================================================================
+
+\section{Extending data exploration calculus}
+\label{sec:extra}
+
+The data exploration calculus presented in Section~\ref{sec:calculus} allowed us to formalise the
+live preview mechanism, but it lacks many important features. We outline two extensions.
+First, we discuss how to add instantaneous type checking by using the dependency graph construction
+described in Section~\ref{sec:formal}. Second, we consider an abstraction mechanism that preserves
+the live coding experience.
+
+% --------------------------------------------------------------------------------------------------
 
 \begin{figure}
 \vspace{-0.5em}
@@ -1656,17 +1666,6 @@ attendee of our tutorial at Mozilla Festival 2017 who had no prior programming e
 \label{fig:graph-func}
 \vspace{-0.5em}
 \end{figure}
-
-% ==================================================================================================
-
-\section{Extending data exploration calculus}
-\label{sec:extra}
-
-The data exploration calculus presented in Section~\ref{sec:calculus} allowed us to formalise the
-live preview mechanism, but it lacks many important features. We outline two extensions.
-First, we discuss how to add instantaneous type checking by using the dependency graph construction
-described in Section~\ref{sec:formal}. Second, we consider an abstraction mechanism that preserves
-the live coding experience.
 
 % --------------------------------------------------------------------------------------------------
 
@@ -1721,7 +1720,7 @@ omit for space reasons.
 
 % --------------------------------------------------------------------------------------------------
 
-\begin{figure}
+\begin{figure}[b]
 \vspace{-0.5em}
 \begin{equation*}
 \hspace{-3.5em}
@@ -1844,19 +1843,12 @@ and can be seen as a form of program slicing \cite{slicing}, although our bindin
 more directly inspired by Roslyn \cite{roslyn}, which uses it for efficient background type-checking.
 
 \subsubsection*{Semantics and partial evaluation.}
-The evaluation of previews can be seen as a form of partial evaluation \cite{partial}, done in a
-way that allows reuse of results. This can be done implicitly or explicitly in the form of
-multi-stage programming \cite{metaml}. Both can provide useful perspective for formally analysing
-how previews are evaluated. Semantically, the evaluation of previews can be seen as a modality
-\cite{modal} and delayed previews are linked to contextual modal type theory \cite{cmtt}, which,
-in turn, can be understood in terms of comonads \cite{cmtt-denotation}. This provides an intriguing
-direction for rigorous analysis of the presented system.
-
-
-
-
-
-
+The evaluation of previews is a form of partial evaluation \cite{partial}, done in a
+way that allows caching. This can be done implicitly or explicitly in the form of
+multi-stage programming \cite{metaml}. Semantically, the evaluation of previews can be seen as a
+modality \cite{modal} and delayed previews are linked to contextual modal type theory \cite{cmtt},
+formally modelled using comonads \cite{cmtt-denotation}. This suggests a direction for rigorous
+analysis of the presented system.
 
 
 
@@ -1893,25 +1885,29 @@ direction for rigorous analysis of the presented system.
 % https://dl.acm.org/citation.cfm?id=664109
 %
 \section{Summary}
-We present The Gamma, a live coding environment for data exploration. The environment
-bridges the gap between spreadsheets and scripting -- live previews give users rapid feedback,
-while the final result is a fully reproducible script.
+One of the reasons that make spreadsheets easier to use than programming tools is that they
+provide instant feedback. We aim to make programming tools as instantaneous as spreadsheets.
+We formalized a number of key aspects of simple data analyses such as those don by journalists
+and then used our observations to build both theory and simple practical data analytics tools.
 
-In this paper, we focus on the challenge of efficiently providing live previews and type checking
-code during editing in a free-form text editor. This is a challenge, because users can perform
-arbitrary text transformations and we cannot recompute previews after each edit.
+Our \emph{data exploration calculus} is a simple formally tractable language
+for data exploration. The calculus captures key observations about simple data analyses. They
+rely on logic from external libraries, implement few abstractions and are written as lists of
+commands. We later revised the calculus to add type checking and simple abstraction mechanism.
 
-The key trick is to separate the process into fast \emph{binding phase},
-which constructs a dependency graph and slower \emph{evaluation phase} and \emph{type checking phase}
-that can cache results, using the nodes from the dependency graph created during binding as keys.
-This makes it possible to quickly parse updated code, reconstruct dependency graph and compute
-preview using previous, partially evaluated, results.
+Our main technical contribution is a \emph{live preview} mechanism that efficiently evaluates
+code during editing and instantly provides a preview of the result. We allow users to edit code
+in unconstrained way in an text editor, which makes this particularly challenging. The key trick
+is to separate the process into fast \emph{binding phase}, which constructs a dependency graph
+and slower \emph{evaluation phase} that can cache results. This makes it possible to quickly parse
+updated code, reconstruct dependency graph and compute preview using previous, partially
+evaluated, results.
 
-We describe our approach formally, which serves two purposes. First, we aim to provide easy to
-use foundations for the growing and important trend of text-based live coding environments.
-Second, we explore the properties of our system and prove that our method does not recompute
-previews in a number of common cases and, at the same time, the optimisation still produces
-correct previews.
+We evaluated our approach in three ways. First, we proved that our mechanism is correct and
+that it reuses evaluated values for many common code edit operations. Second, we conducted an
+experimental study that illustrates how often are previously evaluated results reused during
+typical programming scenario. Thirdly, we used our research as a basis for online data exploration
+environment, which shows the practical usability of our work.
 
 \bibliography{paper}
 
