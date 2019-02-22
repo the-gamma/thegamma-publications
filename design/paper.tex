@@ -129,94 +129,95 @@ Idyll
 some walkthrough illustrating thegamma with code and screenshots
 
 \newpage
+~
+\newpage
 
 \section{Design principles}
-The design of TheGamma is based on two categories of design goals that we identify in this
-section. The first group of goals follow the observation that majority of users will not be
-expert programmers and can only invest limited amount of time into learning a new tool. The
-second group of goals are derived from our focus on journalistic applications and the specific
-challenges of this domain.
+TheGamma is based on design principles that we identify in this section. We start by careful
+consideration of our target application domain, i.e.~data analyses of open data produced by
+journalists and published by online media. By considering the users, challenges and typical
+scenarios in this domain, we derive more technical design principles for our system.
 
-\subsection{Principles for designing simple language}
-Our approach originates in a careful consideration of the challenges faced by users learning
-how to use main-stream programming languages for data science scripting. \todo{There must be
-some research on learning programming we can cite}
+\subsection{Principles addressing challenges in journalism}
+Modern journalism faces many challenges \todo{cite something}. There are many responses to those
+challenges. To develop a new kind of trust, journalists are increasingly presenting not just
+outcomes of their analysis, but also the process they used. To develop relationship with readers,
+journalists are increasingly looking for meaningful ways of engagement. Those developments
+inform the following design principles of TheGamma system. \todo{rewrite this with
+more references}
 
-\todo{To me, some of the things below sound kind of trivial. Is that just me, or do we
-need more fundamental principles?}
+\textbf{A1. Trust through transparency.} The system should allow fact checking of the analyses to
+build trust. This means that viewers should be able to determine what is the source of analysed
+data and how has the data been transformed.
 
-\textbf{A1. Allow learning from examples.} Users of tools such as spreadsheets often learn by
-looking at existing problem solutions \todo{Advait's PPIG}. Our design should allow this by
-making it possible to inspect and retrace steps used while solving a problem in an existing
-application.
+\textbf{A2. Opening the process.} Journalists are increasingly opening the way they work
+to readers in order to build trust. The ability to view how an analysis has been constructed should
+not be limited just to experts (say, by running a Jupyter Notebook), but should be
+available to all interested readers.
 
-\textbf{A2. Allow learning by experimentation.} Another principle of spreadsheets that we want
-to keep is the ability to experiment and see results immediately. Our design should allow users
-to try invoking an operation or modifying a parameter and quickly see if this leads to the
-desired results.
+\textbf{A3. Providing meaningful engagement mechanism.} The system should provide a
+mechanism through which readers can engage in a meaningful discussion. For example, it should allow
+modifying parameters of a data visualization in order to show how, e.g. different choice of
+countries affects the result.
 
-\textbf{A3. Choice over construction.} To minimize the amount of information that users have to
+\subsection{Principles for open data journalism tool design}
+One important observation from the above list is that our tool should be accessible to non-expert
+users such as readers and non-technical journalists, while providing extra capabilities for more
+technical users. It should be easy to use if one just wants to modify existing code and should
+encourage experimentation. Considering these challenges, we identify the following technical
+design principles. \todo{There must be papers on learning programming that can be referenced
+here.}
+
+\textbf{B1. Learning from examples and by experimentation.} We should support two ways of learning.
+Users of tools such as spreadsheets
+often learn by looking at existing problem solutions \todo{Advait's PPIG}. Our design should allow
+this by making it possible to inspect and retrace steps used while solving a problem in an existing
+application. Another principle of spreadsheets that we want to keep is the ability to experiment
+and see results immediately. Our design should allow users to try invoking an operation or modifying
+a parameter and quickly see if this leads to the desired results.
+
+\textbf{B2. Choice over construction.} To minimize the amount of information that users have to
 learn and remember, our system should work in a way that allows constructing programs by
 choosing from options that can reasonably appear in a current context, rather than requiring
 users to recall particular syntax or exact identifier name.
 \todo{recognition over recall?}
 
-\textbf{A4. Power for power users.} Some users of the system may, over time, become advanced users
+\textbf{B3. Make simple things easy and complex things possible.} Some users of the system may, over time, become advanced users
 and the system should support those. In other words, the upper bound on what can be achieved
-should be well above the most common use cases. \todo{I think I got this idea of "boundaries" on what
-is possible from some paper, but cannot recall which...}
-
-\textbf{A5. Minimal viable scenario.} At the same time, the complex features that power users might
+should be well above the most common use cases. At the same time, the complex features that power users might
 need should not affect the most elementary uses of the system and should remain completely hidden
 until needed. In other words, the lower bound on what one needs to know to use the system for basic
-tasks should be as low as possible.
+tasks should be as low as possible. \todo{I think I got this idea of "boundaries" on what
+is possible from some paper, but cannot recall which...}
 
-\todo{I think the above would probably be better if it was just 3 principles. A1+A2 = ``learnability'',
-A3 as is, A4+A5 = ``boundaries''. The length of UIST papers also tends to be quite short, so that
-might be better for space reasons too.}
-
-\subsection{Principles addressing challenges in journalism}
-In addition to consideration based on our focus on non-expert users, we also identify a number
-of principles that are specific to our target domain. Following a careful consideration of
-current debates in journalism, we identify the following principles. \todo{we should find some
-references on trends in journalism to motivate these}
-
-\textbf{B1. Trust through transparency.} The system should allow fact checking of the analyses to
-build trust. This means that viewers should be able to determine what is the source of analysed
-data and how has the data been transformed.
-
-\textbf{B2. Opening the process to readers.} Journalists are increasingly opening the way they work
-to readers in order to build trust. The ability to view how an analysis has been constructed should
-not be limited just to experts (say, by running a Jupyter Notebook from GitHub), but should be
-available to all interested readers.
-
-\textbf{B3. Providing meaningful engagement mechanism.} Finally, the system should provide a
-mechanism through which readers can engage in a meaningful discussion. For example, it should allow
-them modify parameters of a data visualization in order to show how, e.g. different choice of
-countries affects the result. 
+\textbf{B4. Visibility of state.} To support transparency, the system should make its entire state
+transparent -- when reviewing a data analysis, all parameters should be immediately visible and the
+user should not need to, e.g.~navigate through complex user interface to find them.
 
 \section{Systematic description}
+Describe in some more systematic detail how things work
 
 \subsection{Language}
 
-Code should be visible to allow (A1)
-
-auto-complete friendly language allows (A2)
-
-language design addresses (A3, A4) by making easy things easy and hard
-things possible (if you know the right syntax)
-
 \subsection{Type providers}
 
+~
+
 \section{Design principles evaluation}
+Evaluate the system with respect to the design principles
+
+~
 
 \section{System evaluation}
+More discussion and evaluation, featuring some numbers and case studies
 
 \subsection{Something measurable}
 
 \subsection{Case studies}
 
 \subsection{Scalability}
+
+~
 
 \section{Discussion}
 
@@ -226,12 +227,17 @@ exploratory in nature so we do not make any quantitative claims about effects
 not comparing against other systems
 
 \subsection{Design principles}
+How well did we do wrt design principles?
 
 \subsection{Design issues}
-modifying code
+future challenges and limitations of the model - such as issues when modifying code
+in the middle of the call chain
 
-\newpage
-TODO: Evaluating systems paper
+~
+
+~
+
+TODO: Add evaluation according to the evaluating systems paper list
 
 \balance{}
 \bibliographystyle{SIGCHI-Reference-Format}
