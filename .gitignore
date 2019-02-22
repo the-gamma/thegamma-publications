@@ -13,3 +13,4 @@ paket-files
 *.blg
 *.debuug
 .fake
+obj/

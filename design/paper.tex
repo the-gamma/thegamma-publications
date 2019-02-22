@@ -1,0 +1,239 @@
+\documentclass{sigchi}
+
+\CopyrightYear{2019}
+\setcopyright{rightsretained}
+\doi{http://dx.doi.org/10.475/123_4}
+\isbn{123-4567-24-567/08/06}
+\conferenceinfo{NA}{TBA}
+\acmPrice{\$0.00}
+
+\usepackage{xcolor}
+\usepackage{balance}
+\usepackage{graphics}
+\usepackage[T1]{fontenc}
+\usepackage{txfonts}
+\usepackage{mathptmx}
+\usepackage[pdflang={en-US},pdftex]{hyperref}
+\usepackage{color}
+\usepackage{booktabs}
+\usepackage{textcomp}
+
+\usepackage{microtype}
+\usepackage{ccicons}
+
+\def\plaintitle{The Gamma}
+\def\plainauthor{First Author, Second Author, Third Author,
+  Fourth Author, Fifth Author, Sixth Author}
+\def\emptyauthor{}
+\def\plainkeywords{Authors' choice; of terms; separated; by
+  semicolons; include commas, within terms only; required.}
+\def\plaingeneralterms{Documentation, Standardization}
+
+\makeatletter
+\def\url@leostyle{%
+  \@ifundefined{selectfont}{
+    \def\UrlFont{\sf}
+  }{
+    \def\UrlFont{\small\bf\ttfamily}
+  }}
+\makeatother
+\urlstyle{leo}
+
+\def\pprw{8.5in}
+\def\pprh{11in}
+\special{papersize=\pprw,\pprh}
+\setlength{\paperwidth}{\pprw}
+\setlength{\paperheight}{\pprh}
+\setlength{\pdfpagewidth}{\pprw}
+\setlength{\pdfpageheight}{\pprh}
+
+\definecolor{todoColor}{rgb}{0.6,0.0,0.2}
+\definecolor{linkColor}{RGB}{6,125,233}
+
+\newcommand{\todo}[1]{\textcolor{todoColor}{[\textbf{todo}: #1]}}
+
+\hypersetup{%
+  pdftitle={\plaintitle},
+% Use \plainauthor for final version.
+%  pdfauthor={\plainauthor},
+  pdfauthor={\emptyauthor},
+  pdfkeywords={\plainkeywords},
+  pdfdisplaydoctitle=true, % For Accessibility
+  bookmarksnumbered,
+  pdfstartview={FitH},
+  colorlinks,
+  citecolor=black,
+  filecolor=black,
+  linkcolor=black,
+  urlcolor=linkColor,
+  breaklinks=true,
+  hypertexnames=false
+}
+\begin{document}
+
+\title{\plaintitle}
+
+\numberofauthors{1}
+\author{%
+  \alignauthor{Anonymous Authors\\
+    \affaddr{Unseen University}\\
+    \affaddr{Discworld}\\
+    \email{e-mail address}}\\
+}
+
+\maketitle
+
+\begin{abstract}
+TBA
+\end{abstract}
+
+% \category{H.5.m.}{Information Interfaces and Presentation
+%   (e.g. HCI)}{Miscellaneous} \category{See
+%   \url{http://acm.org/about/class/1998/} for the full list of ACM
+%   classifiers. This section is required.}{}{}
+%
+% \keywords{\plainkeywords}
+
+\section{Introduction}
+
+some background
+
+\subsection{Example}
+
+put some screenshot here?
+
+\subsection{Our Approach and Contributions}
+We present blah blah.
+Our contributions are:
+
+\begin{itemize}
+\item Novel language design based on design principles
+\item Open source implementation on the web with cool use cases
+\item Critical evaluation
+\end{itemize}
+
+Long-term goal of making journalism better
+
+\section{Related work}
+
+\textbf{Visual tools.}
+
+\textbf{Programming tools.}
+Notebooks
+
+\textbf{Journalism.}
+Idyll
+
+\section{Overview}
+
+some walkthrough illustrating thegamma with code and screenshots
+
+\newpage
+
+\section{Design principles}
+The design of TheGamma is based on two categories of design goals that we identify in this
+section. The first group of goals follow the observation that majority of users will not be
+expert programmers and can only invest limited amount of time into learning a new tool. The
+second group of goals are derived from our focus on journalistic applications and the specific
+challenges of this domain.
+
+\subsection{Principles for designing simple language}
+Our approach originates in a careful consideration of the challenges faced by users learning
+how to use main-stream programming languages for data science scripting. \todo{There must be
+some research on learning programming we can cite}
+
+\todo{To me, some of the things below sound kind of trivial. Is that just me, or do we
+need more fundamental principles?}
+
+\textbf{A1. Allow learning from examples.} Users of tools such as spreadsheets often learn by
+looking at existing problem solutions \todo{Advait's PPIG}. Our design should allow this by
+making it possible to inspect and retrace steps used while solving a problem in an existing
+application.
+
+\textbf{A2. Allow learning by experimentation.} Another principle of spreadsheets that we want
+to keep is the ability to experiment and see results immediately. Our design should allow users
+to try invoking an operation or modifying a parameter and quickly see if this leads to the
+desired results.
+
+\textbf{A3. Choice over construction.} To minimize the amount of information that users have to
+learn and remember, our system should work in a way that allows constructing programs by
+choosing from options that can reasonably appear in a current context, rather than requiring
+users to recall particular syntax or exact identifier name.
+\todo{recognition over recall?}
+
+\textbf{A4. Power for power users.} Some users of the system may, over time, become advanced users
+and the system should support those. In other words, the upper bound on what can be achieved
+should be well above the most common use cases. \todo{I think I got this idea of "boundaries" on what
+is possible from some paper, but cannot recall which...}
+
+\textbf{A5. Minimal viable scenario.} At the same time, the complex features that power users might
+need should not affect the most elementary uses of the system and should remain completely hidden
+until needed. In other words, the lower bound on what one needs to know to use the system for basic
+tasks should be as low as possible.
+
+\todo{I think the above would probably be better if it was just 3 principles. A1+A2 = ``learnability'',
+A3 as is, A4+A5 = ``boundaries''. The length of UIST papers also tends to be quite short, so that
+might be better for space reasons too.}
+
+\subsection{Principles addressing challenges in journalism}
+In addition to consideration based on our focus on non-expert users, we also identify a number
+of principles that are specific to our target domain. Following a careful consideration of
+current debates in journalism, we identify the following principles. \todo{we should find some
+references on trends in journalism to motivate these}
+
+\textbf{B1. Trust through transparency.} The system should allow fact checking of the analyses to
+build trust. This means that viewers should be able to determine what is the source of analysed
+data and how has the data been transformed.
+
+\textbf{B2. Opening the process to readers.} Journalists are increasingly opening the way they work
+to readers in order to build trust. The ability to view how an analysis has been constructed should
+not be limited just to experts (say, by running a Jupyter Notebook from GitHub), but should be
+available to all interested readers.
+
+\textbf{B3. Providing meaningful engagement mechanism.} Finally, the system should provide a
+mechanism through which readers can engage in a meaningful discussion. For example, it should allow
+them modify parameters of a data visualization in order to show how, e.g. different choice of
+countries affects the result. 
+
+\section{Systematic description}
+
+\subsection{Language}
+
+Code should be visible to allow (A1)
+
+auto-complete friendly language allows (A2)
+
+language design addresses (A3, A4) by making easy things easy and hard
+things possible (if you know the right syntax)
+
+\subsection{Type providers}
+
+\section{Design principles evaluation}
+
+\section{System evaluation}
+
+\subsection{Something measurable}
+
+\subsection{Case studies}
+
+\subsection{Scalability}
+
+\section{Discussion}
+
+\subsection{Study limitations}
+exploratory in nature so we do not make any quantitative claims about effects
+
+not comparing against other systems
+
+\subsection{Design principles}
+
+\subsection{Design issues}
+modifying code
+
+\newpage
+TODO: Evaluating systems paper
+
+\balance{}
+\bibliographystyle{SIGCHI-Reference-Format}
+\bibliography{sample}
+\end{document}
