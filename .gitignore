@@ -1,4 +1,5 @@
 node_modules
+.ionide
 paket.exe
 paket.targets
 paket.restore.targets
@@ -12,5 +13,8 @@ paket-files
 *.bbl
 *.blg
 *.debuug
+*.bak
+*.bcf
+*.run.xml
 .fake
 obj/

@@ -1,14 +1,56 @@
-\documentclass[english,submission]{programming}
-\usepackage[backend=biber]{biblatex}
-\addbibresource{paper.bib}
-\usepackage{multicol}
-\usepackage{microtype}
+\documentclass[acmsmall,anonymous,fleqn]{acmart}\settopmatter{printfolios=false,printccs=false,printacmref=false}
+
+%% For double-blind review submission, w/ CCS and ACM Reference
+%\documentclass[acmsmall,review,anonymous]{acmart}\settopmatter{printfolios=true}
+%% For single-blind review submission, w/o CCS and ACM Reference (max submission space)
+%\documentclass[acmsmall,review]{acmart}\settopmatter{printfolios=true,printccs=false,printacmref=false}
+%% For single-blind review submission, w/ CCS and ACM Reference
+%\documentclass[acmsmall,review]{acmart}\settopmatter{printfolios=true}
+%% For final camera-ready submission, w/ required CCS and ACM Reference
+%\documentclass[acmsmall]{acmart}\settopmatter{}
+
+\acmJournal{PACMPL}
+\acmVolume{1}
+\acmNumber{OOPSLA}
+\acmArticle{1}
+\acmYear{2019}
+\acmMonth{1}
+\acmDOI{} % \acmDOI{10.1145/nnnnnnn.nnnnnnn}
+\startPage{1}
+
+\settopmatter{printfolios=true}
+%% Copyright information
+%% Supplied to authors (based on authors' rights management selection;
+%% see authors.acm.org) by publisher for camera-ready submission;
+%% use 'none' for review submission.
+\setcopyright{none}
+%\setcopyright{acmcopyright}
+%\setcopyright{acmlicensed}
+%\setcopyright{rightsretained}
+%\copyrightyear{2018}           %% If different from \acmYear
+
+%% Bibliography style
+\bibliographystyle{ACM-Reference-Format}
+%% Citation style
+%% Note: author/year citations are required for papers published as an
+%% issue of PACMPL.
+\citestyle{acmauthoryear}   %% For author/year citations
+
+\usepackage{booktabs}
+\usepackage{subcaption}
+\usepackage{lineno,hyperref,xcolor}
+\usepackage{flushend}
+\usepackage{stmaryrd}
 \usepackage{amssymb}
 \usepackage{xypic}
 \usepackage{semantic}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{enumerate}
 \usepackage{amsmath}
-\usepackage{amsthm}
+\usepackage[T1]{fontenc}
 
+\setlist{leftmargin=6mm}
 \newcounter{thc}
 \newcounter{dfc}
 
@@ -20,9 +62,36 @@
 \newtheorem{axiom}[dfc]{Axiom}
 \newtheorem{definition}[dfc]{Definition}
 
+\title{A live coding environment for a data exploration language}
+\author{Tomas Petricek}
+
+\affiliation{
+  \institution{University of Kent}
+  \country{United Kingdom}
+}
+\email{tomas@tomasp.net}
+
+\begin{CCSXML}
+<ccs2012>
+<concept>
+<concept_id>10011007.10011006.10011008</concept_id>
+<concept_desc>Software and its engineering~General programming languages</concept_desc>
+<concept_significance>500</concept_significance>
+</concept>
+<concept>
+<concept_id>10003456.10003457.10003521.10003525</concept_id>
+<concept_desc>Social and professional topics~History of programming languages</concept_desc>
+<concept_significance>300</concept_significance>
+</concept>
+</ccs2012>
+\end{CCSXML}
+
+\ccsdesc[500]{Software and its engineering~General programming languages}
+\ccsdesc[300]{Social and professional topics~History of programming languages}
+
 \definecolor{cmtclr}{rgb}{0.0,0.6,0.0}
 \definecolor{kvdclr}{rgb}{0.0,0.0,0.6}
-\definecolor{idclr}{rgb}{0.0,0.0,0.0}
+\definecolor{idclr}{rgb}{0.3,0.3,0.3}
 \definecolor{numclr}{rgb}{0.0,0.4,0.0}
 \definecolor{strclr}{rgb}{0.4,0.4,0.0}
 \definecolor{rstrclr}{rgb}{0.5,0.1,0.0}
@@ -53,44 +122,13 @@
 \newcommand{\bknd}[1]{\textnormal{\textcolor{prepclr}{\sffamily #1}}}
 \newcommand{\blbl}[1]{\textnormal{\textcolor{numclr}{\sffamily #1}}}
 \newcommand{\narrow}[1]{\hspace{-0.6em}#1\hspace{-0.6em}}
-\newcommand{\rname}[1]{{\sffamily(#1)}}
+\newcommand{\rname}[1]{{\sffamily\small(#1)}}
 \newcommand{\ername}[1]{\vspace{0.75em}\rname{#1}\hspace{0.5em}}
 \newcommand{\preview}[1]{\,\textnormal{\guillemotleft} #1\textnormal{\guillemotright}\,}
 
 \begin{document}
-\title{A live coding environment for a data exploration language}
-%\titlerunning{Learning to live with errors}
-
-\author[a]{Tomas Petricek}
-\authorinfo{Tomas is xxx. Contact him at \email{tomas@tomasp.net}.}
-\affiliation[a]{University of Kent, UK}
-\keywords{xxx}
-\paperdetails{
-  perspective=engineering,
-  area={History and philosophy of programming},
-}
-
-% https://dl.acm.org/ccs/ccs.cfm and generate your Classification
-\begin{CCSXML}
-<ccs2012>
-<concept>
-<concept_id>10002944.10011122.10002945</concept_id>
-<concept_desc>General and reference~Surveys and overviews</concept_desc>
-<concept_significance>300</concept_significance>
-</concept>
-<concept>
-<concept_id>10003456.10003457.10003521</concept_id>
-<concept_desc>Social and professional topics~History of computing</concept_desc>
-<concept_significance>300</concept_significance>
-</concept>
-</ccs2012>
-\end{CCSXML}
-\ccsdesc[300]{General and reference~Surveys and overviews}
-\ccsdesc[300]{Social and professional topics~History of computing}
-
-\maketitle
-
 \begin{abstract}
+
 A growing amount of code is written to explore and analyze data, but the way data analysts
 work with code differs from the way software engineers do. First, many data
 scientists write code that introduces few or no abstractions. Second, data exploration is an
@@ -115,6 +153,7 @@ As data analysis becomes an ever more important use of programming, research on 
 and tools needs to consider new kinds of programming workflows appropriate for those domains and
 conceive new kinds of tools that can support them. The present paper is one step in this important direction.
 \end{abstract}
+\maketitle
 
 % ==================================================================================================
 
@@ -125,11 +164,11 @@ liveness. When you change a value in a cell in Excel, the whole spreadsheet upda
 and you immediately see new results, without having to explicitly trigger re-computation
 and without having to wait for an extensive period of time.
 
-An increasing number of programming environments aim to provide a live development experience
+Increasing numbers of programming environments aim to provide a live development experience
 for standard programming languages, but doing this is not easy. Fully recomputing the whole program
-after every keystroke is inefficient and calculating how a change in the source code changes the
+after every keystroke is inefficient. Calculating how a change in the source code changes the
 result is extremely hard when the text editor allows arbitrary changes.
-Consider the following snippet that gets the release years of the $10$ most expensive movies from a
+Consider the following snippet that gets the release years of the 10 most expensive movies from a
 data set \ident{movies}:
 %
 \begin{equation*}
@@ -139,8 +178,8 @@ data set \ident{movies}:
 \end{array}
 \end{equation*}
 %
-A live coding environment computes and shows the list of years. Suppose that the programmer then
-makes $\num{10}$ a variable and changes the date format:
+A live coding environment computes and shows the list of years. Suppose that the programmer then modifies the code by
+making $\num{10}$ a variable and changing the date format to see the full date:
 %
 \begin{equation*}
 \begin{array}{l}
@@ -151,57 +190,60 @@ makes $\num{10}$ a variable and changes the date format:
 \end{equation*}
 %
 Ideally, the live coding environment should understand the change, reuse a cached result of the
-first two transformations (sorting and taking the first 10 elements) and only evaluate the
-\ident{map} operation to differently format the release dates of top 10 movies. Our environment
-does this for a simple data exploration language. Unlike many related systems, we let the user edit
-code in an ordinary text editor. We discuss related work in Section~\ref{sec:future}, but we
-briefly review the most important directions here, in order to situate our contributions.
+first two transformations (sorting and taking first 10 elements) and only evaluate the
+\ident{map} operation to differently format the release dates of already computed top 10 movies.
+This can already be done in a number of systems based on structured code editors, but our
+approach allows this behaviour using a standard text editor. We discuss related work in more detail in
+Section~\ref{sec:future}, but we review the most important directions here, in order to
+situate our contributions.
 
 \subsection{Related work}
 Simple data exploration performed, for example, by journalists \cite{ddj} is done either
 programmatically or using spreadsheets. The former is reproducible and transparent, but requires
 expert programming skills. The latter is easy, but it limits reproducibility and is error-prone.
 We aim to bring some aspects of spreadsheets, especially liveness, to programmatic data exploration.
-Recomputation in spreadsheets is well studied~\cite{spreadsheet}, but extending it to
-code written in an ordinary text editor poses interesting challenges.
+Recomputation in spreadsheets is well studied,~e.g. by \citet{spreadsheet}, but extending it to
+code written and edited in an ordinary text editor poses interesting challenges.
 
 Many visual data exploration tools support interactivity \cite{control,tableau,vizdom} and some
 can even export the workflow as a script \cite{wrangler}. Data analysts who prefer working with
 code typically resort to notebook systems such as Jupyter or R Markdown \cite{jupyter,rmarkdown}.
 Those are text-based, but have a limited model of recomputation. Users structure code in
 cells and manually reevaluate cells. Many notebook systems do not track dependencies
-between cells which can lead to well-documented inconsistencies \cite{dataflow,noworkflow,wrattler}.
+between cells, which can lead to inconsistencies, an issue that has been addressed
+by e.g.~\citet{dataflow,noworkflow} and \citet{wrattler}.
 
 Existing text-based editors that provide instant feedback,
 such as Lighttable \cite{lighttable} and Chrome DevTools, often work only in certain
 situations or require full recomputation. A more principled approach can be used by
-systems based on structured editing \cite{livenut,lamdu} where code is only
-modified via known operations with known effect on the computation graph
+systems based on structured editing \cite{livenut,lamdu}, which benefit from the fact that code
+can is modified via known operations with known effect on the computation graph
 (e.g.~``extract variable'' has no effect on the result; ``change constant value''
-forces recomputation of subsequent code). We aim to cater for the many users who
+forces recomputation of subsequent code). However, we aim to cater for the many users who
 prefer to edit programs as free-form text.
 %
-The technical aspects of our implementatio are related to incremental computation \cite{selfadjusting,incremental}.
-This focuses on cases where \emph{data changes} but program stays the same, while our focus is on cases where
-\emph{program changes} but data stays. Despite the different focus, the algorithms are related and,
+The technical aspects of our technique for providing instant feedback
+are related to the work on incremental computation \cite{selfadjusting,incremental}. This focuses
+on cases where \emph{data changes} but program stays the same, while our focus is on cases where
+\emph{program changes} but data stays. Yet, the technical aspects are related and,
 as noted in Section~\ref{sec:future}, a language that supports incremental computation could be used
 to implement the kind of system presented in this paper.
 
 \subsection{Contributions}
-We present the design and implementation of a live coding environment for a simple data exploration
+We present the design and implementation of a live coding environment for a data exploration
 language that provides correct and efficient instant feedback, yet is integrated into an
-ordinary text editor. Our key contributions are:
+ordinary text editor. Our most important contributions are:
 
-\begin{itemize}
+\begin{itemize}[itemsep=3pt]
 \item We introduce the \emph{data exploration calculus} (Section~\ref{sec:calculus}), a small formally
   tractable language for data exploration. The calculus is motivated by our review
   of how data analysts work (Section~\ref{sec:background}) and makes it possible to write simple,
   transparent and reproducible data analyses.
 
-\item A live coding environment does not operate in batch mode and so we cannot follow classic
-  compiler literature. We capture the essence of such new perspective (Section~\ref{sec:formal})
-  and use it to build our \emph{live preview} mechanism (Section~\ref{sec:previews}) that evaluates
-  code instantly during editing.
+\item Implementing a live coding environment requires a different way of thinking than the one
+  presented in classic compiler literature, because it does not operate in a batch mode. We capture
+  the essence of the new perspective (Section~\ref{sec:formal}) and use it to build our \emph{live
+  preview} mechanism (Section~\ref{sec:previews}) that evaluates code instantly during editing.
 
 \item We prove that our live preview mechanism is correct (Section~\ref{sec:evaluation-correctness}) and that
   it reuses previously evaluated values when possible (Section~\ref{sec:evaluation-reuse}). We
@@ -216,11 +258,13 @@ ordinary text editor. Our key contributions are:
 
 % ==================================================================================================
 
-\begin{figure}
+\begin{figure}[b]
 \vspace{-0.5em}
-\hspace{1em}\includegraphics[scale=0.52]{figures/notebook.png}
+\includegraphics[scale=0.5]{notebook.png}
 \vspace{-0.5em}
-\caption{Financial Times analysis that joins UN trade database with ISO country codes.}
+\caption{An excerpt from a Jupyter notebook by Financial Times reporters, which loads trade
+  data from the UN trade database (stored in a local file) and adds ISO country codes (from
+  an Excel spreadsheet).}
 \label{fig:ft-uncomtrade}
 \vspace{-0.5em}
 \end{figure}
@@ -232,44 +276,45 @@ ordinary text editor. Our key contributions are:
 
 Data scientists often use general-purpose programming languages such as Python, but the kind of
 code they write and the way they interact with the system is very different from how software
-engineers work \cite{workflow}. This paper focuses on simple data wrangling and data exploration as
-done, for example, by journalists analysing government datasets. This new kind of non-expert
-programmers is worth our attention as they often work on informing the public. They need easy-to-use
-tools, but not necessarily a full programming langugae. In this section, we ilustrate how such
-data analyses look and we provide a justification for the design of our data exploration calculus.
+engineers work. The different nature of data science workflow has been documented
+by \citet{workflow}. This paper focuses on simple data wrangling and data exploration as done, for
+example, by journalists analysing government datasets. This section illustrates how such data
+analyses typically look and provides a justification for the design of our data exploration calculus.
 
 % --------------------------------------------------------------------------------------------------
 
 \subsection{Data wrangling in Jupyter}
 \label{sec:background-jupyter}
 
-Data analysts increasingly use notebook systems such as Jupyter, which make it possible to
-combine text, equations and code with results of running the code, such as tables or visualizations.
-Notebooks blur the conventional distinction between development and execution. Data analysts write
-small snippets of code, run them to see results immediately and then revise them.
+Data analysts increasingly use notebook systems such as Jupyter, which
+make it possible to combine text, equations and code with results of running the code, such as tables
+or visualizations. Notebooks blur the distinction between development and execution.
+Data analysts write small snippets of code, run them to see results immediately and then revise
+them.
 
 Jupyter notebooks are used by a variety of users ranging from scientists who implement complex
 models of physical systems to journalists who load data, perform simple aggregations and create visualizations. Our
-focus is on the simplest use cases. We believe that making programmatic
+initial focus is on the simplest use cases. We believe that making programmatic
 data exploration more interactive and spreadsheet-like can encourage users to choose programming tools
 over spreadsheets, allowing them to produce reproducible and transparent data analyses.
 
-Consider the Financial Times analysis of plastic waste \cite{ftnotebooks,ftarticle}. It joins
-datasets from Eurostat, UN Comtrade and more, aggregates the data and
+As an example, the analysis done by the Financial Times for an article on plastic waste
+\cite{ftnotebooks,ftarticle} joins datasets from Eurostat, UN Comtrade and more, aggregates the data and
 builds a visualization comparing waste flows in 2017 and 2018. Figure~\ref{fig:ft-uncomtrade} shows
-an excerpt from one notebook of the data analysis. The code has a number of important properties:
+an extract from one notebook of the data analysis. The code has a number of important properties:
 %
-\begin{itemize}
+\begin{itemize}[itemsep=3pt]
 \item There is no abstraction. The analysis uses lambda functions as arguments to library calls,
-  but it does not define any custom functions. In our example, code is parameterized by having a
-  global variable \ident{material}, setting it to \str{plastics} and having other possible values
-  in a comment. This lets the analyst run and check results of intermediate steps. Analyses also
-  often use a list of inputs with a for loop.
+  but it does not define any top-level functions. Parameterization is done by defining a list of
+  inputs and then having a for loop, or by defining a top-level variable and setting its value.
+  In our example, \ident{material} is set to \str{plastics} and a comment lists other options.
+  This lets the analyst easily see and check the results of intermediate steps of the analysis.
 
 \item The code relies on external libraries. Our example uses Pandas \cite{pandas},
   which provides operations for data wrangling such as \ident{merge} to join datasets
-  or \ident{drop\_duplicates} to delete rows with duplicate column values. Such standard libraries
-  are external to the data analysis and are often implemented in another language like C++.
+  or \ident{drop\_duplicates} to delete rows with duplicate column values. Those libraries are
+  external to the data analysis and may even be implemented in other languages -- many Python
+  libraries rely on C++.
 
 \item The code is structured as a sequence of commands. Some commands define a variable, either by
   loading data, or by transforming data loaded previously. Even in Python, data is often treated
@@ -281,33 +326,51 @@ an excerpt from one notebook of the data analysis. The code has a number of impo
 \end{itemize}
 
 \noindent
-Many Jupyter notebooks are more complex than the above example and might use helper
-functions or object-oriented code. However, simple data analyses such as the one discussed
-here are frequent enough and pose interesting problems for programming tools.
-This paper aims to bring such analyses to the attention of programming research community
-by capturing their essential properties as a formal calculus.
+Many Jupyter notebooks are more complex than the example discussed here. They might define
+helper functions or even structure code using object-oriented programming. However, this paper
+is motivated by our conviction that simple data analyses such as the one discussed here are frequent
+enough to pose an interesting and important domain for programming tools research.
 
 % --------------------------------------------------------------------------------------------------
+
+\begin{figure}[b]
+  \centering
+  \subcaptionbox{
+    \raggedright\footnotesize The Gamma script to aggregate Olympic medals. The analyst selects
+      Rio 2016 games and counts the number of distinct events per athlete. After typing `.'
+      a type provider offers further aggregation operations.
+    \label{fig:gamma-dot}
+  }{\includegraphics[scale=0.26]{gamma1.png}}
+  \subcaptionbox{
+    \raggedright\footnotesize
+      Our live coding environment for The Gamma language based on the theory presented in this paper.
+      The table is produced as
+      the data analyst types and updates on-the-fly to show result at the current cursor position.
+    \label{fig:gamma-preview}
+  }{\includegraphics[scale=0.26]{gamma2.png}}
+  \caption{\small Previous work on The Gamma by \citet{gamma} (left) and our new editor with live preview (right).}
+  \label{fig:gamma-intro}
+\end{figure}
 
 \subsection{Dot-driven data exploration in The Gamma}
 \label{sec:background-gamma}
 
 Data exploration of the kind discussed in the previous section has been the motivation for
-recent work that develops a small scripting language called The Gamma \cite{gamma}.
+recent work by \citet{gamma} that develops a small scripting language called The Gamma.
 Scripts in The Gamma are sequences of commands that can either define a variable or produce an
 output. The language does not support top-level function declarations
 and lambda functions can be used only as method arguments.
 
 Given the limited expressiveness of The Gamma, libraries are implemented in other languages,
-such as JavaScript. The Gamma uses type providers \cite{providers-fsharp},
+such as JavaScript. The Gamma supports type providers \cite{providers-fsharp},
 which generate types on the fly, for accessing and exploring external data sources.
 Type providers provide object types with members and The Gamma makes using those convenient by
 providing auto-complete when the user types the dot symbol (`.') to access a member.
 
-The combination of type providers and auto-complete makes it
-possible to solve a large number of data exploration tasks through the very simple interaction of
+As illustrated by \citet{gamma}, the combination of type providers and auto-complete on~`.' makes it
+possible to complete a large number of data exploration tasks through the very simple interaction of
 selecting operations from a list. An example in Figure~\ref{fig:gamma-dot} summarizes data on
-Olympic medals. Identifiers such as \qident{sum Bronze}
+Olympic medals using a type provider. Identifiers such as \qident{sum Bronze}
 are merely names of members generated by the type provider, based on information
 about the data source. The type provider used in this example generates an object with members for
 different data transformations, such as \qident{group data}, which return further objects with
@@ -318,18 +381,17 @@ The Gamma language is richer, but the example in Figure~\ref{fig:gamma-dot} show
 data exploration can be done using a very simple language. The assumptions about structure of
 code that are explicit in The Gamma are implicitly present in Python and R data analyses
 produced by journalists, economists and other users with other than programming background.
-When we refer to The Gamma in this paper, readers not familiar with it can consider a small
-subset of Python.
+When we refer to The Gamma in this paper, readers not familiar with it can consider a subset of Python.
 
 % --------------------------------------------------------------------------------------------------
 
 \subsection{Live coding for data exploration}
 
-The implementation that accompanies this paper builds a live coding environment for The Gamma.
-The implementation is discussed in Section~\ref{sec:evaluation-case} and it replaces
-the original text editor with just auto-complete with a live coding environment
+The implementation that accompanies this paper builds a live coding environment for The Gamma
+language. The implementation is discussed in Section~\ref{sec:evaluation-case} and it replaces
+the text editor with auto-complete, originally used by The Gamma, with a live coding environment
 that provides \emph{live previews}. We choose to extend The Gamma over using a subset of Python
-as the simplicity of TheGamma lets us focus on the principles of live coding systems.
+for its simplicity as it lets us focus on the principles of live coding systems.
 
 An example of a live preview is shown in Figure~\ref{fig:gamma-preview}. As noted earlier, The
 Gamma programs consist of lists of commands which are either expressions or let bindings. Our
@@ -347,43 +409,21 @@ corner cases that typical analysis involves. In contrast to work on incremental 
 we do not consider the case when data changes, although supporting interactive data exploration
 of streaming data is an interesting future direction.
 
-% --------------------------------------------------------------------------------------------------
-
-\begin{figure}
-  \centering
-  \subcaptionbox{
-    \raggedright\footnotesize The Gamma script to aggregate Olympic medals. The analyst selects
-      Rio 2016 games\\ and counts the number of distinct events per athlete. After typing `.'
-      a type provider offers further aggregation operations.
-    \label{fig:gamma-dot}
-  }{\includegraphics[scale=0.26]{figures/gamma1.png}}
-  \subcaptionbox{
-    \raggedright\footnotesize
-      Our live coding environment for The Gamma language based on the theory presented in this paper.
-      The table is produced as
-      the data analyst types and updates on-the-fly to show result at the current cursor position.
-    \label{fig:gamma-preview}
-  }{\includegraphics[scale=0.26]{figures/gamma2.png}}
-  \caption{\small Previous work on The Gamma (left) and our new editor with live preview (right).}
-  \label{fig:gamma-intro}
-\end{figure}
-
-
 % ==================================================================================================
 
 \section{Data exploration calculus}
 \label{sec:calculus}
 
-The \emph{data exploration calculus} is a small formal language for data exploration. The calculus
-is not, in itself, Turing-complete and it can only be used together with external libraries that
+The \emph{data exploration calculus} is a small formal language for data exploration.
+The calculus is not, in itself, Turing-complete and it can only be used together with external libraries that
 define what objects are available and what the behaviour of their members is. This is
 sufficient to capture the simple data analyses discussed in Section~\ref{sec:background}. We
-define the calculus in this section and then use it to formalise our live preview
+define the calculus in this section and then use it as the basis for discussing our live preview
 mechanism in Section~\ref{sec:formal}.
-%
-The live preview mechanism does not rely on types and so we postpone the discussion of static
-typing to Section~\ref{sec:extra-types}. Interestingly, it reuses the mechanism used for live
-previews.
+
+We initially present the data exploration calculus without a static type system as the live preview
+mechanism does not rely on types. We consider type checking later in Section~\ref{sec:extra-types}.
+Interestingly, the mechanism that is used for live previews can also be used for instant type checking.
 
 % --------------------------------------------------------------------------------------------------
 
@@ -443,13 +483,13 @@ The calculus combines object-oriented features such as member access with functi
 including lambda functions. The syntax is defined in Figure~\ref{fig:dec-calculus}. Object values
 $o$ are defined by external libraries that are used in conjunction with the core calculus.
 
-A program $p$ in the data exploration calculus consists of a sequence of commands~$c$. A command
+A program $p$ in the data exploration calculus consists of a sequence of commands $c$. A command
 can be either a let binding or a term. Let bindings define variables $x$ that can be used in
-subsequent commands. Lambda functions
+subsequent commands. The calculus supports lambda functions, but they
 can only appear as arguments in method calls. A term $t$ can be a value, variable or a
 member access, while an expression $e$, which can appear as an argument in member access,
-can be a lambda function or a term.\footnote{Similar but weaker restrictions
-exist in other languages. To guide type inference, lambda functions
+can be a lambda function or a term.\footnote{Similar but weaker restrictions on the use of lambda
+functions exist in other languages. For example, in order to guide type inference, lambda functions
 in C\# can appear as either method arguments or assigned to an explicitly typed variable, but they
 cannot be assigned to an implicitly typed variable.}
 
@@ -492,8 +532,8 @@ evaluating live previews in Section~\ref{sec:evaluation-correctness}.
 We define two additional reduction relations:
 \begin{itemize}
 \item[-] We write $\rightsquigarrow^{*}$ for the reflexive, transitive closure of $\rightsquigarrow$
-\item[-] We write $\rightsquigarrow_\ident{let}$ for a call-by-name let binding elimination
-  $c_1;\; \ldots;\; c_{k-1};\;$\\ $\kvd{let}~x=t;\; c_{k+1};\; \ldots; c_n ~\rightsquigarrow_\ident{let}~
+\item[-] We write $\rightsquigarrow_\ident{let}$ for a call-by-name let binding elimination\\
+  $c_1;\; \ldots;\; c_{k-1};\; \kvd{let}~x=t;\; c_{k+1};\; \ldots; c_n ~\rightsquigarrow_\ident{let}~
   c_1;\; \ldots;\; c_{k-1};\; t; c_{k+1}[x\leftarrow t];\; \ldots; c_n[x\leftarrow t]$
 \end{itemize}
 \end{definition}
@@ -505,9 +545,9 @@ $C[e']$ reduce to the same value. Lambda functions $\lambda x\!\rightarrow\!2$ a
 $\lambda x\!\rightarrow\!1\!+\!1$ are not equal, but they are observationally equivalent.
 We require that external libraries satisfy two conditions. First, when a method is called with
 observationally equivalent values as arguments, it should return the same value. Second, the
-evaluation of $o.m(v_1,\ldots,v_n)$ should be defined for all $o, n$ and $v_i$. The external
+evaluation of $o.m(v_1,\ldots,v_n)$ should be defined for all $o, i$ and $v_i$. The external
 library will typically satisfy this by defining an error object and reducing all invalid calls
-to the error object \cite{gowrong}.
+to the error object, following the standard method of \citet{gowrong}.
 
 \begin{definition}[External library]
 \label{def:external}
@@ -516,7 +556,8 @@ $\rightsquigarrow_\epsilon$ that satisfies the following two properties:
 \begin{itemize}
 \item[-] \emph{Totality.} For all $o, m, i$ and all $v_1, \ldots, v_i$, there exists $o'$ such
   that $o.m(v_1, \ldots, v_i) \rightsquigarrow_\epsilon o'$.
-\item[-] \emph{Compositionality.} For observationally equivalent arguments, the reduction should always return
+\vspace{0.5em}
+\item[-] \emph{Compositionality.} For observationally equivalent arguments, the reduction returns
   the same object, i.e.~given $e_0, e_1, \ldots, e_n$ and $e'_0, e'_1, \ldots, e'_n$ and $m$ such that
   $e_0.m(e_1, \ldots, e_n) \rightsquigarrow^{*} o$ and $e'_0.m(e'_1, \ldots, e'_n) \rightsquigarrow^{*} o'$ then
   if for any contexts $C_0, C_1, \ldots, C_n$ it holds that if $C_i[e_i] \rightsquigarrow^{*} o_i$ and
@@ -525,13 +566,13 @@ $\rightsquigarrow_\epsilon$ that satisfies the following two properties:
 \end{definition}
 
 \noindent
-Compositionality is essential for proving the correctness of our live preview mechanism.
+The compositionality condition is essential for proving the correctness of our live preview mechanism.
 Totality allows us to prove normalization, i.e.~all programs reduce to
 a value -- although the resulting value may be an error value provided by the external library.
 
 \begin{theorem}[Normalization]
 \label{thm:normalization}
-For all $p$, there exists $n, o_1, \ldots, o_n$ such that $p\rightsquigarrow^{*} o_1;\ldots;o_n$.
+For all $p$, there exists $n$ and $o_1, \ldots, o_n$ such that $p\rightsquigarrow^{*} o_1;\ldots;o_n$.
 \end{theorem}
 \begin{proof}
 A program that is not a sequence of values can be reduced and reduction decreases the size of the
@@ -559,6 +600,8 @@ introduced by substitution also reduce using the same steps as before, but using
 contexts in which the variable $x$ originally appeared.
 \end{proof}
 
+\newpage
+
 % ==================================================================================================
 
 \section{Formalising a live coding environment}
@@ -566,8 +609,9 @@ contexts in which the variable $x$ originally appeared.
 
 A naive way of providing live previews during code editing would be to re-evaluate the code
 after each change. This would be wasteful -- when writing code to explore data, most changes are
-additive. To update a preview, we only need to evaluate newly added code. We describe an
-efficient mechanism in this section.
+additive and the preview can be updated by evaluating just the newly added
+code. In this section, we develop foundations for an efficient way of displaying live previews
+for the data exploration calculus.
 
 % --------------------------------------------------------------------------------------------------
 
@@ -579,8 +623,7 @@ nodes representing individual operations of the computation that can be evaluate
 to obtain a preview. Each time the program text is modified, we parse it afresh (using an
 error-recovering parser) and bind the abstract syntax tree to the dependency graph.
 When binding a new expression to the graph, we reuse previously created nodes as long as
-they have the same structure and the same dependencies. For expressions that have a new
-structure, we create new nodes.
+they have the same dependencies. For expressions that have a new structure, we create new nodes.
 
 The nodes of the graph serve as unique keys into a lookup table containing previously
 evaluated parts of the program. When a preview is requested for an expression, we use the graph
@@ -590,11 +633,11 @@ the current node.
 
 % --------------------------------------------------------------------------------------------------
 
-\begin{figure}
+\begin{figure}[b]
 \centering
 \subcaptionbox{
   \raggedright\small
-  Graph constructed from initial expression:
+  Graph constructed from the following initial expression:
   $\kvd{let}~x = \num{15}~\kvd{in}~\ident{data.skip}(\num{10}).\ident{take}(x)$
   \label{fig:dep-graph-a}
 }{
@@ -631,15 +674,15 @@ are used as cache keys, so we attach a unique symbol $s$ to some of the nodes. T
 create two unique nodes representing, for example, access to a member named \ident{take} which
 differ in their dependencies.
 
-The graph edges are labelled with labels indicating the kind of dependency. For
+Furthermore, the graph edges are labelled with labels indicating the kind of dependency. For
 a method call, the labels are ``first argument'', ``second argument'' and so on. Writing
 $s$ for symbols and $i$ for integers, nodes (vertices) $\bndclr{v}$ and edge labels $\blblclr{l}$
 are defined as:
 %
 \begin{equation*}
 \begin{array}{rcll}
-\bndclr{v}&=&\bnd{val}(o) \lsep \bnd{var}(x)\lsep \bnd{mem}(m, s)\lsep \bnd{fun}(x, s)&\qquad(\textit{Vertices})\\
-\blblclr{l}&=&\blbl{body} \lsep \blbl{arg}(i)&\qquad(\textit{Edge labels})\\
+\bndclr{v}&=&\bnd{val}(o) \lsep \bnd{var}(x)\lsep \bnd{mem}(m, s)\lsep \bnd{fun}(x, s)&(\textit{Vertices})\\
+\blblclr{l}&=&\blbl{body} \lsep \blbl{arg}(i)&(\textit{Edge labels})\\
 \end{array}
 \end{equation*}
 %
@@ -647,51 +690,10 @@ The \bnd{val} node represents a primitive value and contains the object itself. 
 of $\num{10}$ in the source code will be represented by the same node. Member access \bnd{mem}
 contains the member name, together with a unique symbol $s$ -- two member access nodes with
 different dependencies will contain a different symbol. Dependencies of member access are labelled
-with \blbl{arg} indicating the index of the argument ($0$ for the instance and $1,\ldots$ for the
-arguments). Finally, nodes \bnd{fun} and \bnd{var} represent function values and variables
+with \blbl{arg} indicating the index of the argument (the instance has index $0$ and arguments
+start with $1$). Finally, nodes \bnd{fun} and \bnd{var} represent function values and variables
 bound by $\lambda$ abstraction. For simplicity, we use variable names rather than de Bruijn
 indices and so renaming a bound variable forces recomputation.
-
-% --------------------------------------------------------------------------------------------------
-
-\begin{figure*}[t]
-\begin{equation*}
-\vspace{-1em}
-\hspace{-1.5em}
-\begin{array}{ll}
-\ident{bind-expr}_{\Gamma, \Delta}(e_0.m(e_1, \ldots, e_n)) = \bndclr{v}, (\{\bndclr{v}\} \cup V_0 \cup \ldots \cup V_n, E \cup E_0 \cup \ldots \cup E_n) &\hspace{-2em}(1)~~\\
-\quad \textnormal{when}~\bndclr{v_i}, (V_i, E_i) = \ident{bind-expr}_{\Gamma, \Delta}(e_i)
-~\textnormal{and}~\bndclr{v} = \Delta(\bknd{mem}(m),[(\bndclr{v_0}, \blbl{arg}(0)), \ldots, (\bndclr{v_n}, \blbl{arg}(n))])\\
-\quad \textnormal{let}~E = \{ (\bndclr{v}, \bndclr{v_0}, \blbl{arg}(0)), \ldots, (\bndclr{v}, \bndclr{v_n}, \blbl{arg}(n))\}
-\\[1em]
-\ident{bind-expr}_{\Gamma, \Delta}(e_0.m(e_1, \ldots, e_n)) = \bndclr{v}, (\{\bndclr{v}\} \cup V_0 \cup \ldots \cup V_n, E \cup E_0 \cup \ldots \cup E_n)&\hspace{-2em}(2)\\
-\quad \textnormal{when}~\bndclr{v_i}, (V_i, E_i) = \ident{bind-expr}_{\Gamma, \Delta}(e_i)
-~\textnormal{and}~\Delta(\bknd{mem}(m),[(\bndclr{v_0}, \blbl{arg}(0)), \ldots, (\bndclr{v_n}, \blbl{arg}(n))])\!\downarrow\\
-\quad \textnormal{let}~\bndclr{v} = \bnd{mem}(m, s), s~\textnormal{fresh}
-~\textnormal{and}~E = \{ (\bndclr{v}, \bndclr{v_0}, \blbl{arg}(0)), \ldots, (\bndclr{v},\bndclr{v_n}, \blbl{arg}(n)) \}
-\\[1em]
-\ident{bind-expr}_{\Gamma, \Delta}(\lambda x \rightarrow e) = \bndclr{v}, (\{\bndclr{v}\} \cup V, \{e\} \cup E)&\hspace{-2em}(3)\\
-\quad \textnormal{when}~\Gamma_1 = \Gamma \cup \{ x, \bnd{var}(x) \}
-~\textnormal{and}~\bndclr{v_0}, (V, E) = \ident{bind-expr}_{\Gamma_1, \Delta}(e)
-~\textnormal{and}~\bndclr{v} = \Delta(\bknd{fun}(x),[(\bndclr{v_0}, \blbl{body})])\\
-\quad \textnormal{let}~e = (\bndclr{v}, \bndclr{v_0}, \blbl{body})
-\\[1em]
-\ident{bind-expr}_{\Gamma, \Delta}(\lambda x \rightarrow e) = \bndclr{v}, (\{\bndclr{v}\} \cup V, \{e\} \cup E)&\hspace{-2em}(4)\\
-\quad \textnormal{when}~\Gamma_1 = \Gamma \cup \{ x, \bnd{var}(x) \}
-~\textnormal{and}~\bndclr{v_0}, (V, E) = \ident{bind-expr}_{\Gamma_1, \Delta}(e)
-~\textnormal{and}~\Delta(\bknd{fun}(x),[(\bndclr{v_0}, \blbl{body})])\!\downarrow\\
-\quad \textnormal{let}~\bndclr{v} = \bnd{fun}(x, s), s~\textnormal{fresh}
-~\textnormal{and}~e = (\bndclr{v},\bndclr{v_0},\blbl{body})
-\\[1em]
-\ident{bind-expr}_{\Gamma, \Delta}(o) = \bnd{val}(o), (\{ \bnd{val}(o) \}, \emptyset) &\hspace{-2em}(5)
-\\[1em]
-\ident{bind-expr}_{\Gamma, \Delta}(x) = \bndclr{v}, (\{ \bndclr{v} \}, \emptyset)~\textnormal{when}~\bndclr{v} = \Gamma(x)&\hspace{-2em}(6)
-\end{array}
-\end{equation*}
-\caption{Binding rules that define a construction of a dependency graph for an expression.}
-\label{fig:binding-rules-expr}
-\vspace{-1em}
-\end{figure*}
 
 % --------------------------------------------------------------------------------------------------
 
@@ -714,11 +716,12 @@ dependencies.
 % --------------------------------------------------------------------------------------------------
 
 \subsubsection{Reusing graph nodes}
-The binding process takes an expression and constructs a dependency graph.
-It uses a lookup table to reuse previously created member access and function value nodes. The key
-in the lookup table is formed by a node kind together with a list of dependencies. A node kind
-includes the member or variable name; a lookup table $\Delta$ then maps a node kind with a list
-of dependencies to a cached node:
+The binding process takes an expression and constructs a dependency graph reusing existing nodes
+when possible. For this, we use a lookup table of member access and function value nodes. The key
+in the lookup table is formed by a node kind (for disambiguation) together with a list of
+dependencies. A node kind is a member access containing the member name or a function containing
+the bound variable name; a lookup table $\Delta$ then maps a node kind with a list of dependencies
+to a cached node:
 %
 \begin{equation*}
 \begin{array}{ll}
@@ -741,8 +744,47 @@ the following lookup for the \ident{take} member access:
 \[ \Delta(\bknd{mem}(\ident{take}), [(\bnd{mem}(\ident{skip}, s_0),\blbl{arg}(0)), (\bnd{val}(\num{10}), \blbl{arg}(1))]) \]
 %
 In the previous graph, the argument of \ident{take} was $\num{15}$ rather than $\num{10}$ and so
-this lookup fails. We then construct a new node $\bnd{mem}(\ident{take}, s_2)$ and later add it
-to the cache.
+this lookup fails. We then construct a new node $\bnd{mem}(\ident{take}, s_2)$ using a fresh
+symbol $s_2$ and later insert it into the cache.
+
+% --------------------------------------------------------------------------------------------------
+
+\begin{figure*}[t]
+\begin{equation*}
+\hspace{-3.5em}
+\begin{array}{ll}
+\ident{bind-expr}_{\Gamma, \Delta}(e_0.m(e_1, \ldots, e_n)) = \bndclr{v}, (\{\bndclr{v}\} \cup V_0 \cup \ldots \cup V_n, E \cup E_0 \cup \ldots \cup E_n) &(1)~~\\
+\quad \textnormal{when}~\bndclr{v_i}, (V_i, E_i) = \ident{bind-expr}_{\Gamma, \Delta}(e_i)
+~\textnormal{and}~\bndclr{v} = \Delta(\bknd{mem}(m),[(\bndclr{v_0}, \blbl{arg}(0)), \ldots, (\bndclr{v_n}, \blbl{arg}(n))])\\
+\quad \textnormal{let}~E = \{ (\bndclr{v}, \bndclr{v_0}, \blbl{arg}(0)), \ldots, (\bndclr{v}, \bndclr{v_n}, \blbl{arg}(n))\}
+\\[1em]
+\ident{bind-expr}_{\Gamma, \Delta}(e_0.m(e_1, \ldots, e_n)) = \bndclr{v}, (\{\bndclr{v}\} \cup V_0 \cup \ldots \cup V_n, E \cup E_0 \cup \ldots \cup E_n)&(2)\\
+\quad \textnormal{when}~\bndclr{v_i}, (V_i, E_i) = \ident{bind-expr}_{\Gamma, \Delta}(e_i)
+~\textnormal{and}~\Delta(\bknd{mem}(m),[(\bndclr{v_0}, \blbl{arg}(0)), \ldots, (\bndclr{v_n}, \blbl{arg}(n))])\!\downarrow\\
+\quad \textnormal{let}~\bndclr{v} = \bnd{mem}(m, s), s~\textnormal{fresh}
+~\textnormal{and}~E = \{ (\bndclr{v}, \bndclr{v_0}, \blbl{arg}(0)), \ldots, (\bndclr{v},\bndclr{v_n}, \blbl{arg}(n)) \}
+\\[1em]
+\ident{bind-expr}_{\Gamma, \Delta}(\lambda x \rightarrow e) = \bndclr{v}, (\{\bndclr{v}\} \cup V, \{e\} \cup E)&(3)\\
+\quad \textnormal{when}~\Gamma_1 = \Gamma \cup \{ x, \bnd{var}(x) \}
+~\textnormal{and}~\bndclr{v_0}, (V, E) = \ident{bind-expr}_{\Gamma_1, \Delta}(e)
+~\textnormal{and}~\bndclr{v} = \Delta(\bknd{fun}(x),[(\bndclr{v_0}, \blbl{body})])\\
+\quad \textnormal{let}~e = (\bndclr{v}, \bndclr{v_0}, \blbl{body})
+\\[1em]
+\ident{bind-expr}_{\Gamma, \Delta}(\lambda x \rightarrow e) = \bndclr{v}, (\{\bndclr{v}\} \cup V, \{e\} \cup E)&(4)\\
+\quad \textnormal{when}~\Gamma_1 = \Gamma \cup \{ x, \bnd{var}(x) \}
+~\textnormal{and}~\bndclr{v_0}, (V, E) = \ident{bind-expr}_{\Gamma_1, \Delta}(e)
+~\textnormal{and}~\Delta(\bknd{fun}(x),[(\bndclr{v_0}, \blbl{body})])\!\downarrow\\
+\quad \textnormal{let}~\bndclr{v} = \bnd{fun}(x, s), s~\textnormal{fresh}
+~\textnormal{and}~e = (\bndclr{v},\bndclr{v_0},\blbl{body})
+\\[1em]
+\ident{bind-expr}_{\Gamma, \Delta}(o) = \bnd{val}(o), (\{ \bnd{val}(o) \}, \emptyset) &(5)
+\\[1em]
+\ident{bind-expr}_{\Gamma, \Delta}(x) = \bndclr{v}, (\{ \bndclr{v} \}, \emptyset)~\textnormal{when}~\bndclr{v} = \Gamma(x)&(6)
+\end{array}
+\end{equation*}
+\caption{Binding rules that define a construction of a dependency graph for an expression.}
+\label{fig:binding-rules-expr}
+\end{figure*}
 
 % --------------------------------------------------------------------------------------------------
 
@@ -1774,18 +1816,18 @@ dependency tracking and efficient recomputation exist in many visual data explor
 \cite{control,tableau,vizdom} and scientific workflow systems \cite{taverna,kepler}. Some of the
 implementation techniques are related to our work, but we focus on text-based scripts.
 Tempe \cite{tempe} focuses on streaming data, but provides a text-based scripting environment
-with automatic code update and \cite{ripple} empirically evaluate its usability in contrast to
+with automatic code update and \citet{ripple} empirically evaluate its usability in contrast to
 REPLs. The challenges faced by Tempe are more akin to dynamic software update \cite{dsu}.
 
 \subsubsection*{Live coding and editing.}
-Live coding based on textual programs has been popularised by \cite{principle,learnable} and
-is actively developed in domains such as live coded music \cite{beyond,sonic}. \cite{liveroad}
-reviews the use of live coding in a Smalltalk derived environment. Lighttable by \cite{lighttable}
+Live coding based on textual programs has been popularised by \citet{principle,learnable} and
+is actively developed in domains such as live coded music \cite{beyond,sonic}. \citet{liveroad}
+reviews the use of live coding in a Smalltalk derived environment. Lighttable by \citet{lighttable}
 and Chrome DevTools provide limited live previews akin to those presented in this paper,
 but without well specified recomputation model. Finally, work on keeping state during
 code edits \cite{alive,livingit} would be relevant for supporting streaming data. In the future,
 we also plan to explore how direct manipulation \cite{direct} could be integrated with our preview
-mechanism. \cite{liveroad}
+mechanism. \citet{liveroad}
 
 Using structured editors \cite{structure-based} rather than text editors is a promising alternative
 direction as editors can recompute program based on understanding of edit operations
@@ -1798,7 +1840,7 @@ Work on self-adjusting and incremental computation \cite{selfadjusting,adapton} 
 recomputation when the program stays the same, but input changes. It relies on dependency tracking
 similar to ours. We rely on static code analysis whereas most incremental systems,
 e.g.~\cite{incremental,adaptivefp,deltaml} evaluate the program and use programmer-supplied
-information to build a dependency graph. \cite{adapton} implement a small adaptive interpreter
+information to build a dependency graph. \citet{adapton} implement a small adaptive interpreter
 that treats code as changing input data, suggesting an interesting implementation technique for
 live coding systems. Our use of dependency graphs \cite{dependencies} is static and first-order
 and can be seen as a form of program slicing \cite{slicing}, although our binding process is
@@ -1871,11 +1913,7 @@ experimental study that illustrates how often are previously evaluated results r
 typical programming scenario. Thirdly, we used our research as a basis for online data exploration
 environment, which shows the practical usability of our work.
 
-% ==================================================================================================
-
-\printbibliography
-
-% ==================================================================================================
+\bibliography{paper}
 
 \newpage
 \appendix
@@ -2003,5 +2041,299 @@ and use the induction hypothesis, i.e.~if $C'[e_b] \rightsquigarrow o$ for some 
 
 \end{proof}
 
+% \section{Appendix - Type checking}
+% \label{sec:app-types}
+%
+% tbd
 
+% Evaluating live previews can be an expensive operations, so being able to cache partial previews
+% is a must for a live coding environment. Type checking is typically fast, so the main focus of
+% this paper is on live previews. However, asynchronous type providers in The Gamma (Section~\ref{sec:types-providers})
+% can make type checking time consuming, and so we use the dependency graph also for type checking
+% (Section~\ref{sec:types-graph}). Type checking lambda functions (Section~\ref{sec:types-funs})
+% requires a slight extension of the model discussed in Section~\ref{sec:formal}.
+%
+% % --------------------------------------------------------------------------------------------------
+%
+% \subsection{Asynchronously provided types}
+% \label{sec:types-providers}
+%
+% Data available in The Gamma can be defined using several kinds of type providers. The type provider
+% used in Figure~\ref{fig:thegamma} as asynchronous \cite{async}. It downloads the sample URL and generates
+% types based on the contents of the web page. The parameter to \ident{web.scrape} is a static
+% parameter and is evaluated during type-checking. We omit details in this paper, but we note this
+% works similarly to F\# type providers \cite{providers-fsharp}.
+%
+% Type providers can also be implemented as REST services \cite{rest} to allow anyone implement a data source
+% in the language of their choice. In this case, each member of a call-chain returns a type that is
+% generated based on the result of an HTTP request. For example, when the user types \ident{worldbank}
+% (to access information about countries), the type provider makes a request to
+% \url{http://thegamma-services.azurewebsites.net/worldbank}, which returns two members:
+% %
+% \begin{equation*}
+% \begin{array}{l}
+% [~\{\rstr{name}\!:\str{byYear},\rstr{returns}\!:\\
+% ~\quad \{\rstr{kind}\!:\str{nested},\rstr{endpoint}\!:\str{/pickYear}\}\}\\
+% \hspace{0.55em}\{\rstr{name}\!:\str{byCountry},\rstr{returns}\!:\\
+% ~\quad \{\rstr{kind}\!:\str{nested},\rstr{endpoint}\!:\str{/pickCountry}\}\}~]
+% \end{array}
+% \end{equation*}
+% %
+% This indicates that \ident{worldbank} has members \ident{byYear} and \ident{byCountry}.
+% If the user types \ident{worldbank.byCountry}, a request is made to the specified URL
+% \url{http://thegamma-services.azurewebsites.net/worldbank/pickCountry}:
+% %
+% \begin{equation*}
+% \begin{array}{l}
+% [~\{\rstr{name}\!:\str{Andorra},\rstr{trace}\!:[\str{"country=AR"}], \\
+% \quad \rstr{returns}\!:\{\rstr{kind}\!:\str{nested},\rstr{endpoint}\!:\str{/pickTopic}\}\}\\
+% \hspace{0.55em}\{\rstr{name}\!:\str{Afghanistan},\rstr{trace}\!:[\str{"country=AF"}],\\
+% \quad \rstr{returns}\!:\{\rstr{kind}\!:\str{nested},\rstr{endpoint}\!:\str{/pickTopic}\}\},\,..]
+% \end{array}
+% \end{equation*}
+% %
+% This returns a list of countries which can then be accessed as members via
+% \ident{worldbank.byCountry.Andorra}, etc.
+%
+% This is one reason for why type checking in The Gamma can be time consuming. Other
+% type providers may perform other more computationally intensive work to provide types and so
+% it is desirable to reuse type-checking results during live coding. The rest of this section
+% shows how this is done using the dependency graph discussed in Section~\ref{sec:formal}.
+%
+% \begin{figure}[!b]
+% \vspace{-0.5em}
+% \begin{equation*}
+% \xymatrix{
+% &\bnd{val}(o)\\
+% &\bnd{mem}(m, s_0) \ar[u]_{\blbl{arg}(0)} \ar[dl]^{\blbl{arg}(1)} \\
+% \bnd{fun}(x, s_2) \ar@/^/[uur]^{\blbl{callsite}(m, 1)} \ar[rr]^{\blbl{body}} && \bnd{var}(x, s_1) \ar@/_/[uul]_{\blbl{callsite}(m, 1)}
+% }
+% \end{equation*}
+% \caption{Dependency graph for $o.m(\lambda x\rightarrow x)$}
+% \label{fig:graph-func}
+% \end{figure}
+%
+% % --------------------------------------------------------------------------------------------------
+%
+% \begin{figure*}[t]
+% \vspace{-0.5em}
+% \begin{equation*}
+% \begin{array}{ll}
+% \ident{bind-expr}_{\Gamma, \Delta, c}(e_0.m(e_1, \ldots, e_n)) = &(2b)\\
+% \qquad \bndclr{v}, (\{\bndclr{v}\} \cup V_0 \cup \ldots \cup V_n, E \cup E_0 \cup \ldots \cup E_n)\\
+% \quad \textnormal{when}~\bndclr{v_0}, (V_0, E_0) = \ident{bind-expr}_{\Gamma, \Delta, \bot}(e_0)\\
+% \quad \textnormal{and}~c_i = (\bndclr{v_0}, \blbl{callsite}(m,i))\hspace{4.8em} (i \in 1\ldots n)\\
+% \quad \textnormal{and}~\bndclr{v_i}, (V_i, E_i) = \ident{bind-expr}_{\Gamma, \Delta, c_i}(e_i)\qquad (i\in 1\ldots n)\\
+% \quad \textnormal{and}~(\bknd{mem}(m),[(\bndclr{v_0}, \blbl{arg}(0)), \ldots, (\bndclr{v_n}, \blbl{arg}(n))]) \notin \ident{dom}(\Delta)\hspace{-200em}.\\
+% \quad \textnormal{let}~\bndclr{v} = \bnd{mem}(m, s), s~\textnormal{fresh}\\
+% \quad \textnormal{let}~E = \{ (\bndclr{v}, \bndclr{v_0}, \blbl{arg}(0)), \ldots, (\bndclr{v},\bndclr{v_n}, \blbl{arg}(n)) \}
+% \end{array}
+% \qquad\qquad
+% \begin{array}{ll}
+% \ident{bind-expr}_{\Gamma, \Delta, (\bndclr{v_c}, \blblclr{l_c} )}(\lambda x \rightarrow e) = \bndclr{v}, (\{\bndclr{v}\} \cup V_0, E \cup E_0)&(7b)\\
+% \quad \textnormal{when}~(\bknd{var}(x),[(\bndclr{v_c}, \blblclr{l_c} )])\notin \ident{dom}(\Delta)\\
+% \quad \textnormal{let}~\bndclr{v_x} = \bnd{var}(x, s_x), s_x~\textnormal{fresh}\\
+% \quad \textnormal{and}~\Gamma_1 = \Gamma \cup \{ x, \bndclr{v_x} \}\\
+% \quad \textnormal{and}~\bndclr{v_0}, (V_0, E_0) = \ident{bind-expr}_{\Gamma_1, \Delta, \bot}(e)\\
+% \quad \textnormal{when}~(\bknd{fun}(x),[(\bndclr{v_0}, \blbl{body}), (\bndclr{v_c}, \blblclr{l_c} )])\notin \ident{dom}(\Delta)\\
+% \quad \textnormal{let}~\bndclr{v} = \bnd{fun}(x, s_f), s_f~\textnormal{fresh}\\
+% \quad \textnormal{let}~E = \{ (\bndclr{v},\bndclr{v_0},\blbl{body}), (\bndclr{v},\bndclr{v_c},\blblclr{l_c}), (\bndclr{v_x},\bndclr{v_c},\blblclr{l_c}) \}
+% \\[0.75em]
+% \end{array}
+% \end{equation*}
+% \vspace{-0.5em}
+% \caption{Revised binding rules, tracking call sites of function values.}
+% \label{fig:binding-rules-callsite}
+% \vspace{-0.5em}
+% \end{figure*}
+%
+% % --------------------------------------------------------------------------------------------------
+%
+% \subsection{Revised binding of functions}
+% \label{sec:types-funs}
+%
+% The Gamma script supports lambda functions, but only in a limited way. A function can be passed
+% as a parameter to a method, which makes type checking of functions easier. For example, consider:
+% %
+% \begin{equation*}
+% \begin{array}{l}
+% \ident{movies}.\ident{sortBy}(\lambda x \rightarrow x.\ident{getBudget}())
+% \end{array}
+% \end{equation*}
+% %
+% If \ident{movies} is a collection of \ident{Movie} objects, the type of the lambda function must be
+% $\ident{Movie}\rightarrow\ident{bool}$ and so the type of $x$ is \ident{Movie}. This is similar to
+% type checking of lambda functions in C\# \cite{csharp}, where type is also inferred from the context (or has
+% to be specified explicitly).
+%
+% We do not currently allow lambda functions as stand-alone let-bound
+% values. This could be done by requiring explicit types, or introducing polymorphism, but it was not
+% necessary for the limited domain of non-expert data exploration.
+%
+% \paragraph{Dependency graph for functions.}
+% In the binding process specified in Section~\ref{sec:formal}, a variable is a leaf of the dependency
+% graph. In the revised model, it depends on the context in which it appears. A new edge labeled
+% $\blbl{callsite}(m, i)$ indicates that the source node is the input variable of a function
+% passed as the $i^\textnormal{th}$ argument to the $m$ member of the expression represented by the
+% target node. A node representing function is linked to the call site using the same edge.
+%
+% Figure~\ref{fig:graph-func} shows the result of binding $o.m(\lambda x\rightarrow x)$. Both
+% $\bnd{fun}(x, s_2)$ and $\bnd{var}(x, s_1)$ now depend on the node representing $o$. The new
+% $\blbl{callsite}$ edge makes it possible to type-check function and variable nodes just using their
+% dependencies. As before, the member invocation $\bnd{mem}(m, s_0)$
+% depends on the instance using $\blbl{arg}(0)$ and on its argument using $\blbl{arg}(1)$.
+%
+% % --------------------------------------------------------------------------------------------------
+%
+% \begin{figure*}
+% \vspace{0.5em}
+% \begin{equation*}
+% \begin{array}{l}
+% \qquad\inference[\rname{val}~]
+%   {\Sigma(n) = \alpha}
+%   {\bnd{val}(n) \vdash \alpha }
+% \quad\qquad
+% \inference[\rname{var}~]
+%   { (\bnd{var}(x,s), \bndclr{v}, \blbl{callsite}(m, i)) \in E &
+%     \bndclr{v} \vdash (.., m:(\tau_1, \ldots, \tau_k)\rightarrow \tau,..) & \tau_i=\tau'\rightarrow\tau'' }
+%   { \bnd{var}(x, s) \vdash \tau' }
+% \\[2.5em]
+% \inference[\rname{fun}~]
+%   { \{(\bnd{fun}(x,s), \bndclr{v_b}, \blbl{body}), (\bnd{var}(x,s), \bndclr{v_c}, \blbl{callsite}(m, i))\} \subseteq E &
+%     \bndclr{v_c} \vdash (.., m:(\tau_1, \ldots, \tau_k)\rightarrow \tau,..) &
+%     \tau_i=\tau'\rightarrow\tau'' & \bndclr{v_b} \vdash \tau'' }
+%   { \bnd{fun}(x, s) \vdash \tau' \rightarrow \tau'' }
+% \\[2.5em]
+% \qquad\qquad\quad\inference[\rname{mem}~]
+%   { \forall i\in\{0\ldots k\}.(\bnd{mem}(m, s), \bndclr{v_i}, \blbl{arg}(i)) \in E &
+%     \bndclr{v_0} \vdash (.., m:(\tau_1, \ldots, \tau_k) \rightarrow \tau, ..)& \bndclr{v_i} \vdash \tau_i }
+%   { \bnd{mem}(m, s) \vdash \tau }
+% \\[1em]
+% \end{array}
+% \end{equation*}
+% \caption{Rules that define evaluation of previews over a dependency graph for an expression}
+% \vspace{0.5em}
+% \label{fig:tc}
+% \end{figure*}
+%
+% % --------------------------------------------------------------------------------------------------
+%
+% \paragraph{Revised binding process.}
+% For the revised binding process, we introduce a new edge label $\blbl{callsite}$. Variable nodes
+% now have dependencies and so we cache them and attach a symbol $s$ to \bnd{var}, so we also
+% introduce a node kind $\bknd{var}$ as part of a lookup key for $\Delta$.
+%
+% The \ident{bind-expr} function now has a parameter $c$, in addition to $\Gamma$ and $\Delta$, which
+% represents the context in which the binding happens. This is either a member invocation (labeled
+% with instance node $\bndclr{v}$ and \blbl{callsite} label $\blblclr{l}$), or not a member
+% invocation written as $\bot$. The updated definitions are:
+% %
+% \begin{equation*}
+% \begin{array}{lcll}
+% \bndclr{v} &\hspace{-0.5em}\in\hspace{-0.5em}&\bnd{val}(n)~|~\bnd{var}(x, s)~|~\bnd{mem}(m, s)~|~\bnd{fun}(x, s)&(\textit{Vertices})\\
+% \blblclr{l}&\hspace{-0.5em}\in\hspace{-0.5em}&\blbl{body}~|~\blbl{arg}(i)~|~\blbl{callsite}(m,i)&(\textit{Edge labels})\\
+% \bkndclr{k}&\hspace{-0.5em}\in\hspace{-0.5em}&\bknd{fun}(x)~|~\bknd{mem}(m)~|~\bknd{var}(x)&(\textit{Node kinds})\\
+%           c&\hspace{-0.5em}\in\hspace{-0.5em}&\bot ~|~(\bndclr{v}, \blblclr{l})&(\textit{Call sites})\\
+% \end{array}
+% \end{equation*}
+% %
+% The key parts of the revised definition of the \ident{bind-expr} function are shown in Figure~\ref{fig:binding-rules-callsite}.
+% We now write $\ident{bind-expr}_{\Gamma,\Delta,c}$ where $c$ represents the context in which the
+% binding occurs. This is set to $\bot$ in all cases, except when binding arguments of a member call.
+% In (2b), we first recursively bind the instance node using $\bot$ as the context and then
+% bind all the arguments using $(\bndclr{v_0}, \blbl{callsite}(m, i))$ as the context for $i^{\textnormal{th}}$
+% argument. The rest is as in case (2) before. The case (1) is updated similarly and is not shown
+% here for brevity.
+%
+% When binding a function (7b), we now also store variable nodes in $\Delta$ and so we check if a
+% variable with the given call site exists. If no, we create a fresh node $\bnd{var}(x, s_x)$.
+% The node is added to $\Gamma$ as before. At the end, we now also include a call site edge from the
+% variable node and from the function node in $E$. We omit a similar variant of the case (6).
+% The remaining cases (3)-(5) are the same, except that \ident{bind-expr} has the additional $c$ parameter
+% and recursive calls always set it to $\bot$.
+%
+% Finally, the \ident{update} function in Figure~\ref{fig:loop} also needs to be updated to store the
+% newly created \bnd{var} nodes. This is done by adding the following single case:
+%
+% \begin{equation*}
+% \begin{array}{l}
+% \Delta_{i}(\bknd{var}(x), [(\bndclr{v},\blbl{callsite}(m,i))]) = \bnd{var}(x, s)\\
+% \quad\quad \textnormal{for all}~\bnd{var}(x, s) \in V\\
+% \quad\quad \textnormal{such that}~(\bnd{var}(x, s), \bndclr{v}, \blbl{callsite}(m,i)) \in E
+% \end{array}
+% \end{equation*}
+%
+% % --------------------------------------------------------------------------------------------------
+%
+% \subsection{Type checking over dependency graphs}
+% \label{sec:types-graph}
+%
+% The type system for The Gamma supports a number of primitive types (such as integers and strings)
+% written as $\alpha$. Composed types include functions and objects with members. Objects are be
+% provided by type providers, but we omit the details here. Types of object members are written as
+% $\sigma$ and can have multiple arguments:
+% %
+% \begin{equation*}
+% \begin{array}{lcll}
+% \tau&\in&\alpha ~|~ \tau \rightarrow \tau ~|~ \{m_1\!:\!\sigma_1, \ldots, m_n\!:\!\sigma_n\} &\quad(\textit{Types})\\
+% \sigma &\in& (\tau_1, \ldots, \tau_n) \rightarrow \tau &\quad(\textit{Members})\\
+% \end{array}
+% \end{equation*}
+% %
+% The typing judgements are written in the form $\bnd{v}\vdash \tau$. They are parameterised by the
+% dependency graph $(V, E)$, but this is not modified during type checking so we keep it implicit
+% rather than writing e.g.~$\bnd{v}\vdash_{(V,E)} \tau$.
+%
+% \paragraph{Type checking.}
+% The typing rules are shown in Figure~\ref{fig:tc}. Types of primitive values $n$ are obtained
+% using a global lookup table $\Sigma$ \rname{val}. When type checking a member call \rname{mem},
+% we find its dependencies $\bndclr{v_i}$ and check that the first one (instance) is an object with
+% the required member $m$. The types of input arguments of the member then need to match the types
+% of the remaining (non-instance) nodes.
+%
+% Type checking a function \rname{fun} and a variable \rname{var} is similar. In both cases,
+% we follow the \blbl{callsite} edge to find the member that accepts the function as an argument.
+% We obtain the type of the function from the type of the $i^\textnormal{th}$ argument of the
+% member. We use the input type as the type of variable \rname{var}. For functions, we also check
+% that the resulting type matches the type of the body \rname{fun}.
+%
+% \paragraph{Caching results.}
+% Performing type checking over the dependency graph, rather than over the abstract syntax tree,
+% enables us to reuse the results of previously type checked parts of a program. As when
+% caching evaluated previews (Section~\ref{sec:previews}), we build a lookup table mapping graph
+% nodes to types. When type checking a node, we first check the cache and, only if it is new,
+% follow the $\vdash$ relation to obtain the type.
+%
+% As a result, code can be type checked on-the-fly during editing, even when asynchronous type
+% providers are used, and the programmer gets instant feedback without delays.
+%
+% % --------------------------------------------------------------------------------------------------
+%
+% \subsection{Properties of type checking}
+%
+% As noted in Section~\ref{sec:types}, the focus of this paper is on live previews, but we also
+% use the method based on reusing nodes in a dependency graph for type checking. We do not discuss
+% properties of type checking in detail, but we briefly note how the different properties of
+% live previews extend to corresponding properties of type checking.
+%
+% \paragraph{Type checking result reuse.} In Section~\ref{sec:evaluation-reuse}, we show that
+% certain source code edits do not cause the recomputation of previews for the whole expression
+% or a sub-expression. The edits are given in Figure~\ref{fig:operations}. The proof uses the fact
+% that the newly bound graph (after code edit) reuses nodes of the previous graph. This implies that
+% type checking results can be reused in exactly the same way as live previews -- they are also
+% stored in a lookup table with graph nodes as keys.
+%
+% \paragraph{Correctness.} The correctness property (Theorem~\ref{thm:correctness}) shows that
+% graph-based preview evaluation matches direct evaluation of expressions. To show a corresponding
+% property for type checking, we would need to provide ordinary type system based on the structure
+% of the expression and prove that the two are equivalent. In our implementation, we only use the
+% presented graph-based type checking method, so we do not provide an alternate account in this paper.
+%
+% \paragraph{Determinacy.} The determinacy property (Theorem~\ref{thm:determinacy}) guarantees that
+% previews can be cached, because evaluating them again, using $\Downarrow$ over an updated graph,
+% would yield the same result. The same property holds for $\vdash$, meaning that type checking
+% results can be cached. Although the Theorem~\ref{thm:determinacy} talks explicitly about
+% $\Downarrow$, it can be easily extended for $\vdash$, because the proof depends on how the graph
+% is updated using $\ident{update}_{V,E}$ and the binding process.
+%
 \end{document}
