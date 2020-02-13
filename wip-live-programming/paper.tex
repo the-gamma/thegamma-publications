@@ -1,4 +1,4 @@
-\documentclass[english,submission]{programming}
+\documentclass[english,crc]{programming}
 \usepackage[backend=biber]{biblatex}
 \addbibresource{paper.bib}
 \usepackage{multicol}
@@ -12,7 +12,6 @@
 
 \newcounter{thc}
 \newcounter{dfc}
-
 \theoremstyle{plain}
 \newtheorem{lem}[thc]{Lemma}
 \newtheorem{theorem}[thc]{Theorem}
@@ -59,16 +58,14 @@
 \newcommand{\preview}[1]{\,\textnormal{\guillemotleft} #1\textnormal{\guillemotright}\,}
 
 \begin{document}
-\title{A live coding environment for a data exploration language}
+\title{Foundations of a live data exploration environment}
 %\titlerunning{Learning to live with errors}
-
-\author[a]{Tomas Petricek}
+\author[a,b]{Tomas Petricek}
 \authorinfo{
 \noindent
 Tomas is a lecturer at University of Kent. He is working on making programming and data science
 easier and more accessible. His research interests span a range of areas including theory of
-programming languages, history and philosophy of programming, as well as open data and data
-journalism.
+programming languages, tools for data science as well as history and philosophy of programming.
 %
 Previously, he contributed to functional programming and the development of the F\# language and
 type providers at Microsoft Research and obtained PhD from University of Cambridge for his work
@@ -78,12 +75,12 @@ papers about the evolution of programming concepts such as types and errors.
 %
 Contact him at \email{tomas@tomasp.net}.}
 \affiliation[a]{University of Kent, UK}
-\keywords{Data exploration, live coding, data journalism, instant previews}
+\affiliation[b]{and The Alan Turing Institute, UK}
+\keywords{Data exploration, live programming, data journalism, instant previews}
 \paperdetails{
   perspective=sciencetheoretical,
   area={Programming environments},
 }
-
 % https://dl.acm.org/ccs/ccs.cfm and generate your Classification
 \begin{CCSXML}
 <ccs2012>
@@ -104,20 +101,10 @@ Contact him at \email{tomas@tomasp.net}.}
 </concept>
 </ccs2012>
 \end{CCSXML}
-
 \ccsdesc[300]{Human-centered computing~Interactive systems and tools}
 \ccsdesc[300]{Information systems~Data mining}
 \ccsdesc[300]{Software and its engineering~Compilers}
 \maketitle
-
-\vspace{1em}
-\noindent
-{\scriptsize
-~\\
-\textbf{Note to reviewers:} This paper has been previously submitted to a different
-venue. The revisions made in response to past reviews are summarized in Appendix~\ref{sec:revisions}
-(to be removed for publication).}
-\vspace{2em}
 
 \begin{abstract}
 %
@@ -178,7 +165,7 @@ data set \ident{movies}:
 \end{array}
 \end{equation*}
 %
-A live coding environment computes and displays the list of years. Suppose that the programmer then
+A live programming environment computes and displays the list of years. Suppose that the programmer then
 makes $\num{10}$ a variable and changes the date format:
 %
 \begin{equation*}
@@ -189,42 +176,16 @@ makes $\num{10}$ a variable and changes the date format:
 \end{array}
 \end{equation*}
 %
-Ideally, the live coding environment should understand the change, reuse a cached result of the
+Ideally, the live programming environment should understand the change, reuse a cached result of the
 first two transformations (sorting and taking the first 10 elements) and only evaluate the
 \ident{map} operation to differently format the release dates of top 10 movies. Our environment
 does this for a simple data exploration language in an unrestricted text editor. We discuss related
 work in Section~\ref{sec:future}, but we briefly review the most important directions here, in
 order to situate our contributions.
 
-\subsection{Related work}
-Simple data exploration performed, for example, by journalists \cite{ddj} is done either
-programmatically or using spreadsheets. The latter is easy but error-prone while the former
-requires expert programming skills. We aim to bring liveness of spreadsheets to programmatic
-data exploration. This requires extending recomputation as done in spreadsheets \cite{spreadsheet}
-to code written in an ordinary text editor.
 
-Many visual data exploration tools support interactivity \cite{control,tableau,vizdom} and some
-can even export the workflow as a script \cite{wrangler}. Data analysts who prefer working with
-code typically resort to notebook systems such as Jupyter or R Markdown \cite{jupyter,rmarkdown}.
-Those are text-based, but have a limited model of recomputation. Users structure code in
-cells and manually reevaluate cells. Many notebook systems do not track dependencies
-between cells which can lead to well-documented inconsistencies \cite{dataflow,noworkflow,wrattler}.
-
-Existing text-based editors that provide instant feedback,
-such as Lighttable \cite{lighttable} and Chrome DevTools, often work only in certain
-situations or require full recomputation. A more principled approach can be used by
-systems based on structured editing \cite{livenut,lamdu} where code is only
-modified via known operations with known effect on the computation graph
-(e.g.~``extract variable'' has no effect on the result; ``change constant value''
-forces recomputation of subsequent code). We aim to cater for the many users who
-prefer to edit programs as free-form text.
-%
-The technical aspects of our implementation are related to incremental computation \cite{selfadjusting,incremental}.
-This focuses on cases where \emph{data changes} but program stays the same, while our focus is on cases where
-\emph{program changes} but data stays the same.
-
-\subsection{Contributions}
-We present the design and implementation of a live coding environment for a simple data exploration
+\subsection*{Contributions}
+We present the design and implementation of a live programming environment for a simple data exploration
 language that provides correct and efficient instant feedback, yet is integrated into an
 ordinary text editor. Our key contributions are:
 
@@ -234,12 +195,12 @@ ordinary text editor. Our key contributions are:
   of how data analysts work (Section~\ref{sec:background}) and makes it possible to write simple,
   transparent and reproducible data analyses.
 
-\item A live coding environment does not operate in batch mode and so we cannot follow classic
+\item A live programming environment does not operate in batch mode and so we cannot follow classic
   compiler literature. We capture the essence of such new perspective (Section~\ref{sec:formal})
-  and use it to build our \emph{live preview} mechanism (Section~\ref{sec:previews}) that evaluates
+  and use it to build our \emph{instant preview} mechanism (Section~\ref{sec:previews}) that evaluates
   code instantly during editing.
 
-\item We prove that our live preview mechanism is correct (Section~\ref{sec:evaluation-correctness}) and that
+\item We prove that our instant preview mechanism is correct (Section~\ref{sec:evaluation-correctness}) and that
   it reuses previously evaluated values when possible (Section~\ref{sec:evaluation-reuse}). We
   illustrate the practicality of the mechanism using an empirical evaluation
   (Section~\ref{sec:evaluation-empirical}) and a case study (Section~\ref{sec:evaluation-case}).
@@ -247,13 +208,10 @@ ordinary text editor. Our key contributions are:
 
 % ==================================================================================================
 
-\begin{figure}
-\vspace{-1em}
+\begin{figure}[b]
 \hspace{1em}\includegraphics[scale=0.52]{figures/notebook.png}
-\vspace{-0.5em}
 \caption{Financial Times analysis that joins UN trade database with ISO country codes.}
 \label{fig:ft-uncomtrade}
-\vspace{-0.5em}
 \end{figure}
 
 % --------------------------------------------------------------------------------------------------
@@ -291,25 +249,30 @@ builds a visualization comparing waste flows in 2017 and 2018. Figure~\ref{fig:f
 an excerpt from one notebook of the data analysis. The code has a number of important properties:
 %
 \begin{itemize}
+\vspace{0.5em}
 \item There is no abstraction. The analysis uses lambda functions as arguments to library calls,
   but it does not define any custom functions. Code is parameterized by having a global variable
   \ident{material} set to \str{plastics} and keeping other possible values in a comment.
   This lets the analyst run and check results of intermediate steps.
 
+\vspace{0.5em}
 \item The code relies on external libraries. Our example uses Pandas \cite{pandas},
   which provides operations for data wrangling such as \ident{merge} to join datasets
   or \ident{drop\_duplicates} to delete rows with duplicate column values. Such standard libraries
   are external to the data analysis and are often implemented in another language like C++.
 
+\vspace{0.5em}
 \item The code is structured as a sequence of commands. Some commands define a variable, either by
   loading data, or by transforming data loaded previously. Even in Python, data is often treated
   as immutable. Other commands produce an output that is displayed in the notebook.
 
+\vspace{0.5em}
 \item There are many corner cases, such as the fact that \ident{keep\_default\_na}
   needs to be set to handle Namibia correctly. These are discovered interactively by
   running the code and examining the output, so providing an instant feedback is essential.
 \end{itemize}
 
+\vspace{0.5em}
 \noindent
 Many Jupyter notebooks are more complex than the above example and might use helper
 functions or object-oriented code. However, simple data analyses such as the one discussed
@@ -320,22 +283,22 @@ by capturing their essential properties as a formal calculus.
 % --------------------------------------------------------------------------------------------------
 
 \begin{figure}
-  \vspace{-1.5em}
-  \centering
-  \subcaptionbox{
-    \raggedright\footnotesize The analysis counts the number of distinct events per
-      athlete. After typing `.' the editor offers further aggregation operations.
-    \label{fig:gamma-dot}
-  }{\includegraphics[scale=0.26]{figures/gamma1.png}}
-  \subcaptionbox{
-    \raggedright\footnotesize
-      Our live coding environment for The Gamma. The table is updated on-the-fly a
-      and shows the result at the current cursor position.
-    \label{fig:gamma-preview}
-  }{\includegraphics[scale=0.26]{figures/gamma2.png}}
-  \caption{\small Previous work on The Gamma (left) and our new editor with live preview (right).}
-  \label{fig:gamma-intro}
-  \vspace{-0.5em}
+\centering
+\subcaptionbox{
+  \raggedright\footnotesize The analysis counts the number of distinct events per
+    athlete. After typing `.' the editor offers further aggregation operations.
+  \label{fig:gamma-dot}
+}{\includegraphics[scale=0.26]{figures/gamma1.png}}
+\subcaptionbox{
+  \raggedright\footnotesize
+    Our live programming environment for The Gamma. The table is updated on-the-fly a
+    and shows the result at the current cursor position.
+  \label{fig:gamma-preview}
+}{\includegraphics[scale=0.26]{figures/gamma2.png}}
+\vspace{0.5em}
+\caption{\small Previous work on The Gamma with auto-complete based on type information (left)
+  and our new editor with instant preview (right).}
+\label{fig:gamma-intro}
 \end{figure}
 
 % --------------------------------------------------------------------------------------------------
@@ -343,16 +306,15 @@ by capturing their essential properties as a formal calculus.
 \subsection{Dot-driven data exploration in The Gamma}
 \label{sec:background-gamma}
 
-Simple data exploration as discussed in the previous section has been the motivation for
+Simple data exploration has been the motivation for
 a scripting language The Gamma \cite{gamma}. Scripts in The Gamma are sequences of commands
 that either define a variable or produce an output. It does not support top-level
 functions and lambda functions can be used only as method arguments.
-
 Given the limited expressiveness of The Gamma, libraries are implemented in other languages,
 such as JavaScript. The Gamma uses type providers \cite{providers-fsharp}
-for accessing and exploring external data sources.
-Type providers generate object types with members and The Gamma makes using those convenient by
-providing auto-complete when the user types the dot symbol (`.') to access a member.
+for accessing external data sources.
+Type providers generate object types with members and The Gamma offers those in an
+auto-complete list when the user types dot (`.') to access a member.
 The combination of type providers and auto-complete makes it
 possible to solve a large number of data exploration tasks through the very simple interaction of
 selecting operations from a list.
@@ -372,17 +334,16 @@ subset of Python.
 
 % --------------------------------------------------------------------------------------------------
 
-\subsection{Live coding for data exploration}
+\subsection{Live programming for data exploration}
 
-The implementation that accompanies this paper builds a live coding environment for The Gamma.
-The implementation is discussed in Section~\ref{sec:evaluation-case} and it replaces
-the original text editor with just auto-complete with a live coding environment
-that provides \emph{live previews}. We choose to extend The Gamma over using a subset of Python
-as the simplicity of TheGamma lets us focus on the principles of live coding systems.
+The implementation that accompanies this paper builds a live programming environment for The Gamma.
+It is discussed in Section~\ref{sec:evaluation-case} and it replaces
+the original text editor with just auto-complete with a live programming environment
+that provides \emph{instant previews}.
 
-An example of a live preview is shown in Figure~\ref{fig:gamma-preview}. As noted earlier, The
+An example of a instant preview is shown in Figure~\ref{fig:gamma-preview}. As noted earlier, The
 Gamma programs consist of lists of commands which are either expressions or let bindings. Our
-editor displays a live preview below the command that the user is currently editing. The preview
+editor displays a instant preview below the command that the user is currently editing. The preview
 shows the result of evaluating the expression or the value assigned to a bound variable. When the
 user changes the code, the preview is updated automatically, without any additional interaction
 with the user.
@@ -405,17 +366,16 @@ The \emph{data exploration calculus} is a small formal language for data explora
 is not, in itself, Turing-complete and it can only be used together with external libraries that
 define what objects are available and what the behaviour of their members is. This is
 sufficient to capture the simple data analyses discussed in Section~\ref{sec:background}. We
-define the calculus in this section and then use it to formalise our live preview
+define the calculus in this section and then use it to formalise our instant preview
 mechanism in Section~\ref{sec:formal}.
 %
-The live preview mechanism does not rely on types and so we postpone the discussion of static
-typing to Section~\ref{sec:extra-types}. Interestingly, it reuses the mechanism used for live
+The instant preview mechanism does not rely on types and so we postpone the discussion of static
+typing to Appendix~\ref{sec:extra-types}. Interestingly, it reuses the mechanism used for live
 previews.
 
 % --------------------------------------------------------------------------------------------------
 
 \begin{figure}
-\vspace{-0.5em}
 \raggedright
 \hspace{0.5em}{\small\sffamily Programs, commands, terms, expressions and values}
 \vspace{-0.5em}
@@ -456,16 +416,15 @@ C_p[-] &=& o_1;\; \ldots;\; o_{k};\; C_c[-];\; c_{1};\; \ldots;\; c_n\\
 o_1;\; \ldots;\; o_{k};\; \kvd{let}~x=o;\; c_{1};\; \ldots; c_n \rightsquigarrow\\
 \qquad  o_1;\; \ldots;\; o_{k};\; o; c_{1}[x\leftarrow o];\; \ldots; c_n[x\leftarrow o]\end{array} &
 \quad\text{\rname{let}}\\[1.2em]
-{o.m(v_1, \ldots, v_n) \rightsquigarrow_\epsilon o'}\implies
+\inference
+  {o.m(v_1, \ldots, v_n) \rightsquigarrow_\epsilon o'}
   {C_p[o.m(v_1, \ldots, v_n)] \rightsquigarrow C_p[o']} &
 \quad\text{\rname{external}}
 \end{array}
 \end{equation*}
 
-\vspace{-0.5em}
 \caption{Syntax, contexts and reduction rules of the data exploration calculus}
 \label{fig:dec-calculus}
-\vspace{-0.5em}
 \end{figure}
 
 % --------------------------------------------------------------------------------------------------
@@ -508,18 +467,61 @@ Figure~\ref{fig:dec-calculus} defines the reduction rules in terms of $\rightsqu
 and evaluation contexts; $C_e$ specifies left-to-right evaluation of arguments of a method call,
 $C_c$ specifies evaluation of a command and $C_p$ defines left-to-right evaluation of a program.
 The rule \rname{external} calls a method provided by an external library in a
-call-by-value fashion and \rname{let} substitutes a value of an evaluated variable in
+call-by-value fashion; \rname{let} substitutes a value of an evaluated variable in
 all subsequent commands and leaves the result in the list of commands.
-Note that our semantics does not define how $\lambda$ functions are reduced. This is done by
+Note that our semantics does not define how $\lambda$ applications are reduced. This is done by
 external libraries, which will typically supply functions with arguments using standard $\beta$-reduction.
 The behaviour is subject to constraints discussed next.
+
+\subsection{Example external library}
+\label{sec:calculus-example}
+
+The data exploration calculus is not limited to the data exploration domain.
+It can be used with external libraries for a wide range of other simple programming tasks, such as image
+manipulation, as done in Section~\ref{sec:evaluation-empirical}. However, we choose a name that reflects the
+domain that motivated this paper. To illustrate how a definition of an external library looks,
+consider the following simple data manipulation script:
+%
+\begin{equation*}
+\begin{array}{l}
+\kvd{let}~l = \ident{list}.\ident{range}(\num{0}, \num{10})\\
+l.\ident{map}(\lambda x \rightarrow \ident{math}.\ident{mul}(x, \num{10}))
+\end{array}
+\end{equation*}
+%
+An external library provides the \ident{list} and \ident{math} values with members
+\ident{range}, \ident{map} and \ident{mul}. The objects of the external library consist of
+numbers $n$, lists of objects $[o_1, \ldots, o_k]$ and failed computations $\bot$ \cite{gowrong}.
+Next, the external library needs to define the $\rightsquigarrow_\epsilon$ relation that defines
+the evaluation of member accesses. The following shows the rules for members of lists, assuming
+the only supported member is \ident{map}:
+%
+\begin{equation*}
+\begin{array}{l}
+\\[-0.75em]
+\inference
+  {e[x \leftarrow n_i] \rightsquigarrow o_i \quad (\textit{for all $i\in 1\ldots k$})}
+  {[ n_1, \ldots, n_k ].\ident{map}(\lambda x\rightarrow e) \rightsquigarrow_\epsilon [ o_1, \ldots, o_k ]}
+\qquad
+\inference
+  {(\textit{otherwise})}
+  {[ n_1, \ldots, n_k ].m(v_1, \ldots, v_n) \rightsquigarrow_\epsilon \bot}
+\\[-0.75em]
+~
+\end{array}
+\end{equation*}
+%
+When evaluating \ident{map}, we apply the provided function to all elements of the list using
+standard $\beta$-reduction, defined recursively using $\rightsquigarrow$, and return a list with
+resulting objects. The $\rightsquigarrow_\epsilon$ relation is defined on all member accesses,
+but non-existent members reduce to the failed computation $\bot$.
 
 \subsection{Properties}
 The data exploration calculus has a number of desirable properties. Some of those require that the
 relation $\rightsquigarrow_\epsilon$, which defines evaluation for external libraries, satisfies a
 number of conditions. We discuss \emph{normalization} and \emph{let elimination} in this section.
 Those two are particularly important as they will allow us to prove correctness of our method of
-evaluating live previews in Section~\ref{sec:evaluation-correctness}.
+evaluating instant previews in Section~\ref{sec:evaluation-correctness}.
 
 \begin{definition}[Further reductions]
 \label{def:further-red}
@@ -539,9 +541,9 @@ $C[e']$ reduce to the same value. Lambda functions $\lambda x\!\rightarrow\!2$ a
 $\lambda x\!\rightarrow\!1\!+\!1$ are not equal, but they are observationally equivalent.
 We require that external libraries satisfy two conditions. First, when a method is called with
 observationally equivalent values as arguments, it should return the same value. Second, the
-evaluation of $o.m(v_1,\ldots,v_n)$ should be defined for all $o, n$ and $v_i$. The external
-library will typically satisfy this by defining an error object and reducing all invalid calls
-to the error object \cite{gowrong}.
+evaluation of $o.m(v_1,\ldots,v_n)$ should be defined for all $o, n$ and $v_i$.
+The definition in Section~\ref{sec:calculus-example} satisfies those by using standard
+$\beta$-reduction for lambda functions and by reducing all invalid calls to the $\bot$ object.
 
 \begin{definition}[External library]
 \label{def:external}
@@ -559,7 +561,8 @@ $\rightsquigarrow_\epsilon$ that satisfies the following two properties:
 \end{definition}
 
 \noindent
-Compositionality is essential for proving the correctness of our live preview mechanism.
+Compositionality is essential for proving the correctness of our instant preview mechanism and
+implies determinism of external libraries.
 Totality allows us to prove normalization, i.e.~all programs reduce to
 a value -- although the resulting value may be an error value provided by the external library.
 
@@ -576,7 +579,7 @@ program. See Appendix~\ref{sec:app-normalization} for more detail.
 Although the reduction rules \rname{let} and \rname{external} of the data exploration calculus
 define an evaluation in a call-by-value order, eliminating let bindings in a call-by-name way
 using the $\rightsquigarrow_\ident{let}$ reduction does not affect the result. This
-simplifies our later proof of live preview correctness in Section~\ref{sec:evaluation-correctness}.
+simplifies our later proof of instant preview correctness in Section~\ref{sec:evaluation-correctness}.
 
 \begin{lem}[Let elimination for a program]
 \label{thm:let-lang-elimination}
@@ -590,17 +593,17 @@ $p \rightsquigarrow^{*} o_1;\ldots;o_n$. See Appendix~\ref{sec:let-lang-eliminat
 
 % ==================================================================================================
 
-\section{Formalising a live coding environment}
+\section{Formalising a live programming environment}
 \label{sec:formal}
 
-A naive way of providing live previews during code editing would be to re-evaluate the code
+A naive way of providing instant previews during code editing would be to re-evaluate the code
 after each change. This would be wasteful -- when writing code to explore data, most changes are
 additive. To update a preview, we only need to evaluate newly added code. We describe an
 efficient mechanism in this section.
 
 % --------------------------------------------------------------------------------------------------
 
-\subsection{Maintaining dependency graph}
+\subsection{Maintaining the dependency graph}
 \label{sec:formal-deps}
 
 The key idea behind our method is to maintain a dependency graph \cite{dependencies} with
@@ -616,41 +619,6 @@ evaluated parts of the program. When a preview is requested for an expression, w
 node bound to the expression to find a preview. If a preview has not been evaluated, we force
 the evaluation of all dependencies in the graph and then evaluate the operation represented by
 the current node.
-
-% --------------------------------------------------------------------------------------------------
-
-\begin{figure}
-\centering
-\subcaptionbox{
-  \raggedright\small
-  Graph constructed from initial expression:
-  $\kvd{let}~x = \num{15}~\kvd{in}~\ident{data.skip}(\num{10}).\ident{take}(x)$
-  \label{fig:dep-graph-a}
-}{
-  $\xymatrix{
-  \bnd{val}(\num{10}) & \bnd{val}(\num{15})\\
-  \bnd{mem}(\ident{skip},s_0)\ar[d]_{\blbl{arg}(0)} \ar[u]^{\blbl{arg}(1)} &
-  \bnd{mem}(\ident{take},s_1)\ar[l]_{\blbl{arg}(0)} \ar[u]_{\blbl{arg}(1)}\\
-  \bnd{var}(\ident{data})
-  }\qquad$
-}
-\hspace{1em}
-\subcaptionbox{
-  \raggedright\small
-  Updated graph after changing $x$ to $10$:
-  $\kvd{let}~x = \num{10}~\kvd{in}~\ident{data.skip}(\num{10}).\ident{take}(x)$
-  \label{fig:dep-graph-b}
-}{
-  $\xymatrix{
-  \bnd{val}(\num{10})&\\
-  \bnd{mem}(\ident{skip}, s_0)\ar[d]_{\blbl{arg}(0)} \ar[u]^{\blbl{arg}(1)} &
-  \bnd{mem}(\ident{take}, s_2)\ar[l]_{\blbl{arg}(0)} \ar@/_/[lu]_{\blbl{arg}(1)}\\
-  \bnd{var}(\ident{data})
-}\qquad$
-}
-\caption{Dependency graphs formed by two steps of the live programming process. }
-\label{fig:dep-graph}
-\end{figure}
 
 % --------------------------------------------------------------------------------------------------
 
@@ -697,6 +665,45 @@ The $\blbl{arg}(1)$ dependency of the \ident{take} call
 changed and so we create a new node $\bnd{mem}(\ident{skip}, s_2)$ with a fresh symbol $s_2$.
 The preview for this node is then computed as needed using the already known values of its
 dependencies.
+
+% --------------------------------------------------------------------------------------------------
+
+\begin{figure}
+\centering
+\subcaptionbox{
+  \raggedright\small
+  Graph constructed from initial expression:
+  $\kvd{let}~x = \num{15}~\kvd{in}~\ident{data.skip}(\num{10}).\ident{take}(x)$
+  \label{fig:dep-graph-a}
+}{
+  $\xymatrix{
+  \bnd{val}(\num{10}) & \bnd{val}(\num{15})\\
+  \bnd{mem}(\ident{skip},s_0)\ar[d]_{\blbl{arg}(0)} \ar[u]^{\blbl{arg}(1)} &
+  \bnd{mem}(\ident{take},s_1)\ar[l]_{\blbl{arg}(0)} \ar[u]_{\blbl{arg}(1)}\\
+  \bnd{var}(\ident{data})
+  }\qquad$
+  \vspace{0.5em}
+}
+\hspace{1em}
+\subcaptionbox{
+  \raggedright\small
+  Updated graph after changing $x$ to $10$:
+  $\kvd{let}~x = \num{10}~\kvd{in}~\ident{data.skip}(\num{10}).\ident{take}(x)$
+  \label{fig:dep-graph-b}
+}{
+  $\xymatrix{
+  \bnd{val}(\num{10})&\\
+  \bnd{mem}(\ident{skip}, s_0)\ar[d]_{\blbl{arg}(0)} \ar[u]^{\blbl{arg}(1)} &
+  \bnd{mem}(\ident{take}, s_2)\ar[l]_{\blbl{arg}(0)} \ar@/_/[lu]_{\blbl{arg}(1)}\\
+  \bnd{var}(\ident{data})
+}\qquad$
+\vspace{0.5em}
+}
+\vspace{0.5em}
+\caption{Dependency graphs formed by two steps of the live programming process. }
+\label{fig:dep-graph}
+\vspace{0.5em}
+\end{figure}
 
 % --------------------------------------------------------------------------------------------------
 
@@ -855,7 +862,7 @@ is just an expression (8), we bind the expression using \ident{bind-expr}.
 \quad\Delta_{i}(\bkndclr{v}) = \Delta_{i-1}(\bkndclr{v})\quad \textnormal{(otherwise)}
 \end{array}
 \end{equation*}
-\vspace{-1em}
+\vspace{-0.5em}
 \caption{Updating the node cache after binding a new graph}
 \label{fig:loop}
 \vspace{-0.5em}
@@ -881,7 +888,7 @@ $(V, E)$ to the previous cache $\Delta_{i-1}$ and returns a new cache $\Delta_{i
 
 % ==================================================================================================
 
-\section{Computing live previews}
+\section{Computing instant previews}
 \label{sec:previews}
 
 The binding process constructs a dependency graph after code changes. The nodes in the dependency
@@ -929,14 +936,14 @@ variables $x_1, \ldots, x_n$. As discussed in Appendix~\ref{sec:app-theories},
 delayed previews have an interesting theoretical link with graded comonads.
 The body of a lambda function may have a fully evaluated preview if it uses only variables that
 are bound by earlier let bindings, but it will typically be delayed. We consider a speculative
-design for an abstraction mechanism that better supports live previews in
+design for an abstraction mechanism that better supports instant previews in
 Appendix~\ref{sec:extra-abstraction}.
 
 % --------------------------------------------------------------------------------------------------
 
 \begin{figure*}
 \begin{equation*}
-\vspace{-2.5em}
+\vspace{-1.5em}
 \hspace{-0.5em}
 \begin{array}{l}
 \inference[\rname{lift-expr}~]
@@ -994,10 +1001,8 @@ Appendix~\ref{sec:extra-abstraction}.
 \\
 \end{array}
 \end{equation*}
-\vspace{-0.75em}
 \caption{Rules that define evaluation of previews over a dependency graph for a program}
 \label{fig:eval}
-\vspace{-0.75em}
 \end{figure*}
 
 % --------------------------------------------------------------------------------------------------
@@ -1045,7 +1050,7 @@ also reused during code editing.
 
 % ==================================================================================================
 
-\section{Evaluating live coding environment}
+\section{Evaluating live programming environment}
 \label{sec:evaluation}
 
 Computing previews using a dependency graph implements a correct and efficient optimization.
@@ -1362,10 +1367,10 @@ dependency graph.
 
 % --------------------------------------------------------------------------------------------------
 
-To avoid clutter when visualizing the performance, we update the preview after complete tokens are
+To avoid distractions when visualizing the performance, we update the preview after complete tokens are
 added rather than after individual keystrokes.
 Figure~\ref{fig:image-edits} shows the sequence of edits that we use to measure
-the delays in updating a live preview. We first enter an expression to load, greyscale and blur
+the delays in updating a instant preview. We first enter an expression to load, greyscale and blur
 an image (1) then introduce let binding (2) and add more operations (3). Finally, we extract
 one of the parameters into a variable (4). Most of the operations are simply adding code, but
 there are two cases where we modify existing code and change value of a parameter for \ident{blur}
@@ -1430,7 +1435,7 @@ Figure~\ref{fig:drawing} shows times needed to recompute previews after individu
 are added, deleted or modified, according to the script in
 Figure~\ref{fig:image-edits}, resulting in 38 measurements. We mark a number of notable points in the chart:
 
-\begin{enumerate}[itemsep=0em,label=\alph*.]
+\begin{enumerate}[itemsep=0.1em,label=\alph*.]
 \item Loading image for the first time incurs small extra overhead in the live strategy.
 \item Greyscaling using the live strategy does not need to re-load the image.
 \item Accessing the blur member without arguments causes delay for call-by-value.
@@ -1467,14 +1472,15 @@ other two strategies.
 
 % --------------------------------------------------------------------------------------------------
 
-\begin{figure}[t]
+\begin{figure}[b]
 \noindent
 \hspace{-1em}
 \includegraphics[scale=0.245]{figures/gallery1.png}
 \includegraphics[scale=0.245]{figures/gallery2.png}
 \caption{\small Data analysis counting the number of libraries per county in the UK. We load
   and aggregate data (left) and then create a chart with a label (right).
-  The example is adapted from \url{http://gallery.thegamma.net/73/}.}
+  The example has been created using our tool discussed in Section~\ref{sec:evaluation-case}
+  by a non-programmer and is available at \url{http://gallery.thegamma.net/73/}.}
 \label{fig:gallery}
 \vspace{-1em}
 \end{figure}
@@ -1500,7 +1506,7 @@ in Figure~\ref{fig:gallery} illustrate a number of interesting features:
   provide editor auto-complete, which we support by implementing type checking over a
   dependency graph (Section~\ref{sec:extra-types}).
 
-\item When displaying live preview for code written using the data aggregation type provider (left),
+\item When displaying instant preview for code written using the data aggregation type provider (left),
   our environment generates tabes that show individual steps of the data transformation.
   A tab is selected based on the cursor position and shows a preview for the current sub-expression
   (e.g.~raw data before grouping).
@@ -1524,48 +1530,54 @@ who had no prior programming experience.
 \section{Related and future work}
 \label{sec:future}
 
-We aim to make creating transparent data analyses, such as those done by journalists, easier and we
-present a tool that provides instant feedback when writing code in a text editor.
-There is a rich body of work exploring complementary designs.
+Simple data exploration performed, for example, by journalists \cite{ddj} is done either
+programmatically or using spreadsheets. The latter is easy but error-prone while the former
+requires expert programming skills. We aim to bring liveness of spreadsheets to programmatic
+data exploration. This requires extending recomputation as done in spreadsheets \cite{spreadsheet}
+to code written in an ordinary text editor.
 
 \paragraph{Notebooks and data science tools.}
-Basic feedback mechanism, the REPL (read-eval-print-loop), originated in Lisp
-\cite{lisp} and has become standard \cite{drscheme}. Notebook systems
-such as Jupyter \cite{rmarkdown,jupyter,ipython} structure code in cells,
-but still rely on executing individual cells using a stateful REPL.
-Adding provenance tracking \cite{dataflow,noworkflow,wrattler} addresses
-the reproducibility issues of notebooks, but keeps cells as units of work. Ideas such as
-dependency tracking and efficient recomputation also exist in visual data exploration tools
+Visual data exploration tools are interactive \cite{control,tableau,vizdom} and some
+can export the workflow as a script \cite{wrangler}, but data analysts who prefer code
+typically resort to notebook systems such as Jupyter or R Markdown \cite{jupyter,rmarkdown}.
+Those are text-based, but have a limited model of recomputation. Users structure code in
+cells and manually reevaluate cells. Many notebook systems are based on the REPL (read-eval-print-loop)
+\cite{lisp,drscheme} and do not track dependencies between cells, which can lead to well-documented
+inconsistencies \cite{dataflow,noworkflow,wrattler}.
+
+Ideas such as dependency tracking and efficient recomputation exist in visual data exploration tools
 \cite{control,tableau,vizdom} and scientific workflow systems \cite{taverna,kepler}. The
 implementation techniques are related to our work, but we focus on text-based scripts.
 Tempe \cite{tempe} focuses on streaming data, but provides a text-based scripting environment
 with automatic code update; its usability in contrast to REPLs has been empirically
-evaluated \cite{ripple}. The challenges faced by Tempe are more akin to dynamic software update \cite{dsu}.
+evaluated \cite{ripple}. The challenges faced by Tempe are more akin to dynamic software update~\cite{dsu}.
 
-\paragraph{Live coding and editing.}
-Live coding based on textual programs has been popularised by Victor \cite{principle,learnable} and
-is actively developed in domains such as live coded music \cite{beyond,sonic}. Kubelka et al.~\cite{liveroad}
-review the use of live coding in a Smalltalk derived environment. Lighttable \cite{lighttable}
-and Chrome DevTools provide limited live previews akin to those presented in this paper,
+\paragraph{Live and exploratory programming.}
+Live programming based on textual programs has been popularised by Victor \cite{principle,learnable} and
+is actively developed in domains such as live coded music \cite{beyond,sonic}.
+The notion of exploratory programming has recently been analysed from the perspective of
+human-computer interaction \cite{exploratory}, which led to new tools \cite{variolite},
+complementary to our instant previews. Kubelka et al.~\cite{liveroad}
+review the use of live programming in a Smalltalk derived environment. Lighttable \cite{lighttable}
+and Chrome DevTools provide limited instant previews akin to those presented in this paper,
 but without well specified recomputation model. Finally, work on keeping state during
-code edits \cite{alive,livingit} would be relevant for supporting streaming data. In the future,
-we also plan to explore how direct manipulation \cite{direct} could be integrated with our preview
-mechanism.
-%
-Using structured editors \cite{structure-based} rather than text editors is a promising alternative
-direction as editors can recompute program based on understanding of edit operations
-\cite{interactive,livenut,lamdu}. This can be elegantly implemented using bi-directional
+code edits \cite{alive,livingit} would be relevant for supporting streaming data.
+
+A more principled approach can be used by systems based on structured editing \cite{structure-based,interactive,livenut,lamdu}
+where code is only modified via known operations with known effect on the computation graph
+(e.g.~``extract variable'' has no effect on the result; ``change constant value''
+forces recomputation of subsequent code). This can be elegantly implemented using bi-directional
 lambda calculus \cite{hazelnut}, but it also makes us consider more human-centric abstractions
 \cite{subtext,directprog} further discussed in Section~\ref{sec:extra-abstraction}.
 
 \paragraph{Incremental computation and dependency analysis.}
 Work on self-adjusting and incremental computation \cite{selfadjusting,adapton} handles
-recomputation when the program stays the same, but input changes. It relies on dependency tracking
-similar to ours. We rely on static code analysis whereas most incremental systems,
-e.g.~\cite{incremental,adaptivefp,deltaml} evaluate the program and use programmer-supplied
-information to build a dependency graph. \cite{adapton} implement a small adaptive interpreter
-that treats code as changing input data, suggesting an interesting implementation technique for
-live coding systems. Our use of dependency graphs \cite{dependencies} is static and first-order
+recomputation when the program stays the same, but input changes.
+Most incremental systems, e.g.~\cite{incremental,adaptivefp,deltaml} evaluate the program and use
+programmer-supplied information to build a dependency graph, whereas our system uses static code analysis;
+\cite{adapton} implement a small adaptive interpreter
+that treats code as changing input data, suggesting an implementation technique for
+live programming systems. Our use of dependency graphs \cite{dependencies} is static and first-order
 and can be seen as a form of program slicing \cite{slicing}, although our binding process is
 more directly inspired by Roslyn \cite{roslyn}, which uses it for efficient background type-checking.
 
@@ -1574,8 +1586,7 @@ The evaluation of previews is a form of partial evaluation \cite{partial}, done 
 way that allows caching. This can be done implicitly or explicitly in the form of
 multi-stage programming \cite{metaml}. Semantically, the evaluation of previews can be seen as a
 modality \cite{modal} and delayed previews are linked to contextual modal type theory \cite{cmtt},
-formally modelled using comonads \cite{cmtt-denotation}. This suggests a direction for rigorous
-analysis of the presented system.
+formally modelled using comonads \cite{cmtt-denotation}.
 
 
 
@@ -1592,7 +1603,7 @@ for data exploration. The calculus captures key observations about simple data a
 rely on logic defined by external libraries, implement few abstractions and are written as lists of
 commands.
 
-Our main technical contribution is a \emph{live preview} mechanism that efficiently evaluates
+Our main technical contribution is a \emph{instant preview} mechanism that efficiently evaluates
 code during editing and instantly provides a preview of the result. We allow users to edit code
 in unconstrained way in an text editor, which makes this particularly challenging. The key trick
 is to separate the process into a fast \emph{binding phase}, which constructs a dependency graph
@@ -1605,6 +1616,13 @@ that it reuses evaluated values for many common code edit operations. Second, we
 experimental study that illustrates how often are previously evaluated results reused during
 typical programming scenario. Thirdly, we used our research as a basis for online data exploration
 environment, which shows the practical usability of our work.
+
+\acks
+We thank Dominic Orchard, Stephen Kell, Roly Perera and Jonathan Edwards for many discussions
+about the work presented in the paper. Dominic Orchard provided invaluable feedback on earlier
+version of the paper. The paper also benefited from suggestions made by anonymous reviewers
+of The Programming Journal as well as reviwers of earlier versions of the paper.
+This work was partly supported by The Alan Turing Institute under the EPSRC grant EP/N510129/1.
 
 % ==================================================================================================
 
@@ -1621,7 +1639,6 @@ environment, which shows the practical usability of our work.
 \label{sec:app-normalization}
 
 \begin{theorem}[Normalization]
-\raggedrigth
 For all $p$, there exists $n$ and $o_1, \ldots, o_n$ \\
 such that $p\rightsquigarrow^{*} o_1;\ldots;o_n$.
 \end{theorem}
@@ -1821,8 +1838,8 @@ so $\bndclr{v} = \bndclr{v'}$ using the above.
 \label{sec:app-theories}
 
 The operational semantics presented in this paper serves two purposes. It gives a simple guide
-for implementing text-based live coding environments for data science and we use it to prove that
-our optimized way of producing live previews is correct. However, some aspects of our mechanism
+for implementing text-based live programming environments for data science and we use it to prove that
+our optimized way of producing instant previews is correct. However, some aspects of our mechanism
 are related to important work in semantics of programming languages and deserve to be mentioned.
 
 The construction of delayed previews is related to meta-programming. Assuming
@@ -1863,7 +1880,7 @@ $\llbracket A \rrbracket_\emptyset \rightarrow A$.
 \section{Type checking}
 \label{sec:extra-types}
 
-Live previews give analysts quick feedback when they write incorrect code, but
+Instant previews give analysts quick feedback when they write incorrect code, but
 having type information is still valuable. First, it can help give better error messages. Second,
 types can be used to provide auto-complete -- when the user types `.' we can offer available
 members without having to wait until the value of the object is available.
@@ -1873,7 +1890,7 @@ Type checking of small programs is typically fast enough that no caching is nece
 The Gamma supports \emph{type providers} \cite{providers-fsharp,providers-idris}, which can
 generate types based on an external file or a REST service call, e.g.~\cite{fsdata}. For this
 reason, type checking can be relatively time consuming and can benefit from the same caching
-facilities as those available for live previews.
+facilities as those available for instant previews.
 
 Adding type checking requires revising the way we construct the dependency graph introduced in
 Section~\ref{sec:formal}. Previously, a variable bound by a lambda function had no dependencies.
@@ -1904,7 +1921,7 @@ we follow the \blbl{callsite} edge to find the member that accepts the function 
 and use the type of the argument to check the type of the function or infer the type of the
 variable.
 
-The results of type checking can be cached and reused in the same way as live previews, although
+The results of type checking can be cached and reused in the same way as instant previews, although
 we leave out the details. A property akin to correctness (Theorem~\ref{thm:correcntess})
 requires defining standard type checking over the structure of expressions, which we also
 omit for space reasons.
@@ -1948,7 +1965,7 @@ notebook users often avoid abstraction. Wrapping code in a function makes it imp
 split code into cells and see results of intermediate steps. Instead, the analysis used a
 global variable with possible values in a comment.
 
-Providing live previews inside ordinary functions is problematic, because we do not have readily
+Providing instant previews inside ordinary functions is problematic, because we do not have readily
 available values for input parameters and our mechanism for lambda functions only provides
 delayed previews inside body of a function. We believe that extending the data exploration calculus
 with an abstraction mechanism that would support development with instant feedback is an
@@ -1976,57 +1993,12 @@ dynamically scoped and we can use let binding to redefine a value of a variable 
 the block repeatedly. The correct use of dynamic scoping can be checked using
 coeffects \cite{coeffects}.
 
-This minimalistic abstraction mechanism supports code reuse without affecting how live previews
+This minimalistic abstraction mechanism supports code reuse without affecting how instant previews
 are computed. Commands in a labelled block require variables to be defined before the block.
 Those define sample data for development and can be redefined before reusing the block. We
 intend to implement this mechanism in a future version of our data
 exploration environment (Section~\ref{sec:evaluation-case}).
 
 % ==================================================================================================
-
-\newpage
-\section{Manuscript version history (to be removed for publication)}
-\label{sec:revisions}
-
-This note briefly reviews the revisions made to this manuscript in response to reviews for an
-earlier version of the paper.
-
-\paragraph{Unclear motivation.}
-An earlier review pointed out that it was not clear who is the target user for the described
-system. The newly added Section~\ref{sec:background-jupyter} provides the answer. Our focus
-is on non-expert programmers conducting simple data exploration such as journalists working
-with government data. This is perhaps an unusual focus for a programming language research, but
-we believe it is increasingly important.
-
-\paragraph{Unclear scope of the work.}
-An earlier version of the paper did not make it clear what is prior work and
-what is new in this paper. The paper has been restructured to make this clear --
-we introduce the data exploration calculus (Section~\ref{sec:calculus}) and a
-theory for building a live coding environment for the calculus (Section~\ref{sec:formal})
-with live preview support (Section~\ref{sec:previews}). This is accompanied by an implementation
-that extends an editor for The Gamma, described earlier \cite{gamma} -- we add live preview
-support and auto-complete using type checking based on the dependency graph (Section~\ref{sec:extra-types}).
-
-\paragraph{Simplicity of the language.}
-An earlier review argued that the language used in the paper is overly simplistic.
-The newly added Section~\ref{sec:background-jupyter} explains the motivation behind the
-data exploration calculus. The simplicity of the language reflects the use cases that
-motivated this paper. The newly added case study (Section~\ref{sec:evaluation-case}) shows that
-the language is sufficient for building a simple, but realistic and practically useful
-data exploration environment. We also discuss extensions to the langauge in
-Section~\ref{sec:extra-abstraction}.
-
-\paragraph{Missing empirical evaluation.}
-An earlier version of the paper lacked empirical evaluation. It is not our aim to measure
-the exact overhead of our implementation (which is typically negligible with respect to the
-cost of evaluating the data transformations), but the newly added empirical evaluation
-(Section~\ref{sec:evaluation-empirical}) shows the effect of our evaluation strategy during
-a reprsentative coding task.
-
-\paragraph{Missing related work.}
-An earlier version of the paper lacked discussion of important related work, in particular that
-on incremental computation. This has now been addressed -- incremental computation focuses on
-the case where data change, while our focus is on cases where code changes, but the implementation
-techniques are closely related.
 
 \end{document}

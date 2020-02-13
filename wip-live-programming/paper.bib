@@ -1,6 +1,7 @@
 @article{subtext,
   title={Subtext: uncovering the simplicity of programming},
   author={Edwards, Jonathan},
+  doi={10.1145/1103845.1094851},
   journal={ACM SIGPLAN Notices},
   volume={40},
   number={10},
@@ -19,13 +20,14 @@
   number    = {{POPL}},
   _pages     = {14:1--14:28},
   year      = {2019},
-  doi       = {10.1145/3290327},
+  doi       = {10.1145/3291622},
 }
 
 @book{structure-based,
   title={Structure-based editors and environments},
   author={Szwillus, Gerd and Neal, Lisa},
   year={1996},
+  isbn={978-0126818901},
   publisher={Academic Press, Inc.}
 }
 @ARTICLE{control,
@@ -73,6 +75,7 @@ author = "Robin Milner",
   booktitle = {PLDI},
   year = {2013},
   month = {June},
+  doi = {10.1145/2491956.2462170},
   publisher = {ACM SIGPLAN},
 }
 @inproceedings{livingit,
@@ -83,24 +86,29 @@ author = "Robin Milner",
   number={10},
   pages={623--638},
   year={2007},
+  doi={10.1145/1297027.1297073},
   organization={ACM}
 }
-@inproceedings{direct,
-  title={Direct manipulation: A step beyond programming languages},
+@ARTICLE{direct,
   author={Shneiderman, Ben},
-  booktitle={ACM SIGSOC Bulletin},
-  volume={13},
-  number={2-3},
-  pages={143},
-  year={1981},
-  organization={ACM}
+  journal={Computer},
+  title={Direct Manipulation: A Step Beyond Programming Languages},
+  year={1983},
+  volume={16},
+  number={8},
+  pages={57-69},
+  doi={10.1109/MC.1983.1654471},
+  ISSN={1558-0814},
+  month={Aug}
 }
+
 @inproceedings{hazelnut,
   title={Hazelnut: a bidirectionally typed structure editor calculus},
   author={Omar, Cyrus and Voysey, Ian and Hilton, Michael and Aldrich, Jonathan and Hammer, Matthew A},
   booktitle={Proceedings of the 44th ACM SIGPLAN Symposium on Principles of Programming Languages},
   pages={86--99},
   year={2017},
+  doi={10.1145/3009837.3009900},
   organization={ACM}
 }
 @inproceedings{providers-idris,
@@ -108,15 +116,17 @@ author = "Robin Milner",
   author={Christiansen, David Raymond},
   booktitle={Proceedings of the 9th ACM SIGPLAN workshop on Generic programming},
   pages={25--34},
+  doi={10.1145/2502488.2502495},
   year={2013},
   organization={ACM}
 }
-@article{rest,
-  title={Representational state transfer},
-  author={Fielding, Roy},
-  journal={Architectural Styles and the Design of Netowork-based Software Architecture},
-  pages={76--85},
-  year={2000}
+@phdthesis{rest,
+author = {Fielding, Roy Thomas and Taylor, Richard N.},
+title = {Architectural Styles and the Design of Network-Based Software Architectures},
+year = {2000},
+isbn = {0599871180},
+publisher = {University of California, Irvine},
+note = {AAI9980887}
 }
 @article{async,
   title={The {F\#} asynchronous programming model},
@@ -124,6 +134,7 @@ author = "Robin Milner",
   journal={Practical Aspects of Declarative Languages},
   pages={175--189},
   year={2011},
+  doi={10.1007/978-3-642-18378-2_15},
   publisher={Springer}
 }
 @inproceedings{providers-fsharp,
@@ -132,13 +143,15 @@ author = "Robin Milner",
   booktitle={Proceedings of the 2013 workshop on Data driven functional programming},
   pages={1--4},
   year={2013},
+  doi={10.1145/2429376.2429378},
   organization={ACM}
 }
 @article{fsdata,
-  title={Types from data: Making structured data first-class citizens in F},
+  title={Types from data: Making structured data first-class citizens in F\#},
   author={Petricek, Tomas and Guerra, Gustavo and Syme, Don},
   journal={ACM SIGPLAN Notices},
   volume={51},
+  doi={10.1145/2908080.2908115},
   number={6},
   pages={477--490},
   year={2016},
@@ -149,6 +162,7 @@ author = "Robin Milner",
   author={Weiser, Mark},
   booktitle={Proceedings of the 5th international conference on Software engineering},
   pages={439--449},
+  doi={10.1109/TSE.1984.5010248},
   year={1981},
   organization={IEEE Press}
 }
@@ -158,48 +172,54 @@ author = "Robin Milner",
   booktitle={Proceedings of the 8th ACM SIGPLAN-SIGACT symposium on Principles of programming languages},
   pages={207--218},
   year={1981},
+  doi={10.1145/567532.567555},
   organization={ACM}
 }
-@article{rmarkdown,
-  title={rmarkdown: Dynamic Documents for R},
-  author={Allaire, J and Cheng, Joe and Xie, Yihui and McPherson, Jonathan and Chang, Winston and Allen, Jeff and Wickham, Hadley and Atkins, Aron and Hyndman, Rob and Arslan, R},
-  journal={R package version},
-  volume={1},
-  pages={9010},
-  year={2016}
+@online{rmarkdown,
+  author = {Allaire, J and Cheng, Joe and Xie, Yihui and McPherson, Jonathan and Chang, Winston and Allen, Jeff and Wickham, Hadley and Atkins, Aron and Hyndman, Rob and Arslan, R},
+  title = {rmarkdown: Dynamic Documents for {R}},
+  year = {2016},
+  url = {https://github.com/rstudio/rmarkdown},
+  urldate = {2020-01-31}
 }
 @inproceedings{jupyter,
-  title={Jupyter Notebooks-a publishing format for reproducible computational workflows.},
+  title={Jupyter Notebooks-a publishing format for reproducible computational workflows},
   author={Kluyver, Thomas and Ragan-Kelley, Benjamin and P{\'e}rez, Fernando and Granger, Brian E and Bussonnier, Matthias and Frederic, Jonathan and Kelley, Kyle and Hamrick, Jessica B and Grout, Jason and Corlay, Sylvain and others},
-  booktitle={ELPUB},
+  booktitle={20th International Conference on Electronic Publishing},
+  doi={10.3233/978-1-61499-649-1-87},
   pages={87--90},
   year={2016}
 }
-@article{workflow,
+@online{workflow,
   title={Data science workflow: Overview and challenges},
   author={Guo, P},
-  journal={blog CACM, Communications of the ACM},
-  year={2013}
+  note="{Blog@CACM, Communications of the ACM}",
+  year={2013},
+  url ={https://cacm.acm.org/blogs/blog-cacm/169199/fulltext},
+  urldate = {2020-01-31}
 }
 @inproceedings{gamma,
   title={Data Exploration through Dot-driven Development},
   author={Petricek, Tomas},
   booktitle={LIPIcs-Leibniz International Proceedings in Informatics},
   volume={74},
+  doi={10.4230/LIPIcs.ECOOP.2017.21},
   year={2017},
   organization={Schloss Dagstuhl-Leibniz-Zentrum fuer Informatik}
 }
-@techreport{spreadsheet,
-  title={Spreadsheet technology},
+@book{spreadsheet,
+  title={Spreadsheet Implementation Technology: Basics and Extensions},
   author={Sestoft, Peter},
   year={2012},
-  institution={Citeseer}
+  isbn={978-0262526647},
+  publisher={MIT Press}
 }
 @inproceedings{quotations,
   title={Leveraging. net meta-programming components from {F\#}: integrated queries and interoperable heterogeneous execution},
   author={Syme, Don},
   booktitle={Proceedings of the 2006 workshop on ML},
   pages={43--54},
+  doi={10.1145/1159876.1159884},
   year={2006},
   organization={ACM}
 }
@@ -208,6 +228,7 @@ author = "Robin Milner",
   author={Taha, Walid and Sheard, Tim},
   journal={Theoretical computer science},
   volume={248},
+  doi={10.1016/S0304-3975(00)00053-0},
   number={1},
   pages={211--242},
   year={2000},
@@ -218,6 +239,7 @@ author = "Robin Milner",
   author={Consel, Charles and Danvy, Olivier},
   booktitle={Proceedings of the 20th ACM SIGPLAN-SIGACT symposium on Principles of programming languages},
   pages={493--501},
+  doi={10.1145/158511.158707},
   year={1993},
   organization={ACM}
 }
@@ -241,26 +263,41 @@ author = "Robin Milner",
 }
 
 
-@phdthesis{coeffects,
-  title={Context-aware programming languages},
-  author={Petricek, Tomas},
-  year={2017},
-  school={University of Cambridge, Computer Laboratory}
+@article{coeffects,
+author = {Petricek, Tomas and Orchard, Dominic and Mycroft, Alan},
+title = {Coeffects: A Calculus of Context-Dependent Computation},
+year = {2014},
+issue_date = {November 2014},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {49},
+number = {9},
+issn = {0362-1340},
+url = {https://doi.org/10.1145/2692915.2628160},
+doi = {10.1145/2692915.2628160},
+journal = {SIGPLAN Not.},
+month = aug,
+pages = {123–135},
+numpages = {13},
+keywords = {types, coeffects, context, indexed comonads}
 }
+
 
 @incollection{effectrev,
   title={Effect systems revisited—control-flow algebra and semantics},
   author={Mycroft, Alan and Orchard, Dominic and Petricek, Tomas},
   booktitle={Semantics, Logics, and Calculi},
+  doi={10.1007/978-3-319-27810-0_1},
   pages={1--32},
   year={2016},
   publisher={Springer}
 }
 @inproceedings{graded,
-  title={Combining effects and coeffects via grading.},
+  title={Combining effects and coeffects via grading},
   author={Gaboardi, Marco and Katsumata, Shin-ya and Orchard, Dominic A and Breuvart, Flavien and Uustalu, Tarmo},
   booktitle={ICFP},
   pages={476--489},
+  doi={10.1145/2951913.2951939},
   year={2016}
 }
 @article{cmtt,
@@ -268,6 +305,7 @@ author = "Robin Milner",
   author={Nanevski, Aleksandar and Pfenning, Frank and Pientka, Brigitte},
   journal={ACM Transactions on Computational Logic (TOCL)},
   volume={9},
+  doi={10.1145/1352582.1352591},
   number={3},
   pages={23},
   year={2008},
@@ -281,26 +319,30 @@ author = "Robin Milner",
   number={1},
   pages={1--29},
   year={2013},
-  publisher={Elsevier}
+  publisher={Elsevier},
+  doi={10.1016/j.jal.2012.07.002}
 }
-@article{lamdu,
+@online{lamdu,
   title={Lamdu Project},
   author={Lotem, Eyal and Chuchem, Yair},
-  journal={\url{https://github.com/lamdu/lamdu}},
+  url={https://github.com/lamdu/lamdu},
+  lastaccessed ={January 31, 2020},
   year={2018}
 }
 @book{pandas,
   title={Python for data analysis: Data wrangling with Pandas, NumPy, and IPython},
   author={McKinney, Wes},
+  isbn={978-1449319793},
   year={2012},
   publisher={O'Reilly Media, Inc.}
 }
 
-@article{principle,
+@online{principle,
   title={Inventing on Principle},
   author={Victor, Bret},
-  journal={\url{http://worrydream.com/InventingOnPrinciple}},
-  year={2012}
+  url={http://worrydream.com/InventingOnPrinciple},
+  year={2012},
+  lastaccessed ={January 31, 2020}
 }
 @online{ftarticle,
 author ={Leslie Hook and John Reed},
@@ -371,28 +413,32 @@ lastaccessed ={February 1, 2019},
 }
 
 
-@article{learnable,
+@online{learnable,
   title={Learnable programming: Designing a programming system for understanding programs},
   author={Victor, Bret},
-  journal={\url{http://worrydream.com/LearnableProgramming}},
-  year={2012}
+  url={http://worrydream.com/LearnableProgramming},
+  year={2012},
+  lastaccessed ={January 31, 2020},
 }
-@article{csharp,
+@online{csharp,
   title={C# Language Specification},
   author={Torgersen, Mads and Gafter, Neal},
-  journal={\url{https://github.com/dotnet/csharplang/tree/master/spec}, Retrieved 2017},
-  year={2012}
+  url={https://github.com/dotnet/csharplang/tree/master/spec},
+  lastaccessed ={January 31, 2020},
+  year={2020}
 }
-@article{lighttable,
+@online{lighttable,
   title={LightTable: A new {IDE} concept},
   author={Granger, Chris},
-  journal={\url{http://www.chris-granger.com/2012/04/12/light-table-a-new-ide-concept/}},
-  year={2012}
+  url={http://www.chris-granger.com/2012/04/12/light-table-a-new-ide-concept/},
+  year={2012},
+  lastaccessed ={January 31, 2020},
 }
 @inproceedings{beyond,
-  title={Beyond editing: extended interaction with textual code fragment},
+  title={Beyond editing: extended interaction with textual code fragments},
   author={Roberts, Charles and Wright, Matthew and Kuchera-Morin, JoAnn},
   booktitle={NIME},
+  doi={10.5555/2993778.2993812},
   pages={126--131},
   year={2015}
 }
@@ -402,6 +448,7 @@ lastaccessed ={February 1, 2019},
   journal={Journal of functional programming},
   volume={12},
   number={2},
+  doi={10.1017/S0956796801004208},
   pages={159--182},
   year={2002},
   publisher={Cambridge University Press}
@@ -414,6 +461,7 @@ lastaccessed ={February 1, 2019},
   number={4},
   pages={507--509},
   year={2001},
+  doi={10.1017/S0960129501003310},
   publisher={Cambridge University Press}
 }
 @phdthesis{interactive,
@@ -428,6 +476,7 @@ lastaccessed ={February 1, 2019},
   booktitle={Proceedings of the first ACM SIGPLAN workshop on Functional art, music, modeling \& design},
   pages={35--46},
   year={2013},
+  doi={10.1145/2505341.2505346},
   organization={ACM}
 }
 @inproceedings{tableau,
@@ -444,10 +493,10 @@ lastaccessed ={February 1, 2019},
  acmid = {1989449},
  publisher = {ACM},
 }
-@article{roslyn,
+@techreport{roslyn,
   title={The Roslyn Project, Exposing the C\# and VB compiler's code analysis},
   author={Ng, Karen and Warren, Matt and Golde, Peter and Hejlsberg, Anders},
-  journal={White paper, Microsoft},
+  institution={Microsoft},
   year={2011}
 }
 
@@ -459,12 +508,14 @@ lastaccessed ={February 1, 2019},
   booktitle = {10th {USENIX} Workshop on the Theory and Practice of Provenance, TaPP
                2018, London, UK, July 11-12, 2018.},
   year      = {2018},
+  doi = {10.5555/3319379.3319388}
 }
 @inproceedings{noworkflow,
   title={Collecting and analyzing provenance on interactive notebooks: when IPython meets noWorkflow},
   author={Pimentel, Jo{\~a}o Felipe Nicolaci and Braganholo, Vanessa and Murta, Leonardo and Freire, Juliana},
   booktitle={Workshop on the Theory and Practice of Provenance (TaPP)},
   pages={155--167},
+  doi={10.5555/2814579.2814589},
   year={2015}
 }
 @inproceedings{kepler,
@@ -472,6 +523,7 @@ lastaccessed ={February 1, 2019},
   author={Altintas, Ilkay and Berkley, Chad and Jaeger, Efrat and Jones, Matthew and Ludascher, Bertram and Mock, Steve},
   booktitle={Scientific and Statistical Database Management},
   pages={423--424},
+  doi={10.1109/SSDM.2004.1311241},
   year={2004},
   organization={IEEE}
 }
@@ -482,6 +534,7 @@ lastaccessed ={February 1, 2019},
   volume={20},
   number={17},
   pages={3045--3054},
+  doi={10.1093/bioinformatics/bth361},
   year={2004},
   publisher={Oxford University Press}
 }
@@ -492,12 +545,14 @@ lastaccessed ={February 1, 2019},
   booktitle = {9th {USENIX} Workshop on the Theory and Practice of Provenance, TaPP
                2017, Seattle, WA, USA, June 23, 2017.},
   year      = {2017},
+  doi = {10.5555/3183865.3183888}
 }
 
 @book{ddj,
   title={The data journalism handbook: how journalists can use data to improve the news},
   author={Gray, Jonathan and Chambers, Lucy and Bounegru, Liliana},
   year={2012},
+  isbn={978-1449330064},
   publisher={" O'Reilly Media, Inc."}
 }
 @article{ipython,
@@ -507,12 +562,14 @@ lastaccessed ={February 1, 2019},
   volume={9},
   number={3},
   year={2007},
+  doi={10.1109/MCSE.2007.53},
   publisher={IEEE}
 }
 @book{optimizing,
   title={Optimizing compilers for modern architectures: a dependence-based approach},
   author={Kennedy, Ken and Allen, John R},
   year={2001},
+  isbn={978-1558602861},
   publisher={Morgan Kaufmann Publishers Inc.}
 }
 @INPROCEEDINGS{tempe,
@@ -626,4 +683,31 @@ url="https://doi.org/10.1007/978-3-642-04652-0_1"
  publisher = {ACM},
  address = {New York, NY, USA},
  keywords = {exploratory study, live programming, software evolution},
+}
+
+@inproceedings{exploratory,
+  title={Exploring exploratory programming},
+  author={Kery, Mary Beth and Myers, Brad A},
+  booktitle={2017 IEEE Symposium on Visual Languages and Human-Centric Computing (VL/HCC)},
+  pages={25--29},
+  doi={10.1109/VLHCC.2017.8103446},
+  year={2017},
+  organization={IEEE}
+}
+
+@inproceedings{variolite,
+author = {Kery, Mary Beth and Horvath, Amber and Myers, Brad},
+title = {Variolite: Supporting Exploratory Programming by Data Scientists},
+year = {2017},
+isbn = {9781450346559},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/3025453.3025626},
+doi = {10.1145/3025453.3025626},
+booktitle = {Proceedings of the 2017 CHI Conference on Human Factors in Computing Systems},
+pages = {1265–1276},
+numpages = {12},
+keywords = {variations, exploratory data analysis, version control systems (vcs), end-user programming, variants},
+location = {Denver, Colorado, USA},
+series = {CHI ’17}
 }
