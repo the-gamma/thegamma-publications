@@ -1,16 +1,25 @@
-\documentclass[english,crc]{programming}
+\AtBeginDocument{\paperdetails{
+    submitted=2019-09-30,
+    published=2020-02-17,
+    year=2020,
+    volume=4,
+    issue=3,
+    articlenumber=8,
+  }}
+\documentclass[english,crc,references=cleveref]{programming}
 \usepackage[backend=biber]{biblatex}
 \addbibresource{paper.bib}
-\usepackage{multicol}
-\usepackage{microtype}
-\usepackage{amssymb}
+% \usepackage{multicol}
+% \usepackage{microtype}
+% \usepackage{amssymb}
 \usepackage{xypic}
 \usepackage{semantic}
-\usepackage{amsmath}
+% \usepackage{amsmath}
 \usepackage{amsthm}
-\usepackage{enumitem}
+% \usepackage{enumitem}
 
-\newcounter{thc}
+\AtBeginDocument{
+  \newcounter{thc}
 \newcounter{dfc}
 \theoremstyle{plain}
 \newtheorem{lem}[thc]{Lemma}
@@ -19,6 +28,7 @@
 \theoremstyle{definition}
 \newtheorem{axiom}[dfc]{Axiom}
 \newtheorem{definition}[dfc]{Definition}
+}
 
 \definecolor{cmtclr}{rgb}{0.0,0.6,0.0}
 \definecolor{kvdclr}{rgb}{0.0,0.0,0.6}
@@ -38,7 +48,8 @@
 \end{picture}}
 \newcommand{\ball}[1]{\FPeval{\result}{clip(201+#1)}\textnormal{\ding{\result}}}
 \newcommand{\lsep}{\;\;|\;\;}
-\newcommand{\num}[1]{\textcolor{numclr}{#1}}
+% \newcommand{\Num}[1]{\textcolor{numclr}{#1}}
+\newcommand{\Num}[1]{\num[color=numclr]{#1}}
 \newcommand{\str}[1]{\textnormal{\textcolor{strclr}{\sffamily "#1"}}}
 \newcommand{\rstr}[1]{\textnormal{\textcolor{rstrclr}{\sffamily "#1"}}}
 \newcommand{\ident}[1]{\textnormal{\textcolor{idclr}{\sffamily #1}}}
@@ -61,9 +72,10 @@
 \title{Foundations of a live data exploration environment}
 %\titlerunning{Learning to live with errors}
 \author[a,b]{Tomas Petricek}
-\authorinfo{
-\noindent
-Tomas is a lecturer at University of Kent. He is working on making programming and data science
+\authorinfo{%
+%
+ % Tomas
+  is a lecturer at University of Kent. He is working on making programming and data science
 easier and more accessible. His research interests span a range of areas including theory of
 programming languages, tools for data science as well as history and philosophy of programming.
 %
@@ -161,16 +173,16 @@ data set \ident{movies}:
 \begin{equation*}
 \begin{array}{l}
 \kvd{let}~\ident{top} =\ident{movies}.\ident{sortBy}(\lambda x \rightarrow x.\ident{getBudget}())\\
-\qquad .\ident{take}(\num{10}).\ident{map}(\lambda x \rightarrow x.\ident{getReleased()}.\ident{format}(\str{yyyy}))\\
+\qquad .\ident{take}(\Num{10}).\ident{map}(\lambda x \rightarrow x.\ident{getReleased()}.\ident{format}(\str{yyyy}))\\
 \end{array}
 \end{equation*}
 %
 A live programming environment computes and displays the list of years. Suppose that the programmer then
-makes $\num{10}$ a variable and changes the date format:
+makes $\Num{10}$ a variable and changes the date format:
 %
 \begin{equation*}
 \begin{array}{l}
-\kvd{let}~\ident{count} = \num{10}\\
+\kvd{let}~\ident{count} = \Num{10}\\
 \kvd{let}~\ident{top} = \ident{movies}.\ident{sortBy}(\lambda x \rightarrow x.\ident{getBudget}())\\
 \qquad .\ident{take}(\ident{count}).\ident{map}(\lambda x \rightarrow x.\ident{getReleased()}.\ident{format}(\str{dd-mm-yyyy}))\\
 \end{array}
@@ -180,7 +192,7 @@ Ideally, the live programming environment should understand the change, reuse a 
 first two transformations (sorting and taking the first 10 elements) and only evaluate the
 \ident{map} operation to differently format the release dates of top 10 movies. Our environment
 does this for a simple data exploration language in an unrestricted text editor. We discuss related
-work in Section~\ref{sec:future}, but we briefly review the most important directions here, in
+work in \cref{sec:future}, but we briefly review the most important directions here, in
 order to situate our contributions.
 
 
@@ -190,27 +202,29 @@ language that provides correct and efficient instant feedback, yet is integrated
 ordinary text editor. Our key contributions are:
 
 \begin{itemize}
-\item We introduce the \emph{data exploration calculus} (Section~\ref{sec:calculus}), a small formally
+\item We introduce the \emph{data exploration calculus} (\cref{sec:calculus}), a small formally
   tractable language for data exploration. The calculus is motivated by our review
-  of how data analysts work (Section~\ref{sec:background}) and makes it possible to write simple,
+  of how data analysts work (\cref{sec:background}) and makes it possible to write simple,
   transparent and reproducible data analyses.
 
 \item A live programming environment does not operate in batch mode and so we cannot follow classic
-  compiler literature. We capture the essence of such new perspective (Section~\ref{sec:formal})
-  and use it to build our \emph{instant preview} mechanism (Section~\ref{sec:previews}) that evaluates
+  compiler literature. We capture the essence of such new perspective (\cref{sec:formal})
+  and use it to build our \emph{instant preview} mechanism (\cref{sec:previews}) that evaluates
   code instantly during editing.
 
-\item We prove that our instant preview mechanism is correct (Section~\ref{sec:evaluation-correctness}) and that
-  it reuses previously evaluated values when possible (Section~\ref{sec:evaluation-reuse}). We
+\item We prove that our instant preview mechanism is correct (\cref{sec:evaluation-correctness}) and that
+  it reuses previously evaluated values when possible (\cref{sec:evaluation-reuse}). We
   illustrate the practicality of the mechanism using an empirical evaluation
-  (Section~\ref{sec:evaluation-empirical}) and a case study (Section~\ref{sec:evaluation-case}).
+  (\cref{sec:evaluation-empirical}) and a case study (\cref{sec:evaluation-case}).
 \end{itemize}
 
 % ==================================================================================================
 
-\begin{figure}[b]
-\hspace{1em}\includegraphics[scale=0.52]{figures/notebook.png}
-\caption{Financial Times analysis that joins UN trade database with ISO country codes.}
+\begin{figure}
+  \begin{wide}
+    \includegraphics[width=\linewidth]{figures/notebook}
+  \end{wide}
+  \caption{Financial Times analysis that joins UN trade database with ISO country codes.}
 \label{fig:ft-uncomtrade}
 \end{figure}
 
@@ -221,7 +235,7 @@ ordinary text editor. Our key contributions are:
 
 Data scientists often use general-purpose programming languages such as Python, but the kind of
 code they write and the way they interact with the system is very different from how software
-engineers work \cite{workflow}. This paper focuses on simple data wrangling and data exploration as
+engineers work~\cite{workflow}. This paper focuses on simple data wrangling and data exploration as
 done, for example, by journalists analysing government datasets. This new kind of non-expert
 programmers is worth our attention as they often work on informing the public. They need easy-to-use
 tools, but not necessarily a full programming langugae. In this section, we ilustrate how such
@@ -243,37 +257,37 @@ focus is on the simplest use cases. Making programmatic data exploration more
 spreadsheet-like should encourage users to choose programming tools over spreadsheets, resulting
 in more reproducible and transparent data analyses.
 
-Consider the Financial Times analysis of plastic waste \cite{ftnotebooks,ftarticle}. It joins
+Consider the Financial Times analysis of plastic waste~\cite{ftnotebooks,ftarticle}. It joins
 datasets from Eurostat, UN Comtrade and more, aggregates the data and
-builds a visualization comparing waste flows in 2017 and 2018. Figure~\ref{fig:ft-uncomtrade} shows
+builds a visualization comparing waste flows in 2017 and 2018. \Cref{fig:ft-uncomtrade} shows
 an excerpt from one notebook of the data analysis. The code has a number of important properties:
 %
 \begin{itemize}
-\vspace{0.5em}
+%\vspace{0.5em}
 \item There is no abstraction. The analysis uses lambda functions as arguments to library calls,
   but it does not define any custom functions. Code is parameterized by having a global variable
   \ident{material} set to \str{plastics} and keeping other possible values in a comment.
   This lets the analyst run and check results of intermediate steps.
 
-\vspace{0.5em}
-\item The code relies on external libraries. Our example uses Pandas \cite{pandas},
+%\vspace{0.5em}
+\item The code relies on external libraries. Our example uses Pandas~\cite{pandas},
   which provides operations for data wrangling such as \ident{merge} to join datasets
   or \ident{drop\_duplicates} to delete rows with duplicate column values. Such standard libraries
   are external to the data analysis and are often implemented in another language like C++.
 
-\vspace{0.5em}
+%\vspace{0.5em}
 \item The code is structured as a sequence of commands. Some commands define a variable, either by
   loading data, or by transforming data loaded previously. Even in Python, data is often treated
   as immutable. Other commands produce an output that is displayed in the notebook.
 
-\vspace{0.5em}
+%\vspace{0.5em}
 \item There are many corner cases, such as the fact that \ident{keep\_default\_na}
   needs to be set to handle Namibia correctly. These are discovered interactively by
   running the code and examining the output, so providing an instant feedback is essential.
 \end{itemize}
-
-\vspace{0.5em}
-\noindent
+%
+%\vspace{0.5em}
+%
 Many Jupyter notebooks are more complex than the above example and might use helper
 functions or object-oriented code. However, simple data analyses such as the one discussed
 here are frequent enough and pose interesting problems for programming tools.
@@ -283,20 +297,23 @@ by capturing their essential properties as a formal calculus.
 % --------------------------------------------------------------------------------------------------
 
 \begin{figure}
-\centering
-\subcaptionbox{
-  \raggedright\footnotesize The analysis counts the number of distinct events per
-    athlete. After typing `.' the editor offers further aggregation operations.
+  \begin{wide}\centering
+    \begin{subfigure}{.49\linewidth}
+      \includegraphics[width=\linewidth]{figures/gamma1.png}
+      \caption{The analysis counts the number of distinct events per athlete.
+        After typing `.' the editor offers further aggregation operations.}
   \label{fig:gamma-dot}
-}{\includegraphics[scale=0.26]{figures/gamma1.png}}
-\subcaptionbox{
-  \raggedright\footnotesize
-    Our live programming environment for The Gamma. The table is updated on-the-fly a
-    and shows the result at the current cursor position.
+    \end{subfigure}\hfill
+    \begin{subfigure}{.49\linewidth}
+      \includegraphics[width=\linewidth]{figures/gamma2.png}
+      \caption{Our live programming environment for The Gamma. The table is
+        updated on-the-fly and shows the result at the current cursor
+        position.}
   \label{fig:gamma-preview}
-}{\includegraphics[scale=0.26]{figures/gamma2.png}}
-\vspace{0.5em}
-\caption{\small Previous work on The Gamma with auto-complete based on type information (left)
+    \end{subfigure}
+  \end{wide}
+% \vspace{0.5em}
+\caption{Previous work on The Gamma with auto-complete based on type information (left)
   and our new editor with instant preview (right).}
 \label{fig:gamma-intro}
 \end{figure}
@@ -306,26 +323,28 @@ by capturing their essential properties as a formal calculus.
 \subsection{Dot-driven data exploration in The Gamma}
 \label{sec:background-gamma}
 
+\begin{sloppypar}
 Simple data exploration has been the motivation for
-a scripting language The Gamma \cite{gamma}. Scripts in The Gamma are sequences of commands
+a scripting language The Gamma~\cite{gamma}. Scripts in The Gamma are sequences of commands
 that either define a variable or produce an output. It does not support top-level
 functions and lambda functions can be used only as method arguments.
 Given the limited expressiveness of The Gamma, libraries are implemented in other languages,
-such as JavaScript. The Gamma uses type providers \cite{providers-fsharp}
+such as JavaScript. The Gamma uses type providers~\cite{providers-fsharp}
 for accessing external data sources.
 Type providers generate object types with members and The Gamma offers those in an
 auto-complete list when the user types dot (`.') to access a member.
 The combination of type providers and auto-complete makes it
 possible to solve a large number of data exploration tasks through the very simple interaction of
 selecting operations from a list.
+\end{sloppypar}
 
-The example in Figure~\ref{fig:gamma-dot} summarizes data on Olympic medals. Identifiers such
+The example in \cref{fig:gamma-dot} summarizes data on Olympic medals. Identifiers such
 as \qident{sum Bronze} are names of members generated by the type provider. The type provider
 used in this example generates an object with members for data transformations such as
 \qident{group data}, which return further objects with members for specifying transformation
 parameters, such as selecting the grouping key using \qident{by Athlete}.
 
-The Gamma language is richer, but the example in Figure~\ref{fig:gamma-dot} shows that non-trivial
+The Gamma language is richer, but the example in \cref{fig:gamma-dot} shows that non-trivial
 data exploration can be done using a very simple language. The assumptions about structure of
 code that are explicit in The Gamma are implicitly present in Python and R data analyses
 produced by journalists, economists and other users with other than programming background.
@@ -337,11 +356,11 @@ subset of Python.
 \subsection{Live programming for data exploration}
 
 The implementation that accompanies this paper builds a live programming environment for The Gamma.
-It is discussed in Section~\ref{sec:evaluation-case} and it replaces
+It is discussed in \cref{sec:evaluation-case} and it replaces
 the original text editor with just auto-complete with a live programming environment
 that provides \emph{instant previews}.
 
-An example of a instant preview is shown in Figure~\ref{fig:gamma-preview}. As noted earlier, The
+An example of a instant preview is shown in \cref{fig:gamma-preview}. As noted earlier, The
 Gamma programs consist of lists of commands which are either expressions or let bindings. Our
 editor displays a instant preview below the command that the user is currently editing. The preview
 shows the result of evaluating the expression or the value assigned to a bound variable. When the
@@ -365,20 +384,20 @@ of streaming data is an interesting future direction.
 The \emph{data exploration calculus} is a small formal language for data exploration. The calculus
 is not, in itself, Turing-complete and it can only be used together with external libraries that
 define what objects are available and what the behaviour of their members is. This is
-sufficient to capture the simple data analyses discussed in Section~\ref{sec:background}. We
+sufficient to capture the simple data analyses discussed in \cref{sec:background}. We
 define the calculus in this section and then use it to formalise our instant preview
-mechanism in Section~\ref{sec:formal}.
+mechanism in \cref{sec:formal}.
 %
 The instant preview mechanism does not rely on types and so we postpone the discussion of static
-typing to Appendix~\ref{sec:extra-types}. Interestingly, it reuses the mechanism used for live
+typing to \cref{sec:extra-types}. Interestingly, it reuses the mechanism used for live
 previews.
 
 % --------------------------------------------------------------------------------------------------
 
 \begin{figure}
 \raggedright
-\hspace{0.5em}{\small\sffamily Programs, commands, terms, expressions and values}
-\vspace{-0.5em}
+\hspace{0.5em}{\sffamily Programs, commands, terms, expressions and values}
+%
 \begin{equation*}
 \begin{array}{lcl}
 p &\narrow{::=}& c_1; \ldots; c_n\\
@@ -396,9 +415,9 @@ v &\narrow{::=}& o \lsep \lambda x\rightarrow e\\
 \end{array}
 \end{equation*}
 
-\vspace{0.5em}
-\hspace{0.5em}{\small\sffamily Evaluation contexts of expressions}
-\vspace{-0.5em}
+%
+\hspace{0.5em}{\sffamily Evaluation contexts of expressions}
+%
 \begin{equation*}
 \begin{array}{lcl}
 C_e[-] &=& C_e[-].m(e_1, \ldots, e_n) ~\lsep~ o.m(v_1, \ldots, v_{m}, C_e[-], e_1,\ldots , e_n) ~\lsep~ -\\
@@ -407,9 +426,9 @@ C_p[-] &=& o_1;\; \ldots;\; o_{k};\; C_c[-];\; c_{1};\; \ldots;\; c_n\\
 \end{array}
 \end{equation*}
 
-\vspace{0.5em}
-\hspace{0.5em}{\small\sffamily Let elimination and member reduction}
-\vspace{-0.5em}
+%
+\hspace{0.5em}{\sffamily Let elimination and member reduction}
+%
 \begin{equation*}
 \begin{array}{ll}
 \hspace{-0.5em}\begin{array}{l}
@@ -431,7 +450,7 @@ o_1;\; \ldots;\; o_{k};\; \kvd{let}~x=o;\; c_{1};\; \ldots; c_n \rightsquigarrow
 
 \subsection{Language syntax}
 The calculus combines object-oriented features such as member access with functional features
-including lambda functions. The syntax is defined in Figure~\ref{fig:dec-calculus}. Object values
+including lambda functions. The syntax is defined in \cref{fig:dec-calculus}. Object values
 $o$ are defined by external libraries that are used in conjunction with the core calculus.
 
 A program $p$ in the data exploration calculus consists of a sequence of commands~$c$. A command
@@ -463,7 +482,7 @@ o_1.m(v_1, \ldots, v_n) \rightsquigarrow_\epsilon o_2
 %
 Here, the operation $m$ is invoked on an object and takes values (objects or function values) as arguments.
 The reduction always results in an object.
-Figure~\ref{fig:dec-calculus} defines the reduction rules in terms of $\rightsquigarrow_\epsilon$
+\Cref{fig:dec-calculus} defines the reduction rules in terms of $\rightsquigarrow_\epsilon$
 and evaluation contexts; $C_e$ specifies left-to-right evaluation of arguments of a method call,
 $C_c$ specifies evaluation of a command and $C_p$ defines left-to-right evaluation of a program.
 The rule \rname{external} calls a method provided by an external library in a
@@ -478,20 +497,20 @@ The behaviour is subject to constraints discussed next.
 
 The data exploration calculus is not limited to the data exploration domain.
 It can be used with external libraries for a wide range of other simple programming tasks, such as image
-manipulation, as done in Section~\ref{sec:evaluation-empirical}. However, we choose a name that reflects the
+manipulation, as done in \cref{sec:evaluation-empirical}. However, we choose a name that reflects the
 domain that motivated this paper. To illustrate how a definition of an external library looks,
 consider the following simple data manipulation script:
 %
 \begin{equation*}
 \begin{array}{l}
-\kvd{let}~l = \ident{list}.\ident{range}(\num{0}, \num{10})\\
-l.\ident{map}(\lambda x \rightarrow \ident{math}.\ident{mul}(x, \num{10}))
+\kvd{let}~l = \ident{list}.\ident{range}(\Num{0}, \Num{10})\\
+l.\ident{map}(\lambda x \rightarrow \ident{math}.\ident{mul}(x, \Num{10}))
 \end{array}
 \end{equation*}
 %
 An external library provides the \ident{list} and \ident{math} values with members
 \ident{range}, \ident{map} and \ident{mul}. The objects of the external library consist of
-numbers $n$, lists of objects $[o_1, \ldots, o_k]$ and failed computations $\bot$ \cite{gowrong}.
+numbers $n$, lists of objects $[o_1, \ldots, o_k]$ and failed computations $\bot$~\cite{gowrong}.
 Next, the external library needs to define the $\rightsquigarrow_\epsilon$ relation that defines
 the evaluation of member accesses. The following shows the rules for members of lists, assuming
 the only supported member is \ident{map}:
@@ -521,49 +540,49 @@ The data exploration calculus has a number of desirable properties. Some of thos
 relation $\rightsquigarrow_\epsilon$, which defines evaluation for external libraries, satisfies a
 number of conditions. We discuss \emph{normalization} and \emph{let elimination} in this section.
 Those two are particularly important as they will allow us to prove correctness of our method of
-evaluating instant previews in Section~\ref{sec:evaluation-correctness}.
+evaluating instant previews in \cref{sec:evaluation-correctness}.
 
 \begin{definition}[Further reductions]
 \label{def:further-red}
 We define two additional reduction relations:
 \begin{itemize}
-\item[-] We write $\rightsquigarrow^{*}$ for the reflexive, transitive closure of $\rightsquigarrow$
-\item[-] We write $\rightsquigarrow_\ident{let}$ for a call-by-name let binding elimination
+\item We write $\rightsquigarrow^{*}$ for the reflexive, transitive closure of $\rightsquigarrow$
+\item We write $\rightsquigarrow_\ident{let}$ for a call-by-name let binding elimination
   $c_1;\; \ldots;\; c_{k-1};\;$\\ $\kvd{let}~x=t;\; c_{k+1};\; \ldots; c_n ~\rightsquigarrow_\ident{let}~
   c_1;\; \ldots;\; c_{k-1};\; t; c_{k+1}[x\leftarrow t];\; \ldots; c_n[x\leftarrow t]$
 \end{itemize}
 \end{definition}
-
-\noindent
+%
+%
 We say that two expressions
-$e$ and $e'$ are \emph{observationally equivalent} if, for any context $C$, the expressions $C[e]$ and
+$e$ and $e'$ are \emph{observationally equivalent} if, for any context~$C$, the expressions $C[e]$ and
 $C[e']$ reduce to the same value. Lambda functions $\lambda x\!\rightarrow\!2$ and
 $\lambda x\!\rightarrow\!1\!+\!1$ are not equal, but they are observationally equivalent.
 We require that external libraries satisfy two conditions. First, when a method is called with
 observationally equivalent values as arguments, it should return the same value. Second, the
 evaluation of $o.m(v_1,\ldots,v_n)$ should be defined for all $o, n$ and $v_i$.
-The definition in Section~\ref{sec:calculus-example} satisfies those by using standard
+The definition in \cref{sec:calculus-example} satisfies those by using standard
 $\beta$-reduction for lambda functions and by reducing all invalid calls to the $\bot$ object.
 
 \begin{definition}[External library]
 \label{def:external}
 An external library consists of a set of objects $O$ and a reduction relation
 $\rightsquigarrow_\epsilon$ that satisfies the following two properties:
-\begin{itemize}
-\item[-] \emph{Totality.} For all $o, m, i$ and all $v_1, \ldots, v_i$, there exists $o'$ such
+\begin{description}
+\item [Totality] For all $o, m, i$ and all $v_1, \ldots, v_i$, there exists $o'$ such
   that $o.m(v_1, \ldots, v_i) \rightsquigarrow_\epsilon o'$.
-\item[-] \emph{Compositionality.} For observationally equivalent arguments, the reduction should always return
-  the same object, i.e.~given $e_0, e_1, \ldots, e_n$ and $e'_0, e'_1, \ldots, e'_n$ and $m$ such that
+\item[Compositionality] For observationally equivalent arguments, the reduction should always return
+  the same object, i.\hairspace e.~given $e_0, e_1, \ldots, e_n$ and $e'_0, e'_1, \ldots, e'_n$ and $m$ such that
   $e_0.m(e_1, \ldots, e_n) \rightsquigarrow^{*} o$ and $e'_0.m(e'_1, \ldots, e'_n) \rightsquigarrow^{*} o'$ then
   if for any contexts $C_0, C_1, \ldots, C_n$ it holds that if $C_i[e_i] \rightsquigarrow^{*} o_i$ and
   $C_i[e'_i] \rightsquigarrow^{*} o_i$ for some $o_i$ then $o = o'$.
-\end{itemize}
+\end{description}
 \end{definition}
-
-\noindent
+%
+%
 Compositionality is essential for proving the correctness of our instant preview mechanism and
 implies determinism of external libraries.
-Totality allows us to prove normalization, i.e.~all programs reduce to
+Totality allows us to prove normalization, i.\hairspace e.~all programs reduce to
 a value -- although the resulting value may be an error value provided by the external library.
 
 \begin{theorem}[Normalization]
@@ -572,14 +591,14 @@ For all $p$, there exists $n, o_1, \ldots, o_n$ such that $p\rightsquigarrow^{*}
 \end{theorem}
 \begin{proof}
 A program that is not a sequence of values can be reduced and reduction decreases the size of the
-program. See Appendix~\ref{sec:app-normalization} for more detail.
+program. See \cref{sec:app-normalization} for more detail.
 \end{proof}
-
-\noindent
+%
+%
 Although the reduction rules \rname{let} and \rname{external} of the data exploration calculus
 define an evaluation in a call-by-value order, eliminating let bindings in a call-by-name way
 using the $\rightsquigarrow_\ident{let}$ reduction does not affect the result. This
-simplifies our later proof of instant preview correctness in Section~\ref{sec:evaluation-correctness}.
+simplifies our later proof of instant preview correctness in \cref{sec:evaluation-correctness}.
 
 \begin{lem}[Let elimination for a program]
 \label{thm:let-lang-elimination}
@@ -588,7 +607,7 @@ then if $p \rightsquigarrow_\ident{let} p'$ for some $p'$ then also $p' \rightsq
 \end{lem}
 \begin{proof}
 By constructing $p' \rightsquigarrow^{*} o_1;\ldots;o_n$ from
-$p \rightsquigarrow^{*} o_1;\ldots;o_n$. See Appendix~\ref{sec:let-lang-elimination}.
+$p \rightsquigarrow^{*} o_1;\ldots;o_n$. See \cref{sec:let-lang-elimination}.
 \end{proof}
 
 % ==================================================================================================
@@ -606,7 +625,7 @@ efficient mechanism in this section.
 \subsection{Maintaining the dependency graph}
 \label{sec:formal-deps}
 
-The key idea behind our method is to maintain a dependency graph \cite{dependencies} with
+The key idea behind our method is to maintain a dependency graph~\cite{dependencies} with
 nodes representing individual operations of the computation that can be evaluated
 to obtain a preview. Each time the program text is modified, we parse it afresh (using an
 error-recovering parser) and bind the abstract syntax tree to the dependency graph.
@@ -641,20 +660,20 @@ are defined as:
 \end{equation*}
 %
 The \bnd{val} node represents a primitive value and contains the object itself. Two occurrences
-of $\num{10}$ in the source code will be represented by the same node. Member access \bnd{mem}
+of $\Num{10}$ in the source code will be represented by the same node. Member access \bnd{mem}
 contains the member name, together with a unique symbol $s$ -- two member access nodes with
 different dependencies will contain a different symbol. Dependencies of member access are labelled
-with \blbl{arg} indicating the index of the argument ($0$ for the instance and $1,\ldots$ for the
+with \blbl{arg} indicating the index of the argument ($0$~for the instance and $1,\ldots$ for the
 arguments). Finally, nodes \bnd{fun} and \bnd{var} represent function values and variables
 bound by $\lambda$ abstraction.
 
 % --------------------------------------------------------------------------------------------------
 
 \subsubsection{Example graph}
-Figure~\ref{fig:dep-graph} illustrates how we build the
+\cref{fig:dep-graph} illustrates how we build the
 dependency graph. Node representing $\ident{take}(x)$ depends on the argument -- the
-number $\num{15}$ -- and the instance, which is a node representing $\ident{skip}(\num{10})$.
-This depends on the instance \ident{data} and the number $\num{10}$. Note that variables
+number $\Num{15}$ -- and the instance, which is a node representing $\ident{skip}(\Num{10})$.
+This depends on the instance \ident{data} and the number $\Num{10}$. Note that variables
 bound via \kvd{let} binding such as $x$ do not appear as $\bnd{var}$ nodes. The node using it
 depends directly on the node representing the expression assigned to $x$.
 
@@ -671,13 +690,13 @@ dependencies.
 \begin{figure}
 \centering
 \subcaptionbox{
-  \raggedright\small
+  \raggedright
   Graph constructed from initial expression:
-  $\kvd{let}~x = \num{15}~\kvd{in}~\ident{data.skip}(\num{10}).\ident{take}(x)$
+  $\kvd{let}~x = \Num{15}~\kvd{in}~\ident{data.skip}(\Num{10}).\ident{take}(x)$
   \label{fig:dep-graph-a}
 }{
   $\xymatrix{
-  \bnd{val}(\num{10}) & \bnd{val}(\num{15})\\
+  \bnd{val}(\Num{10}) & \bnd{val}(\Num{15})\\
   \bnd{mem}(\ident{skip},s_0)\ar[d]_{\blbl{arg}(0)} \ar[u]^{\blbl{arg}(1)} &
   \bnd{mem}(\ident{take},s_1)\ar[l]_{\blbl{arg}(0)} \ar[u]_{\blbl{arg}(1)}\\
   \bnd{var}(\ident{data})
@@ -686,13 +705,13 @@ dependencies.
 }
 \hspace{1em}
 \subcaptionbox{
-  \raggedright\small
+  \raggedright
   Updated graph after changing $x$ to $10$:
-  $\kvd{let}~x = \num{10}~\kvd{in}~\ident{data.skip}(\num{10}).\ident{take}(x)$
+  $\kvd{let}~x = \Num{10}~\kvd{in}~\ident{data.skip}(\Num{10}).\ident{take}(x)$
   \label{fig:dep-graph-b}
 }{
   $\xymatrix{
-  \bnd{val}(\num{10})&\\
+  \bnd{val}(\Num{10})&\\
   \bnd{mem}(\ident{skip}, s_0)\ar[d]_{\blbl{arg}(0)} \ar[u]^{\blbl{arg}(1)} &
   \bnd{mem}(\ident{take}, s_2)\ar[l]_{\blbl{arg}(0)} \ar@/_/[lu]_{\blbl{arg}(1)}\\
   \bnd{var}(\ident{data})
@@ -724,85 +743,77 @@ of dependencies to a cached node:
 The example on the second line looks for a node of a kind $\bkndclr{k}$ that has dependencies
 $\bndclr{v_1}, \ldots, \bndclr{v_n}$ labelled with labels $\blblclr{l_1}, \ldots, \blblclr{l_n}$.
 We write $\Delta(\bkndclr{k}, l)\!\downarrow$ when a value for a key is not defined.
-When creating the graph in Figure~\ref{fig:dep-graph-b},
+When creating the graph in \cref{fig:dep-graph-b},
 we perform the following lookups:
 %
 \begin{equation*}
 \begin{array}{ll}
-\Delta(\bknd{mem}(\ident{skip}), [(\bnd{var}(\ident{data}),\blbl{arg}(0)), (\bnd{val}(\num{10}), \blbl{arg}(1))]) &\qquad(1)\\
-\Delta(\bknd{mem}(\ident{take}), [(\bnd{mem}(\ident{skip}, s_0),\blbl{arg}(0)), (\bnd{val}(\num{10}), \blbl{arg}(1))]) &\qquad(2)
+\Delta(\bknd{mem}(\ident{skip}), [(\bnd{var}(\ident{data}),\blbl{arg}(0)), (\bnd{val}(\Num{10}), \blbl{arg}(1))]) &\qquad(1)\\
+\Delta(\bknd{mem}(\ident{take}), [(\bnd{mem}(\ident{skip}, s_0),\blbl{arg}(0)), (\bnd{val}(\Num{10}), \blbl{arg}(1))]) &\qquad(2)
 \end{array}
 \end{equation*}
 %
 First, we look for the \ident{skip} member access. The result is the $\bnd{mem}(\ident{skip}, s_0)$
 known from the previous step. We then look for the \ident{take} member access. In the earlier
-step, the argument of \ident{take} was $\num{15}$ rather than $\num{10}$ and so this lookup fails.
+step, the argument of \ident{take} was $\Num{15}$ rather than $\Num{10}$ and so this lookup fails.
 We then construct a new node $\bnd{mem}(\ident{take}, s_2)$ and later add it to the cache.
 
 % --------------------------------------------------------------------------------------------------
 
-\begin{figure*}[t]
-\vspace{-1em}
-\begin{equation*}
-\hspace{-1.5em}
-\begin{array}{ll}
-\ident{bind-expr}_{\Gamma, \Delta}(e_0.m(e_1, \ldots, e_n)) = \bndclr{v}, (\{\bndclr{v}\} \cup V_0 \cup \ldots \cup V_n, E \cup E_0 \cup \ldots \cup E_n) &\hspace{-2em}(1)~~\\
-\quad \textnormal{when}~\bndclr{v_i}, (V_i, E_i) = \ident{bind-expr}_{\Gamma, \Delta}(e_i)
-~\textnormal{and}~\bndclr{v} = \Delta(\bknd{mem}(m),[(\bndclr{v_0}, \blbl{arg}(0)), \ldots, (\bndclr{v_n}, \blbl{arg}(n))])\\
-\quad \textnormal{let}~E = \{ (\bndclr{v}, \bndclr{v_0}, \blbl{arg}(0)), \ldots, (\bndclr{v}, \bndclr{v_n}, \blbl{arg}(n))\}
-\\[0.75em]
-\ident{bind-expr}_{\Gamma, \Delta}(e_0.m(e_1, \ldots, e_n)) = \bndclr{v}, (\{\bndclr{v}\} \cup V_0 \cup \ldots \cup V_n, E \cup E_0 \cup \ldots \cup E_n)&\hspace{-2em}(2)\\
-\quad \textnormal{when}~\bndclr{v_i}, (V_i, E_i) = \ident{bind-expr}_{\Gamma, \Delta}(e_i)
-~\textnormal{and}~\Delta(\bknd{mem}(m),[(\bndclr{v_0}, \blbl{arg}(0)), \ldots, (\bndclr{v_n}, \blbl{arg}(n))])\!\downarrow\\
-\quad \textnormal{let}~\bndclr{v} = \bnd{mem}(m, s), s~\textnormal{fresh}
-~\textnormal{and}~E = \{ (\bndclr{v}, \bndclr{v_0}, \blbl{arg}(0)), \ldots, (\bndclr{v},\bndclr{v_n}, \blbl{arg}(n)) \}
-\\[0.75em]
-\ident{bind-expr}_{\Gamma, \Delta}(\lambda x \rightarrow e) = \bndclr{v}, (\{\bndclr{v}\} \cup V, \{e\} \cup E)&\hspace{-2em}(3)\\
-\quad \textnormal{when}~\Gamma_1 = \Gamma \cup \{ x, \bnd{var}(x) \}
+\begin{figure*}
+  \begin{wide}
+    \begin{align}
+&\ident{bind-expr}_{\Gamma, \Delta}(e_0.m(e_1, \ldots, e_n)) = \bndclr{v}, (\{\bndclr{v}\} \cup V_0 \cup \ldots \cup V_n, E \cup E_0 \cup \ldots \cup E_n) \\
+&\quad \textnormal{when}~\bndclr{v_i}, (V_i, E_i) = \ident{bind-expr}_{\Gamma, \Delta}(e_i)
+~\textnormal{and}~\bndclr{v} = \Delta(\bknd{mem}(m),[(\bndclr{v_0}, \blbl{arg}(0)), \ldots, (\bndclr{v_n}, \blbl{arg}(n))])\notag\\
+&\quad \textnormal{let}~E = \{ (\bndclr{v}, \bndclr{v_0}, \blbl{arg}(0)), \ldots, (\bndclr{v}, \bndclr{v_n}, \blbl{arg}(n))\}\notag\\
+%
+&\ident{bind-expr}_{\Gamma, \Delta}(e_0.m(e_1, \ldots, e_n)) = \bndclr{v}, (\{\bndclr{v}\} \cup V_0 \cup \ldots \cup V_n, E \cup E_0 \cup \ldots \cup E_n)\\
+&\quad \textnormal{when}~\bndclr{v_i}, (V_i, E_i) = \ident{bind-expr}_{\Gamma, \Delta}(e_i)
+~\textnormal{and}~\Delta(\bknd{mem}(m),[(\bndclr{v_0}, \blbl{arg}(0)), \ldots, (\bndclr{v_n}, \blbl{arg}(n))])\!\downarrow\notag\\
+&\quad \textnormal{let}~\bndclr{v} = \bnd{mem}(m, s), s~\textnormal{fresh}
+~\textnormal{and}~E = \{ (\bndclr{v}, \bndclr{v_0}, \blbl{arg}(0)), \ldots, (\bndclr{v},\bndclr{v_n}, \blbl{arg}(n)) \}\notag\\
+%
+&\ident{bind-expr}_{\Gamma, \Delta}(\lambda x \rightarrow e) = \bndclr{v}, (\{\bndclr{v}\} \cup V, \{e\} \cup E)\\
+&\quad \textnormal{when}~\Gamma_1 = \Gamma \cup \{ x, \bnd{var}(x) \}
 ~\textnormal{and}~\bndclr{v_0}, (V, E) = \ident{bind-expr}_{\Gamma_1, \Delta}(e)
-~\textnormal{and}~\bndclr{v} = \Delta(\bknd{fun}(x),[(\bndclr{v_0}, \blbl{body})])\\
-\quad \textnormal{let}~e = (\bndclr{v}, \bndclr{v_0}, \blbl{body})
-\\[0.75em]
-\ident{bind-expr}_{\Gamma, \Delta}(\lambda x \rightarrow e) = \bndclr{v}, (\{\bndclr{v}\} \cup V, \{e\} \cup E)&\hspace{-2em}(4)\\
-\quad \textnormal{when}~\Gamma_1 = \Gamma \cup \{ x, \bnd{var}(x) \}
+~\textnormal{and}~\bndclr{v} = \Delta(\bknd{fun}(x),[(\bndclr{v_0}, \blbl{body})])\notag\\
+&\quad \textnormal{let}~e = (\bndclr{v}, \bndclr{v_0}, \blbl{body})\notag\\
+%
+&\ident{bind-expr}_{\Gamma, \Delta}(\lambda x \rightarrow e) = \bndclr{v}, (\{\bndclr{v}\} \cup V, \{e\} \cup E)\\
+&\quad \textnormal{when}~\Gamma_1 = \Gamma \cup \{ x, \bnd{var}(x) \}
 ~\textnormal{and}~\bndclr{v_0}, (V, E) = \ident{bind-expr}_{\Gamma_1, \Delta}(e)
-~\textnormal{and}~\Delta(\bknd{fun}(x),[(\bndclr{v_0}, \blbl{body})])\!\downarrow\\
-\quad \textnormal{let}~\bndclr{v} = \bnd{fun}(x, s), s~\textnormal{fresh}
-~\textnormal{and}~e = (\bndclr{v},\bndclr{v_0},\blbl{body})
-\\[0.75em]
-\ident{bind-expr}_{\Gamma, \Delta}(o) = \bnd{val}(o), (\{ \bnd{val}(o) \}, \emptyset) &\hspace{-2em}(5)
-\\[0.75em]
-\ident{bind-expr}_{\Gamma, \Delta}(x) = \bndclr{v}, (\{ \bndclr{v} \}, \emptyset)~\textnormal{when}~\bndclr{v} = \Gamma(x)&\hspace{-2em}(6)
-\end{array}
-\end{equation*}
-\vspace{-1em}
+~\textnormal{and}~\Delta(\bknd{fun}(x),[(\bndclr{v_0}, \blbl{body})])\!\downarrow\notag\\
+&\quad \textnormal{let}~\bndclr{v} = \bnd{fun}(x, s), s~\textnormal{fresh}
+~\textnormal{and}~e = (\bndclr{v},\bndclr{v_0},\blbl{body})\notag\\
+%
+&\ident{bind-expr}_{\Gamma, \Delta}(o) = \bnd{val}(o), (\{\bnd{val}(o) \}, \emptyset) \\
+&\ident{bind-expr}_{\Gamma, \Delta}(x) = \bndclr{v}, (\{ \bndclr{v} \}, \emptyset)~\textnormal{when}~\bndclr{v} = \Gamma(x)
+\end{align}
+  \end{wide}
 \caption{Binding rules that define a construction of a dependency graph for an expression.}
 \label{fig:binding-rules-expr}
 \end{figure*}
 
 % --------------------------------------------------------------------------------------------------
 
-\begin{figure*}[t]
-\begin{equation*}
-\vspace{-0.5em}
-\hspace{-1.5em}
-\begin{array}{ll}
-\ident{bind-prog}_{\Gamma, \Delta}(\kvd{let}~x=e; c_2; \ldots; c_n) = \bndclr{v_1};\ldots;\bndclr{v_n}, (\{\bndclr{v_1}\} \cup V \cup V_1, E \cup E_1)
-  \hspace{9.35em}&\hspace{2.5em}(7)\\
-\quad \textnormal{let}~\bndclr{v_1}, (V_1,E_1) = \ident{bind-expr}_{\Gamma,\Delta}(e_1)~\textnormal{and}~\Gamma_1 = \Gamma \cup \{(x,\bndclr{v_1})\} \\
-\quad \textnormal{and}~\bndclr{v_2}; \ldots; \bndclr{v_n}, (V, E) = \ident{bind-prog}_{\Gamma_1, \Delta}(c_2; \ldots; c_n)
-\\[0.75em]
-\ident{bind-prog}_{\Gamma, \Delta}(e; c_2; \ldots; c_n) = \bndclr{v_1};\ldots;\bndclr{v_n}, (\{\bndclr{v_1}\} \cup V \cup V_1, E \cup E_1)&\hspace{2.5em}(8)\\
-\quad \textnormal{let}~\bndclr{v_1}, (V_1,E_1) = \ident{bind-expr}_{\Gamma,\Delta}(e)
-~\textnormal{and}~\bndclr{v_2}; \ldots; \bndclr{v_n}, (V, E) = \ident{bind-prog}_{\Gamma_1, \Delta}(c_2; \ldots; c_n)
-\\[0.75em]
-\ident{bind-prog}_{\Gamma, \Delta}([]) = [], (\emptyset, \emptyset)&\hspace{2.5em}(9)
-\end{array}
-\end{equation*}
-\vspace{-1em}
+\begin{figure*}
+\begin{wide}
+\begin{align}
+&\ident{bind-prog}_{\Gamma, \Delta}(\kvd{let}~x=e; c_2; \ldots; c_n) = \bndclr{v_1};\ldots;\bndclr{v_n}, (\{\bndclr{v_1}\} \cup V \cup V_1, E \cup E_1)\\
+&\quad \textnormal{let}~\bndclr{v_1}, (V_1,E_1) = \ident{bind-expr}_{\Gamma,\Delta}(e_1)~\textnormal{and}~\Gamma_1 = \Gamma \cup \{(x,\bndclr{v_1})\} \notag\\
+&\quad \textnormal{and}~\bndclr{v_2}; \ldots; \bndclr{v_n}, (V, E) = \ident{bind-prog}_{\Gamma_1, \Delta}(c_2; \ldots; c_n)\notag\\
+%
+&\ident{bind-prog}_{\Gamma, \Delta}(e; c_2; \ldots; c_n) = \bndclr{v_1};\ldots;\bndclr{v_n}, (\{\bndclr{v_1}\} \cup V \cup V_1, E \cup E_1)\\
+&\quad \textnormal{let}~\bndclr{v_1}, (V_1,E_1) = \ident{bind-expr}_{\Gamma,\Delta}(e)
+~\textnormal{and}~\bndclr{v_2}; \ldots; \bndclr{v_n}, (V, E) = \ident{bind-prog}_{\Gamma_1, \Delta}(c_2; \ldots; c_n)\notag\\
+%
+&\ident{bind-prog}_{\Gamma, \Delta}([]) = [], (\emptyset, \emptyset)
+\end{align}
+\end{wide}
 \caption{Binding rules that define a construction of a dependency graph for a program.}
 \label{fig:binding-rules-prog}
-\vspace{-0.5em}
+%
 \end{figure*}
 
 
@@ -813,8 +824,8 @@ We then construct a new node $\bnd{mem}(\ident{take}, s_2)$ and later add it to 
 
 After parsing modified code, we update the dependency graph and link each node of the abstract
 syntax tree to a node of the dependency graph. This process is called
-binding and is defined by the \ident{bind-expr} function (Figure~\ref{fig:binding-rules-expr})
-and \ident{bind-prog} function (Figure~\ref{fig:binding-rules-prog}). Both functions are
+binding and is defined by the \ident{bind-expr} function (\cref{fig:binding-rules-expr})
+and \ident{bind-prog} function (\cref{fig:binding-rules-prog}). Both functions are
 annotated with a lookup table $\Delta$ and a variable
 context~$\Gamma$. The variable context is a map from variable names to dependency graph nodes and
 is used for variables bound using \kvd{let} binding.
@@ -846,26 +857,26 @@ is just an expression (8), we bind the expression using \ident{bind-expr}.
 % --------------------------------------------------------------------------------------------------
 
 \begin{figure}
-\vspace{-0.5em}
+%
 \begin{equation*}
 \begin{array}{l}
 \ident{update}_{V,E}(\Delta_{i-1}) = \Delta_i~\textnormal{such that:}
-\\[0.75em]
+\\
 \quad\Delta_{i}(\bknd{mem}(m), [(\bndclr{v_0},\blbl{arg}(0)),\ldots, (\bndclr{v_n},\blbl{arg}(n))]) = \bnd{mem}(m, s)\\
 \quad\quad \textnormal{when}~\bnd{mem}(m, s) \in V
 ~\textnormal{and}~(\bnd{mem}(m, s), \bndclr{v_i}, \blbl{arg}(i)) \in E~\textnormal{for}~i\in 0,..,n
-\\[0.75em]
+\\
 \quad\Delta_{i}(\bknd{fun}(x), [(\bndclr{v_1},\blbl{body})]) = \bnd{fun}(x, s)\\
 \quad\quad \textnormal{when}~\bnd{fun}(x, s) \in V
 ~\textnormal{and}~(\bnd{fun}(x, s), \bndclr{v_1}, \blbl{body}) \in E
-\\[0.75em]
+\\
 \quad\Delta_{i}(\bkndclr{v}) = \Delta_{i-1}(\bkndclr{v})\quad \textnormal{(otherwise)}
 \end{array}
 \end{equation*}
-\vspace{-0.5em}
+%
 \caption{Updating the node cache after binding a new graph}
 \label{fig:loop}
-\vspace{-0.5em}
+%
 \end{figure}
 
 % --------------------------------------------------------------------------------------------------
@@ -874,7 +885,7 @@ is just an expression (8), we bind the expression using \ident{bind-expr}.
 
 During editing, the dependency graph is repeatedly updated according to the binding rules.
 We maintain a series of lookup table states $\Delta_0, \Delta_1, \Delta_2, \ldots$ The initial
-lookup table is empty, i.e.~$\Delta_0 = \emptyset$. At a step $i$, we parse a program $p_i$
+lookup table is empty, i.\hairspace e.~$\Delta_0 = \emptyset$. At a step $i$, we parse a program $p_i$
 and obtain a new dependency graph using the previous $\Delta$. The result is
 a sequence of nodes corresponding to commands of the program and a graph $(V, E)$:
 %
@@ -883,7 +894,7 @@ a sequence of nodes corresponding to commands of the program and a graph $(V, E)
 \end{equation*}
 %
 The new state of the cache is computed using $\ident{update}_{V, E}(\Delta_{i-1})$
-defined in Figure~\ref{fig:loop}. The function adds newly created nodes from the graph
+defined in \cref{fig:loop}. The function adds newly created nodes from the graph
 $(V, E)$ to the previous cache $\Delta_{i-1}$ and returns a new cache $\Delta_{i}$.
 
 % ==================================================================================================
@@ -898,7 +909,7 @@ reuses nodes, previews for sub-expressions attached to graph nodes will also be 
 
 In this section, we describe how previews are evaluated. The evaluation is done over the dependency
 graph, rather than over the structure of program expressions as in the operational semantics
-given in Section~\ref{sec:calculus-semantics}. In Section~\ref{sec:evaluation}, we prove that
+given in \cref{sec:calculus-semantics}. In \cref{sec:evaluation}, we prove that
 resulting previews are the same as the result we would get by directly evaluating code and we
 also show that no recomputation occurs when code is edited in certain ways.
 
@@ -913,11 +924,11 @@ the body of a function. For example:
 %
 \begin{equation*}
 \begin{array}{l}
-\kvd{let}~\ident{top} = \ident{movies}.\ident{take}(\num{10}).\ident{map}(\lambda x \rightarrow x.\ident{getReleased}().\ident{format}(\str{dd-mm-yyyy}))
+\kvd{let}~\ident{top} = \ident{movies}.\ident{take}(\Num{10}).\ident{map}(\lambda x \rightarrow x.\ident{getReleased}().\ident{format}(\str{dd-mm-yyyy}))
 \end{array}
 \end{equation*}
 %
-Here, we can directly evaluate sub-expressions \ident{movies} and $\ident{movies}.\ident{take}(\num{10})$,
+Here, we can directly evaluate sub-expressions \ident{movies} and $\ident{movies}.\ident{take}(\Num{10})$,
 but not $x.\ident{getReleased}()$ because it contains a free variable $x$. Our preview evaluation algorithm addresses this by
 producing two kinds of previews. A \emph{fully evaluated preview} is just a value, while
 a \emph{delayed preview} is a partially evaluated expression with free variables:
@@ -932,18 +943,18 @@ d&=&p \lsep  \llbracket e \rrbracket_\Gamma&\quad(\textit{Evaluated and delayed 
 A fully evaluated preview $p$ can be either a primitive object or a function value with no free
 variables. A possibly delayed preview $d$ can be either an evaluated preview $p$ or an expression
 $e$ that requires variables $\Gamma$. We use an untyped language and so $\Gamma$ is just a list of
-variables $x_1, \ldots, x_n$. As discussed in Appendix~\ref{sec:app-theories},
+variables $x_1, \ldots, x_n$. As discussed in \cref{sec:app-theories},
 delayed previews have an interesting theoretical link with graded comonads.
 The body of a lambda function may have a fully evaluated preview if it uses only variables that
 are bound by earlier let bindings, but it will typically be delayed. We consider a speculative
 design for an abstraction mechanism that better supports instant previews in
-Appendix~\ref{sec:extra-abstraction}.
+\cref{sec:extra-abstraction}.
 
 % --------------------------------------------------------------------------------------------------
 
 \begin{figure*}
 \begin{equation*}
-\vspace{-1.5em}
+%
 \hspace{-0.5em}
 \begin{array}{l}
 \inference[\rname{lift-expr}~]
@@ -984,7 +995,7 @@ Appendix~\ref{sec:extra-abstraction}.
 \\[0.5em]~
 \end{array}
 \end{equation*}
-\vspace{-0.5em}
+%
 \begin{equation*}
 \hspace{-1em}
 \begin{array}{l}
@@ -1008,7 +1019,7 @@ Appendix~\ref{sec:extra-abstraction}.
 % --------------------------------------------------------------------------------------------------
 
 \subsection{Evaluation of previews}
-The evaluation of previews is defined in Figure~\ref{fig:eval}. Given a dependency graph $(V, E)$,
+The evaluation of previews is defined in \cref{fig:eval}. Given a dependency graph $(V, E)$,
 the relation $\bndclr{v}\Downarrow d$ evaluates a sub-expression corresponding to
 the node $\bndclr{v}$ to a possibly delayed preview $d$. The nodes $V$ and edges $E$ of the
 graph are parameters of $\Downarrow$, but they do not change during the
@@ -1039,7 +1050,7 @@ the result is a delayed preview.
 \subsection{Caching of evaluated previews}
 \label{sec:previews-cache}
 
-For simplicity, the relation $\Downarrow$ in Figure~\ref{fig:eval} does not specify how previews
+For simplicity, the relation $\Downarrow$ in \cref{fig:eval} does not specify how previews
 are cached. In practice, this is done by maintaining a lookup table from graph nodes $\bndclr{v}$
 to previews $p$. Whenever $\Downarrow$ is used to obtain a preview for a graph node, we first
 check the lookup table. If the preview has not been previously evaluated, we evaluate it and add
@@ -1054,25 +1065,25 @@ also reused during code editing.
 \label{sec:evaluation}
 
 Computing previews using a dependency graph implements a correct and efficient optimization.
-In this section we show that this is the case, first theoretically in Section~\ref{sec:evaluation-reuse},
-and then empirically in Section~\ref{sec:evaluation-empirical}. We also describe a case study where
+In this section we show that this is the case, first theoretically in \cref{sec:evaluation-reuse},
+and then empirically in \cref{sec:evaluation-empirical}. We also describe a case study where
 we developed an online service for data exploration based on the methods discussed in this paper
-(Section~\ref{sec:evaluation-case}).
+(\cref{sec:evaluation-case}).
 
 % --------------------------------------------------------------------------------------------------
 
 \subsection{Correctness of previews}
 \label{sec:evaluation-correctness}
 
-To show that the previews are correct, we prove two properties. Correctness (Theorem~\ref{thm:correcntess})
+To show that the previews are correct, we prove two properties. Correctness (\cref{thm:correcntess})
 guarantees that, the previews we calculate using a dependency graph are the same as the values we
-would obtain by evaluating the program directly. Determinacy (Theorem~\ref{thm:determinacy})
+would obtain by evaluating the program directly. Determinacy (\cref{thm:determinacy})
 guarantees that previews assigned to a graph node based on an earlier graph are the same as
 previews that we would obtain afres using an updated graph.
 
 To simplify the proofs, we consider programs without let bindings. Eliminating let bindings does
-not change the result of evaluation, as shown in Lemma~\ref{thm:let-lang-elimination}, and it also
-does not change the constructed dependency graph as shown below in Lemma~\ref{thm:let-grp-elimination}.
+not change the result of evaluation, as shown in \cref{thm:let-lang-elimination}, and it also
+does not change the constructed dependency graph as shown below in \cref{thm:let-grp-elimination}.
 
 \begin{lem}[Let elimintion for a dependency graph]
 \label{thm:let-grp-elimination}
@@ -1082,16 +1093,16 @@ $\bndclr{v'_1};\ldots;\bndclr{v'_n}, (V', E') = \ident{bind-prog}_{\emptyset, \D
 then for all $i$, $\bndclr{v_i} = \bndclr{v'_i}$ and also $(V, E) = (V', E')$.
 \end{lem}
 \begin{proof}
-By analysis of the binding process. See Appendix~\ref{sec:app-let-grp-elimination}.
+By analysis of the binding process. See \cref{sec:app-let-grp-elimination}.
 \end{proof}
-
-\noindent
-The Lemma~\ref{thm:let-grp-elimination} provides a way of removing let bindings from a program,
+%
+%
+The \cref{thm:let-grp-elimination} provides a way of removing let bindings from a program,
 such that the resulting dependency graph remains the same. Here, we bind the original program
 first, which adds the node for $e$ to $\Delta$. In our implementation, this is not needed
 because $\Delta$ is updated while the graph is being constructed using $\ident{bind-expr}$.
 To keep the formalisation simpler, we separate the process of building the dependency graph
-and updating $\Delta$ and thus Lemma~\ref{thm:let-grp-elimination} requires an extra binding step.
+and updating $\Delta$ and thus \cref{thm:let-grp-elimination} requires an extra binding step.
 
 Now, we can show that, given a let-free expression, the preview obtained using a correctly
 constructed dependency graph is the same as the one we would obtain by directly evaluating the
@@ -1099,59 +1110,56 @@ expression. This requires a simple auxiliary lemma.
 
 \begin{lem}[Lookup inversion]
 \label{thm:lemma-lookup}
-Given $\Delta$ obtained using \ident{update} in Figure~\ref{fig:loop} then:
+Given $\Delta$ obtained using \ident{update} in \cref{fig:loop} then:
 \begin{itemize}
 \raggedright
-\item[--] If $\bndclr{v}=\Delta(\bknd{fun}(x),[(\bndclr{v_0}, \blblclr{l_0})])$
+\item If $\bndclr{v}=\Delta(\bknd{fun}(x),[(\bndclr{v_0}, \blblclr{l_0})])$
 then $\bndclr{v}=\bnd{fun}(x, s)$ for some $s$.
-\item[--] If $\bndclr{v}=\Delta(\bknd{mem}(m),[(\bndclr{v_0}, \blblclr{l_0}), \ldots, (\bndclr{v_n}, \blblclr{l_n})])$
+\item If $\bndclr{v}=\Delta(\bknd{mem}(m),[(\bndclr{v_0}, \blblclr{l_0}), \ldots, (\bndclr{v_n}, \blblclr{l_n})])$
 then $\bndclr{v}=\bnd{mem}(m, s)$ for some $s$.
 \end{itemize}
 \end{lem}
 \begin{proof}
-By construction of $\Delta$ in Figure~\ref{fig:loop}.
+By construction of $\Delta$ in \cref{fig:loop}.
 \end{proof}
 
 \begin{theorem}[Term preview correctness]
 \label{thm:let-free-correct}
 Given a term $t$ that has no free variables, together with a lookup table $\Delta$ obtained
-from any sequence of programs using $\ident{bind-prog}$ (Figure~\ref{fig:binding-rules-prog}) and
-$\ident{update}$ (Figure~\ref{fig:loop}), then
+from any sequence of programs using $\ident{bind-prog}$ (\cref{fig:binding-rules-prog}) and
+$\ident{update}$ (\cref{fig:loop}), then
 let $\bndclr{v}, (V, E) = \ident{bind-expr}_{\emptyset, \Delta}(t)$.
 
-\vspace{0.25em}
-\noindent
+
 If $\bndclr{v}\Downarrow p$
 over a graph $(V, E)$ then $p = o$ for some value $o$ and $t \rightsquigarrow^{*} o$.
 \end{theorem}
 
 \begin{proof}
-By induction over the binding process. See Appendix~\ref{sec:app-correctness}.
+By induction over the binding process. See \cref{sec:app-correctness}.
 \end{proof}
 
 \begin{theorem}[Program preview correctness]
 \label{thm:correcntess}
 Consider a program $p=c_1;\ldots;c_n$ that has no free variables, together with a lookup table
 $\Delta_0$ obtained from any sequence of programs using $\ident{bind-prog}$
-(Figure~\ref{fig:binding-rules-prog}) and $\ident{update}$ (Figure~\ref{fig:loop}). Assume a
+(\cref{fig:binding-rules-prog}) and $\ident{update}$ (\cref{fig:loop}). Assume a
 let-free program $p'=t_1;\ldots;t_n$ such that $p\rightsquigarrow^{*}_\ident{let}p'$.
 
-\vspace{0.25em}
-\noindent
+\begin{sloppypar}
 Let $\bndclr{v_1};\ldots;\bndclr{v_n}, (V, E) = \ident{bind-prog}_{\emptyset, \Delta_0}(p)$
-and define updated lookup table $\Delta_1=\ident{update}_{V, E}(\Delta_0)$ and
+ and define updated lookup table $\Delta_1=\ident{update}_{V, E}(\Delta_0)$ and
 let $\bndclr{v'_1};\ldots;\bndclr{v'_n}, (V', E') = \ident{bind-prog}_{\emptyset, \Delta_1}(p)$.
+\end{sloppypar}
 
-\vspace{0.25em}
-\noindent
 If $\bndclr{v'_i}\Downarrow p_i$ over a graph $(V', E')$ then $p_i=o_i$ for some value $o_i$ and
 $t_i \rightsquigarrow o_i$.
 \end{theorem}
 \begin{proof}
-Direct consequence of Lemma~\ref{thm:let-grp-elimination} and Theorem~\ref{thm:let-free-correct}.
+Direct consequence of \cref{thm:let-grp-elimination} and \cref{thm:let-free-correct}.
 \end{proof}
-
-\noindent
+%
+%
 Our implementation updates $\Delta$ during the recursive binding process and so a stronger version
 of the property holds: previews calculated over a graph obtained directly for the original program
 $p$ are the same as the values of the fully evaluated program. Our formalisation omits this for
@@ -1163,9 +1171,9 @@ evaluated via~$\Downarrow$ using the corresponding graph node as a lookup key.
 \begin{theorem}[Preview determinacy]
 \label{thm:determinacy}
 For some $\Delta$ and for any programs $p, p'$, assume that the first program is bound,
-i.e.~$\bndclr{v_1};\ldots;\bndclr{v_n}, (V, E) = \ident{bind-prog}_{\emptyset, \Delta}(p)$,
+i.\hairspace e.~$\bndclr{v_1};\ldots;\bndclr{v_n}, (V, E) = \ident{bind-prog}_{\emptyset, \Delta}(p)$,
 the graph node cache is updated $\Delta' = \ident{update}_{V, E}(\Delta)$ and the second program is
-bound, i.e.~$\bndclr{v'_1};\ldots;\bndclr{v'_m}, (V', E') = \ident{bind-prog}_{\emptyset, \Delta'}(p')$.
+bound, i.\hairspace e.~$\bndclr{v'_1};\ldots;\bndclr{v'_m}, (V', E') = \ident{bind-prog}_{\emptyset, \Delta'}(p')$.
 Now, for any $\bndclr{v}$, if $\bndclr{v} \Downarrow p$ over $(V, E)$ then also
  $\bndclr{v} \Downarrow p$ over $(V', E')$.
 \end{theorem}
@@ -1175,10 +1183,10 @@ apply over $(V', E')$. This is the case, because graph nodes added to $\Delta'$ 
 are added as new nodes in $\ident{bind-prog}_{\emptyset, \Delta'}$ and
 nodes and edges of $(V, E)$ are unaffected.
 \end{proof}
-
-\noindent
-The cache of previews (Section~\ref{sec:previews-cache}) associates a preview $d$ with a node
-$\bndclr{v}$ as the key. Theorem~\ref{thm:determinacy} guarantees that this is valid. As we update dependency
+%
+%
+The cache of previews (\cref{sec:previews-cache}) associates a preview $d$ with a node
+$\bndclr{v}$ as the key. \Cref{thm:determinacy} guarantees that this is valid. As we update dependency
 graph during code editing, previous nodes will continue representing the same sub-expressions.
 
 
@@ -1186,8 +1194,8 @@ graph during code editing, previous nodes will continue representing the same su
 
 \begin{figure}[t]
 \raggedright
-\vspace{-0.5em}
-{\small\sffamily Edit contexts of expressions}
+%
+{\sffamily Edit contexts of expressions}
 \begin{equation*}
 \begin{array}{lcl}
 K_e[-] &=& K_e[-].m(e_1, \ldots, e_n) ~\lsep~ e.m(e_1, \ldots, e_{l-1}, K_e[-], e_{l+1},\ldots , e_n) ~\lsep~ -\\
@@ -1195,8 +1203,8 @@ K_c[-] &=& \kvd{let}~x = K_e[-] ~\lsep~ K_e[-]\\
 \end{array}
 \end{equation*}
 
-\vspace{0.5em}
-{\small\sffamily Code edit operations preserving preview for a sub-expression}
+%
+{\sffamily Code edit operations preserving preview for a sub-expression}
 
 \hspace{2.5em}\begin{minipage}[c]{0.868\textwidth}
   \raggedright\setlength{\parindent}{-1em}
@@ -1241,7 +1249,7 @@ K_c[-] &=& \kvd{let}~x = K_e[-] ~\lsep~ K_e[-]\\
 
 \caption{Code edit operations that preserve previously evaluated preview}
 \label{fig:operations}
-\vspace{-0.5em}
+%
 \end{figure}
 
 % --------------------------------------------------------------------------------------------------
@@ -1251,14 +1259,14 @@ K_c[-] &=& \kvd{let}~x = K_e[-] ~\lsep~ K_e[-]\\
 
 In this section, we identify a number of code edit operations where the previously evaluated
 values for a sub-expression can be reused. This includes the motivating example from
-Section~\ref{sec:intro} where the data analyst extracted a constant into a let binding and
+\cref{sec:intro} where the data analyst extracted a constant into a let binding and
 modified a parameter of the last method call in a call chain.
 
-The list of preview-preserving edits is shown in Figure~\ref{fig:operations}.
+The list of preview-preserving edits is shown in \cref{fig:operations}.
 It includes several ways of introducing and eliminating let bindings and edits where the analyst
 modifies an unrelated part of the program. The list is not exhaustive. Rather, it illustrates
 typical edits that the data analyst might perform when writing code. To express the operations we
-define an editing context $K$ which is similar to evaluation context $C$ from Figure~\ref{fig:dec-calculus},
+define an editing context $K$ which is similar to evaluation context $C$ from \cref{fig:dec-calculus},
 but allows sub-expressions appearing anywhere in the program.
 
 We use the notation $\preview{e}$ to mark parts of expressions that are not recomputed
@@ -1271,9 +1279,9 @@ a variable $x$ and then adds a let binding for a variable $x$ and inserts the ex
 from the clipboard. The \rname{let-intro-del} operation captures the same edit, but
 done in a different order.
 
-Theorem~\ref{thm:preview-reuse} proves that the operations given in Figure~\ref{fig:operations}
-preserve the preview for a marked sub-expression. It relies on a Lemma~\ref{thm:sub-expr} given in
-Section~\ref{sec:sub-expr} that generally characterizes one common kind of edits. Given two versions
+\Cref{thm:preview-reuse} proves that the operations given in \cref{fig:operations}
+preserve the preview for a marked sub-expression. It relies on a \cref{thm:sub-expr} given in
+\cref{sec:sub-expr} that generally characterizes one common kind of edits. Given two versions
 of a program that both contain the same sub-expression $e$, if the let bindings that define the values of
 variables used in $e$ do not change, then the graph node assigned to $e$ will be the same
 when binding the original and the updated program.
@@ -1283,17 +1291,17 @@ when binding the original and the updated program.
 
 \begin{theorem}[Preview reuse]
 \label{thm:preview-reuse}
-Given the sequence of expressions as specified in Figure~\ref{fig:operations}, if the expressions
-are bound in sequence and graph node cache updated as specified in Figure~\ref{fig:loop}, then
+Given the sequence of expressions as specified in \cref{fig:operations}, if the expressions
+are bound in sequence and graph node cache updated as specified in \cref{fig:loop}, then
 the graph nodes assigned to the specified sub-expressions are the same.
 \end{theorem}
 \begin{proof}
-Cases \rname{edit-let} and \rname{edit-mem} are direct consequences of Lemma~\ref{thm:sub-expr};
+Cases \rname{edit-let} and \rname{edit-mem} are direct consequences of \cref{thm:sub-expr};
 for \rname{let-intro-var}, the node assigned to $x$ is the node assigned to $e$ which is the
-same as before the edit from Lemma~\ref{thm:sub-expr}.
+same as before the edit from \cref{thm:sub-expr}.
 Cases \rname{let-intro-ins} and \rname{let-intro-del} are similar to \rname{let-intro-var}, but
 also require using induction over the binding of $K_c[e]$. Finally, cases \rname{let-elim-ins}
-and \rname{let-elim-del} are similar and also use Lemma~\ref{thm:sub-expr}
+and \rname{let-elim-del} are similar and also use \cref{thm:sub-expr}
 together with induction over the binding of $K_c[x]$.
 \end{proof}
 
@@ -1322,120 +1330,122 @@ dependency graph.
 
 \begin{figure}
 \raggedright
-\vspace{-0.5em}
-{\small\sffamily (1) Enter the following code and then change parameter of blur from 4 to 8:}
-\vspace{-0.5em}
+%
+{\sffamily (1) Enter the following code and then change parameter of blur from 4 to 8:}
+%
 \begin{equation*}
 \begin{array}{l}
-\ident{image}.\ident{load}(\str{shadow.png}).\ident{greyScale}().\ident{blur}(\num{4})
+\ident{image}.\ident{load}(\str{shadow.png}).\ident{greyScale}().\ident{blur}(\Num{4})
 \end{array}
 \end{equation*}
 
-{\small\sffamily (2) Assign the result to a variable and start writing code for further operations:}
-\vspace{-0.5em}
+{\sffamily (2) Assign the result to a variable and start writing code for further operations:}
+%
 \begin{equation*}
 \begin{array}{l}
-\kvd{let}\,\ident{shadow}=\ident{image}.\ident{load}(\str{shadow.png}).\ident{greyScale}().\ident{blur}(\num{8})\\
+\kvd{let}\,\ident{shadow}=\ident{image}.\ident{load}(\str{shadow.png}).\ident{greyScale}().\ident{blur}(\Num{8})\\
 \ident{shadow}.\ident{combine}
 \end{array}
 \end{equation*}
 
-{\small\sffamily (3) Finish code to combine two images and then change parameter of combine from 20 to 80:}
-\vspace{-0.5em}
+{\sffamily (3) Finish code to combine two images and change parameter of combine from 20 to 80:}
+%
 \begin{equation*}
 \begin{array}{l}
-\kvd{let}\,\ident{shadow}=\ident{image}.\ident{load}(\str{shadow.png}).\ident{greyScale}().\ident{blur}(\num{8})\\
-\ident{shadow}.\ident{combine}(\ident{image}.\ident{load}(\str{pope.png}), \num{20})
+\kvd{let}\,\ident{shadow}=\ident{image}.\ident{load}(\str{shadow.png}).\ident{greyScale}().\ident{blur}(\Num{8})\\
+\ident{shadow}.\ident{combine}(\ident{image}.\ident{load}(\str{pope.png}), \Num{20})
 \end{array}
 \end{equation*}
 
-{\small\sffamily (4) Extract the parameter of combine to a let bound variable:}
-\vspace{-0.5em}
+{\sffamily (4) Extract the parameter of combine to a let bound variable:}
+%
 \begin{equation*}
 \begin{array}{l}
-\kvd{let}\,\ident{ratio} = \num{80} \\
-\kvd{let}\,\ident{shadow}=\ident{image}.\ident{load}(\str{shadow.png}).\ident{greyScale}().\ident{blur}(\num{8})\\
+\kvd{let}\,\ident{ratio} = \Num{80} \\
+\kvd{let}\,\ident{shadow}=\ident{image}.\ident{load}(\str{shadow.png}).\ident{greyScale}().\ident{blur}(\Num{8})\\
 \ident{shadow}.\ident{combine}(\ident{image}.\ident{load}(\str{pope.png}), \ident{ratio})
 \end{array}
 \end{equation*}
-
-\vspace{-1em}
+%
 \caption{Code edit operations that are used in the experimental evaluation}
 \label{fig:image-edits}
-\vspace{-0.5em}
+%
 \end{figure}
 
 % --------------------------------------------------------------------------------------------------
 
 To avoid distractions when visualizing the performance, we update the preview after complete tokens are
 added rather than after individual keystrokes.
-Figure~\ref{fig:image-edits} shows the sequence of edits that we use to measure
+\Cref{fig:image-edits} shows the sequence of edits that we use to measure
 the delays in updating a instant preview. We first enter an expression to load, greyscale and blur
 an image (1) then introduce let binding (2) and add more operations (3). Finally, we extract
 one of the parameters into a variable (4). Most of the operations are simply adding code, but
 there are two cases where we modify existing code and change value of a parameter for \ident{blur}
 and \ident{combine} immediately after (1) and (3), respectively.
 
-We implement the algorithm described in Sections~\ref{sec:formal} and \ref{sec:previews} in a
+We implement the algorithm described in \cref{sec:formal} \cref{sec:previews} in a
 simple web-based environment that allows the user to modify code and explicitly trigger
 recomputation. It then measures time needed to recompute values for the whole program and
 displays the resulting image. If the parsing fails, we record only the time taken by parsing attempt. We compare the
 delays of three different evaluation strategies:
 
-\begin{itemize}
-\item \emph{Call-by-value.} Following the semantics in Section~\ref{sec:calculus-semantics},
+\begin{description}
+\item[Call-by-value] Following the semantics in \cref{sec:calculus-semantics},
   all sub-expressions are evaluated before an expression. This is often wasteful. For example,
   we parse the expression $\ident{image}.\ident{load}(\str{shadow.png}).\ident{blur}$ as a member access with no
   arguments. The evaluation loads the image, but then fails because blur requires one argument.
 
-\item \emph{Lazy.} To address the wastefulness of call-by-value strategy, we
+\item[Lazy] To address the wastefulness of call-by-value strategy, we
   simulate lazy evaluation by implementing a version of the image processing library where
   operations build a delayed computation and only evaluate it when rendering an image. Using
   this strategy, failing computations do not perform unnecessary work.
 
-\item \emph{Live.} Finally, we use the algorithm described in
-  Sections~\ref{sec:formal} and \ref{sec:previews}. The cache is empty at the beginning of the
+\item[Live] Finally, we use the algorithm described in
+  \cref{sec:formal} \cref{sec:previews}. The cache is empty at the beginning of the
   experiment and we update it after each token is added. This is the only strategy where
   evaluation does not start afresh after reparsing code.
-\end{itemize}
+\end{description}
 
 % --------------------------------------------------------------------------------------------------
 
-\begin{figure}[t]
-\vspace{-0.5em}
-\includegraphics[scale=0.425]{figures/drawing.png}
+\begin{figure}
+%
+\begin{wide}\includegraphics[width=\linewidth]{figures/drawing.png} \end{wide}
 \caption{Time required to recompute the results of a sample program after individual tokens
   are added or modified for three different evaluations strategies.}
 \label{fig:drawing}
-\vspace{-0.5em}
+%
 \end{figure}
 
 % --------------------------------------------------------------------------------------------------
 
-\begin{figure}[b]
-\vspace{-0.5em}
-\noindent
-\includegraphics[scale=0.48]{figures/hist-all.png}
-\includegraphics[scale=0.48]{figures/hist-slow.png}
-\vspace{-0.25em}
+\begin{figure}
+%
+\begin{wide}
+\includegraphics[width=.5\linewidth]{figures/hist-all.png}%
+\includegraphics[width=.5\linewidth]{figures/hist-slow.png}
+\end{wide}
 \caption{Distribution of delays incurred when updating previews.
   We show a histogram computed from all delays (left) and only from delays larger
-  than 15ms (right).}
+  than \SI{15}{\ms} (right).}
 \label{fig:drawing-hist}
-\vspace{-0.75em}
+%
 \end{figure}
 
 % --------------------------------------------------------------------------------------------------
 
 The experimental environment is implemented in F\# and compiled to JavaScript using the Fable
 compiler. We run the experiments in Firefox (version 64.0.2, 32bit) on Windows 10
-(build 1809, 64bit) on Intel Core i7-7660U CPU with 16Gb RAM.
+(build 1809, \SI{64}{\bit}) on Intel Core i7-7660U CPU with \SI{16}{\giga\byte} RAM.
 
-Figure~\ref{fig:drawing} shows times needed to recompute previews after individual tokens
+\Cref{fig:drawing} shows times needed to recompute previews after individual tokens
 are added, deleted or modified, according to the script in
-Figure~\ref{fig:image-edits}, resulting in 38 measurements. We mark a number of notable points in the chart:
+\cref{fig:image-edits}, resulting in 38 measurements. We mark a number of notable points in the chart:
 
-\begin{enumerate}[itemsep=0.1em,label=\alph*.]
+~
+
+\begin{enumerate}
+  \renewcommand{\theenumi}{\alph{enumi}}%
 \item Loading image for the first time incurs small extra overhead in the live strategy.
 \item Greyscaling using the live strategy does not need to re-load the image.
 \item Accessing the blur member without arguments causes delay for call-by-value.
@@ -1445,14 +1455,14 @@ Figure~\ref{fig:image-edits}, resulting in 38 measurements. We mark a number of 
 \item The live strategy is much faster when varying the parameter of combine.
 \item Introducing let binding, again, causes full recomputation for lazy and call-by-value.
 \end{enumerate}
-
-\noindent
-A summarized view of the delays is provided in Figure~\ref{fig:drawing-hist}, which shows
+%
+%
+A summarized view of the delays is provided in \cref{fig:drawing-hist}, which shows
 histograms illustrating the distribution of delays for each of the three evaluation methods.
-A large proportion of delays is very small (less than 15ms) because the parser used in our
-experimental environment often fails (e.g.~for unclosed parentheses). The histogram
+A large proportion of delays is very small (less than \SI{15}{\ms}) because the parser used in our
+experimental environment often fails (e.\hairspace g.~for unclosed parentheses). The histogram
 on the right summarizes only delays for edit operations where the delay for at least one of
-the strategies was over 15ms. The histogram shows that the live strategy eliminates the longest
+the strategies was over \SI{15}{\ms}. The histogram shows that the live strategy eliminates the longest
 delays (by caching partial results), with the exception of a few where the underlying operation
 takes a long time (such as blurring the image). The results would be even more significant with
 an error-recovering parser.
@@ -1464,25 +1474,25 @@ sufficient for this purpose. When recomputing results after every edit
 using the \emph{call-by-value} strategy, the time needed to update results grows
 continually. The \emph{lazy} strategy removes the overhead for programs that fail, but
 keeps the same trend. Our \emph{live} strategy reuses values computed
-previously. Consequently, expensive operations such as (d) and (g) in Figure~\ref{fig:drawing}
+previously. Consequently, expensive operations such as (d) and (g) in \cref{fig:drawing}
 are significantly faster, because they do not need to recompute operations done previously when
-writing the code. As shown in Figure~\ref{fig:drawing-hist}, there are almost no very expensive
+writing the code. As shown in \cref{fig:drawing-hist}, there are almost no very expensive
 operations (taking over 1 second) in the \emph{live} strategy in contrast to several in the
 other two strategies.
 
 % --------------------------------------------------------------------------------------------------
 
-\begin{figure}[b]
-\noindent
-\hspace{-1em}
-\includegraphics[scale=0.245]{figures/gallery1.png}
-\includegraphics[scale=0.245]{figures/gallery2.png}
-\caption{\small Data analysis counting the number of libraries per county in the UK. We load
+\begin{figure}
+  \begin{wide}
+\includegraphics[width=.5\linewidth]{figures/gallery1.png}
+\includegraphics[width=.5\linewidth]{figures/gallery2.png}
+\end{wide}
+\caption{Data analysis counting the number of libraries per county in the UK. We load
   and aggregate data (left) and then create a chart with a label (right).
-  The example has been created using our tool discussed in Section~\ref{sec:evaluation-case}
+  The example has been created using our tool discussed in \cref{sec:evaluation-case}
   by a non-programmer and is available at \url{http://gallery.thegamma.net/73/}.}
 \label{fig:gallery}
-\vspace{-1em}
+%
 \end{figure}
 
 % --------------------------------------------------------------------------------------------------
@@ -1490,38 +1500,38 @@ other two strategies.
 \subsection{Transparent tools for data journalism}
 \label{sec:evaluation-case}
 
-In Section~\ref{sec:background-jupyter}, we motivated our work by considering how journalists
+In \cref{sec:background-jupyter}, we motivated our work by considering how journalists
 explore open data. In addition to the theoretical and experimental work presented in this paper,
 we also implemented an online data exploration environment, equipped with live editor for The
 Gamma language that provides instant feedback during coding. The environment uses the
 principles presented in this paper to build a more comprehensive system that allows users,
 such as journalists, to analyse, summarize and visualize open data. In this section, we briefly
 report on our experience with the system. Two screenshots shown
-in Figure~\ref{fig:gallery} illustrate a number of interesting features:
+in \cref{fig:gallery} illustrate a number of interesting features:
 
 \begin{itemize}
-\item The left screenshot uses a type provider for data aggregation \cite{gamma}.
+\item The left screenshot uses a type provider for data aggregation~\cite{gamma}.
   Type provider are treated as an external library
   (with objects, members and reduction relation). Type providers also rely on type information to
   provide editor auto-complete, which we support by implementing type checking over a
-  dependency graph (Section~\ref{sec:extra-types}).
+  dependency graph (\cref{sec:extra-types}).
 
 \item When displaying instant preview for code written using the data aggregation type provider (left),
   our environment generates tabes that show individual steps of the data transformation.
   A tab is selected based on the cursor position and shows a preview for the current sub-expression
-  (e.g.~raw data before grouping).
+  (e.\hairspace g.~raw data before grouping).
 
 \item Another external library provides support for charting (right). Here, the environment
   displays the result of evaluating the whole command. The screenshot shows a case where the user
   modifies parameters of the chart. Thanks to our live evaluation
   strategy, this is done efficiently without reevaluating the data transformation.
 \end{itemize}
-
-\noindent
+%
+%
 The environment is available at \url{http://gallery.thegamma.net}.
 A user study to evaluate the usability of the system from a human-computer interaction perspective
 is left for future work. As an anecdotal evidence, the code in
-Figure~\ref{fig:gallery} was developed by an attendee of a Mozilla Festival 2017
+\cref{fig:gallery} was developed by an attendee of a Mozilla Festival 2017
 who had no prior programming experience.
 
 
@@ -1530,63 +1540,64 @@ who had no prior programming experience.
 \section{Related and future work}
 \label{sec:future}
 
-Simple data exploration performed, for example, by journalists \cite{ddj} is done either
+Simple data exploration performed, for example, by journalists~\cite{ddj} is done either
 programmatically or using spreadsheets. The latter is easy but error-prone while the former
 requires expert programming skills. We aim to bring liveness of spreadsheets to programmatic
-data exploration. This requires extending recomputation as done in spreadsheets \cite{spreadsheet}
+data exploration. This requires extending recomputation as done in spreadsheets~\cite{spreadsheet}
 to code written in an ordinary text editor.
 
 \paragraph{Notebooks and data science tools.}
-Visual data exploration tools are interactive \cite{control,tableau,vizdom} and some
-can export the workflow as a script \cite{wrangler}, but data analysts who prefer code
-typically resort to notebook systems such as Jupyter or R Markdown \cite{jupyter,rmarkdown}.
+Visual data exploration tools are interactive~\cite{control,tableau,vizdom} and some
+can export the workflow as a script~\cite{wrangler}, but data analysts who prefer code
+typically resort to notebook systems such as Jupyter or R Markdown~\cite{jupyter,rmarkdown}.
 Those are text-based, but have a limited model of recomputation. Users structure code in
-cells and manually reevaluate cells. Many notebook systems are based on the REPL (read-eval-print-loop)
-\cite{lisp,drscheme} and do not track dependencies between cells, which can lead to well-documented
-inconsistencies \cite{dataflow,noworkflow,wrattler}.
+cells and manually reevaluate cells. Many notebook systems are based on the REPL (read-eval-print-loop)%
+~\cite{lisp,drscheme} and do not track dependencies between cells, which can lead to well-documented
+inconsistencies~\cite{dataflow,noworkflow,wrattler}.
 
-Ideas such as dependency tracking and efficient recomputation exist in visual data exploration tools
-\cite{control,tableau,vizdom} and scientific workflow systems \cite{taverna,kepler}. The
+Ideas such as dependency tracking and efficient recomputation exist in visual data exploration tools%
+~\cite{control,tableau,vizdom} and scientific workflow systems~\cite{taverna,kepler}. The
 implementation techniques are related to our work, but we focus on text-based scripts.
-Tempe \cite{tempe} focuses on streaming data, but provides a text-based scripting environment
+Tempe~\cite{tempe} focuses on streaming data, but provides a text-based scripting environment
 with automatic code update; its usability in contrast to REPLs has been empirically
-evaluated \cite{ripple}. The challenges faced by Tempe are more akin to dynamic software update~\cite{dsu}.
+evaluated~\cite{ripple}.
 
 \paragraph{Live and exploratory programming.}
-Live programming based on textual programs has been popularised by Victor \cite{principle,learnable} and
-is actively developed in domains such as live coded music \cite{beyond,sonic}.
+Live programming based on textual programs has been popularised by \citeauthor{learnable}~\cite{learnable,principle} and
+is actively developed in domains such as live coded music~\cite{beyond,sonic}.
+The notions of exploratory and live programming have been extensively studied~\cite{review}.
 The notion of exploratory programming has recently been analysed from the perspective of
-human-computer interaction \cite{exploratory}, which led to new tools \cite{variolite},
-complementary to our instant previews. Kubelka et al.~\cite{liveroad}
-review the use of live programming in a Smalltalk derived environment. Lighttable \cite{lighttable}
+human-computer interaction \cite{exploratory}, which led to new tools~\cite{variolite},
+complementary to our instant previews. \Citeauthor{liveroad}~\cite{liveroad}
+review the use of live programming in a Smalltalk derived environment. Lighttable~\cite{lighttable}
 and Chrome DevTools provide limited instant previews akin to those presented in this paper,
 but without well specified recomputation model. Finally, work on keeping state during
-code edits \cite{alive,livingit} would be relevant for supporting streaming data.
+code edits~\cite{alive,livingit} would be relevant for supporting streaming data.
 
-A more principled approach can be used by systems based on structured editing \cite{structure-based,interactive,livenut,lamdu}
+A more principled approach can be used by systems based on structured editing~\cite{structure-based,interactive,livenut,lamdu}
 where code is only modified via known operations with known effect on the computation graph
-(e.g.~``extract variable'' has no effect on the result; ``change constant value''
+(e.\hairspace g.~``extract variable'' has no effect on the result; ``change constant value''
 forces recomputation of subsequent code). This can be elegantly implemented using bi-directional
-lambda calculus \cite{hazelnut}, but it also makes us consider more human-centric abstractions
-\cite{subtext,directprog} further discussed in Section~\ref{sec:extra-abstraction}.
+lambda calculus~\cite{hazelnut}, but it also makes us consider more human-centric abstractions%
+~\cite{subtext,directprog} further discussed in \cref{sec:extra-abstraction}.
 
 \paragraph{Incremental computation and dependency analysis.}
-Work on self-adjusting and incremental computation \cite{selfadjusting,adapton} handles
+Work on self-adjusting and incremental computation~\cite{selfadjusting,adapton} handles
 recomputation when the program stays the same, but input changes.
-Most incremental systems, e.g.~\cite{incremental,adaptivefp,deltaml} evaluate the program and use
-programmer-supplied information to build a dependency graph, whereas our system uses static code analysis;
+Most incremental systems, e.\hairspace g.~\cite{incremental,adaptivefp,deltaml} evaluate the program and use
+programmer-supplied information to build a dependency graph, whereas our system uses static code analysis;%
 \cite{adapton} implement a small adaptive interpreter
 that treats code as changing input data, suggesting an implementation technique for
-live programming systems. Our use of dependency graphs \cite{dependencies} is static and first-order
-and can be seen as a form of program slicing \cite{slicing}, although our binding process is
-more directly inspired by Roslyn \cite{roslyn}, which uses it for efficient background type-checking.
+live programming systems. Our use of dependency graphs~\cite{dependencies} is static and first-order
+and can be seen as a form of program slicing~\cite{slicing}, although our binding process is
+more directly inspired by Roslyn~\cite{roslyn}, which uses it for efficient background type-checking.
 
 \paragraph{Semantics and partial evaluation.}
-The evaluation of previews is a form of partial evaluation \cite{partial}, done in a
+The evaluation of previews is a form of partial evaluation~\cite{partial}, done in a
 way that allows caching. This can be done implicitly or explicitly in the form of
-multi-stage programming \cite{metaml}. Semantically, the evaluation of previews can be seen as a
-modality \cite{modal} and delayed previews are linked to contextual modal type theory \cite{cmtt},
-formally modelled using comonads \cite{cmtt-denotation}.
+multi-stage programming~\cite{metaml}. Semantically, the evaluation of previews can be seen as a
+modality and delayed previews are linked to contextual modal type theory~\cite{cmtt},
+formally modelled using comonads~\cite{cmtt-denotation}.
 
 
 
@@ -1618,19 +1629,21 @@ typical programming scenario. Thirdly, we used our research as a basis for onlin
 environment, which shows the practical usability of our work.
 
 \acks
-We thank Dominic Orchard, Stephen Kell, Roly Perera and Jonathan Edwards for many discussions
-about the work presented in the paper. Dominic Orchard provided invaluable feedback on earlier
-version of the paper. The paper also benefited from suggestions made by anonymous reviewers
-of The Programming Journal as well as reviwers of earlier versions of the paper.
-This work was partly supported by The Alan Turing Institute under the EPSRC grant EP/N510129/1.
-
+\begin{sloppypar}
+ We thank Dominic Orchard, Stephen Kell, Roly Perera and Jonathan
+  Edwards for many discussions about the work presented in the paper. Dominic
+  Orchard provided invaluable feedback on earlier version of the paper. The
+  paper also benefited from suggestions made by anonymous reviewers of The
+  Programming Journal as well as reviwers of earlier versions of the paper.
+  This work was partly supported by The Alan Turing Institute under the EPSRC
+  grant EP/N510129/1.
+\end{sloppypar}
 % ==================================================================================================
 
 \printbibliography
 
 % ==================================================================================================
 
-\newpage
 \appendix
 
 \section{Details of proofs}
@@ -1653,10 +1666,10 @@ We define $\ident{size}$ of a program in data exploration calculus as follows:
 \ident{size}(o) = \ident{size}(x) &=& 1\\
 \end{array}
 \end{equation}
-
-\noindent
+%
+%
 The property holds because, first, both \rname{let} and \rname{external} decrease the \ident{size}
-of the program and, second, a program is either fully evaluated, i.e.~$o_1;\ldots;o_n$ for some $n$
+of the program and, second, a program is either fully evaluated, i.\hairspace e.~$o_1;\ldots;o_n$ for some $n$
 or, it can be reduced using one of the reduction rules.
 \end{proof}
 
@@ -1706,8 +1719,8 @@ $\ident{bind-expr}_{\Gamma,\Delta_1}(e)$ is called.
 
 \begin{theorem}[Term preview correctness]
 Given a term $t$ that has no free variables, together with a lookup table $\Delta$ obtained
-from any sequence of programs using $\ident{bind-prog}$ (Figure~\ref{fig:binding-rules-prog}) and
-$\ident{update}$ (Figure~\ref{fig:loop}), then
+from any sequence of programs using $\ident{bind-prog}$ (\cref{fig:binding-rules-prog}) and
+$\ident{update}$ (\cref{fig:loop}), then
 let $\bndclr{v}, (V, E) = \ident{bind-expr}_{\emptyset, \Delta}(t)$. If $\bndclr{v}\Downarrow p$
 over a graph $(V, E)$ then $p = o$ for some value $o$ and $t \rightsquigarrow^{*} o$.
 \end{theorem}
@@ -1716,15 +1729,16 @@ over a graph $(V, E)$ then $p = o$ for some value $o$ and $t \rightsquigarrow^{*
 When combining recursively constructed sub-graphs, the \ident{bind-expr} function
 adds new nodes and edges leading from those new nodes. Therefore, an evaluation using~$\Downarrow$
 over a sub-graph will also be valid over the new graph -- the newly added nodes and edges do not introduce
-non-determinism to the rules given in Figure~\ref{fig:eval}.
+non-determinism to the rules given in \cref{fig:eval}.
 
 We prove a more general property showing that for any $e$, its binding
 $\bndclr{v}, (V, E) = \ident{bind-expr}_{\emptyset, \Delta}(e)$ and any evaluation context $C$
 such that $C[e]\rightsquigarrow o$ for some $o$, one of the following holds:
 %
 \begin{enumerate}
-\item[a.] If $FV(e)\,=\,\emptyset$ then $\bndclr{v} \Downarrow p$ for some $p$ and $C[p] \rightsquigarrow o$
-\item[b.] If $FV(e)\neq\emptyset$ then $\bndclr{v} \Downarrow \llbracket e_p \rrbracket_{FV(e)}$ for some $e_p$ and $C[e_p] \rightsquigarrow o$
+  \renewcommand{\theenumi}{\alph{enumi}}%
+\item If $FV(e)\,=\,\emptyset$ then $\bndclr{v} \Downarrow p$ for some $p$ and $C[p] \rightsquigarrow o$
+\item If $FV(e)\neq\emptyset$ then $\bndclr{v} \Downarrow \llbracket e_p \rrbracket_{FV(e)}$ for some $e_p$ and $C[e_p] \rightsquigarrow o$
 \end{enumerate}
 %
 In the first case, $p$ is a value, but it is not always the case that $e \rightsquigarrow^{*} p$,
@@ -1736,65 +1750,70 @@ term $t$ reduces $t \rightsquigarrow^{*}t' \rightsquigarrow_\epsilon o$ for some
 preview $p$ is a value $o$ because $C[p] = p = o$.
 The proof is by induction over the binding process, which follows the structure of the expression:
 
-\vspace{0.75em}\noindent(1) $\ident{bind-expr}_{\Gamma, \Delta}(e_0.m(e_1, \ldots, e_n))$ --
+\begin{enumerate}
+  \renewcommand*\labelenumi{\usekomafont{listlabel}\theenumi}
+  \renewcommand{\theenumi}{(\arabic{enumi})}%
+
+\item \label{itm:1} $\ident{bind-expr}_{\Gamma, \Delta}(e_0.m(e_1, \ldots, e_n))$ --
   Here $e = e_0.m(e_1, \ldots, e_n)$, $\bndclr{v_i}$ are graph nodes obtained by induction for
   expressions $e_i$ and $\{ (\bndclr{v}, \bndclr{v_0}, \blbl{arg}(0)), \ldots, (\bndclr{v}, \bndclr{v_n}, \blbl{arg}(n))\} \subseteq E$.
-  From lookup inversion Lemma~\ref{thm:lemma-lookup}, $\bndclr{v} = \bnd{mem}(m, s)$ for some $s$.
+  From lookup inversion \cref{thm:lemma-lookup}, $\bndclr{v} = \bnd{mem}(m, s)$ for some $s$.
 
   If $FV(e)=\emptyset$, then $\bndclr{v_i} \Downarrow p_i$ for $i\in 0\ldots n$ and
   $\bndclr{v}\Downarrow p$ using \rname{mem-val} such that $p_0.m(p_1, \ldots, p_n) \rightsquigarrow p$.
-  From induction hypothesis and \emph{compositionality} of external libraries (Definition~\ref{def:external}),
+  From induction hypothesis and \emph{compositionality} of external libraries (\cref{def:external}),
   it holds that for any $C$ such that $C[e_0.m(e_1, \ldots, e_n)] \rightsquigarrow o$ for some $o$
   then also $C[p_0.m(p_1, \ldots, p_n)] \rightsquigarrow C[p] \rightsquigarrow o$.
 
   If $FV(e)\neq\emptyset$, then $\bndclr{v_i} \Downarrow_\ident{lift} \llbracket e'_i \rrbracket$ for $i\in 0\ldots n$ and
   $\bndclr{v}\Downarrow \llbracket e'_0.m(e'_1, \ldots, e'_n) \rrbracket_{FV(e)}$ using \rname{mem-expr}.
-  From induction hypothesis and \emph{compositionality} of external libraries (Definition~\ref{def:external}),
+  From induction hypothesis and \emph{compositionality} of external libraries (\cref{def:external}),
   it holds that for any $C$ such that $C[e_0.m(e_1, \ldots, e_n)] \rightsquigarrow o$ for some $o$
   then also $C[e'_0.m(e'_1, \ldots, e'_n)] \rightsquigarrow o$.
 
-\vspace{0.75em}\noindent(2) $\ident{bind-expr}_{\Gamma, \Delta}(e_0.m(e_1, \ldots, e_n))$ --
-  This case is similar to (1), except that the fact that $\bndclr{v} = \bnd{mem}(m, s)$
-  holds by construction, rather than using Lemma~\ref{thm:lemma-lookup}.
+\item  $\ident{bind-expr}_{\Gamma, \Delta}(e_0.m(e_1, \ldots, e_n))$ --
+  This case is similar to \labelcref{itm:1}, except that the fact that $\bndclr{v} = \bnd{mem}(m, s)$
+  holds by construction, rather than using \cref{thm:lemma-lookup}.
 
-\vspace{0.75em}\noindent(3) $\ident{bind-expr}_{\Gamma, \Delta}(\lambda x\rightarrow e_b)$ --
+\item \label{itm:3} $\ident{bind-expr}_{\Gamma, \Delta}(\lambda x\rightarrow e_b)$ --
   Here $e = \lambda x\rightarrow e_b$, $\bndclr{v_b}$ is the graph node obtained by induction
   for the expression $e_b$ and $(\bndclr{v}, \bndclr{v_b}, \blbl{body}) \in E$.
-  From lookup inversion Lemma~\ref{thm:lemma-lookup}, $\bndclr{v} = \bnd{fun}(x, s)$ for some $s$.
+  From lookup inversion \cref{thm:lemma-lookup}, $\bndclr{v} = \bnd{fun}(x, s)$ for some $s$.
   The evaluation can use one of three rules:
 
   \begin{enumerate}
-  \item[i.]
+    \renewcommand{\theenumii}{\roman{enumii}}%
+  \item
   If $FV(e)=\emptyset$ then $\bndclr{v_b}\Downarrow p_b$ for some $p_b$ and $\bndclr{v}\Downarrow \lambda x\rightarrow p_b$
   using \rname{fun-val}. Let $e'_b=p_b$.
 
-  \item[ii.]
+  \item
   If $FV(e_b)=\{x\}$ then $\bndclr{v_b}\Downarrow \llbracket e'_b \rrbracket_x$ for some $e'_b$ and
   $\bndclr{v}\Downarrow \lambda x\rightarrow e'_b$ using \rname{fun-bind}.
 
-  \item[iii.]
+  \item
   Otherwise, $\bndclr{v_b}\Downarrow \llbracket e'_b \rrbracket_{x,\Gamma}$ for some $e'_b$ and
   $\bndclr{v}\Downarrow \llbracket\lambda x\rightarrow e'_b\rrbracket_\Gamma$ using \rname{fun-expr}.
   \end{enumerate}
-
-\noindent
+%
+%
 For i.) and ii.) we show that a.) is the case; for iii.) we show that b.) is the case; that is
 for any $C$, if $C[\lambda x\rightarrow e_b] \rightsquigarrow o$ then also
 $C[\lambda x\rightarrow e'_b] \rightsquigarrow o$. For a given $C$, let $C'[-] = C[\lambda x\rightarrow -]$
-and use the induction hypothesis, i.e.~if $C'[e_b] \rightsquigarrow o$ for some $o$ then also $C'[e'_b] \rightsquigarrow o$.
+and use the induction hypothesis, i.\hairspace e.~if $C'[e_b] \rightsquigarrow o$ for some $o$ then also $C'[e'_b] \rightsquigarrow o$.
 
-\vspace{0.75em}\noindent(4) $\ident{bind-expr}_{\Gamma, \Delta}(\lambda x\rightarrow e)$  --
-  This case is similar to (3), except that the fact that $\bndclr{v} = \bnd{fun}(x, s)$
-  holds by construction, rather than using Lemma~\ref{thm:lemma-lookup}.
+\item \label{itm:4} $\ident{bind-expr}_{\Gamma, \Delta}(\lambda x\rightarrow e)$  --
+  This case is similar to \labelcref{itm:3}, except that the fact that $\bndclr{v} = \bnd{fun}(x, s)$
+  holds by construction, rather than using \cref{thm:lemma-lookup}.
 
-\vspace{0.75em}\noindent(5) $\ident{bind-expr}_{\Gamma, \Delta}(o)$ -- In this case $e=o$ and $\bndclr{v} = \bnd{val}(o)$
+\item $\ident{bind-expr}_{\Gamma, \Delta}(o)$ -- In this case $e=o$ and $\bndclr{v} = \bnd{val}(o)$
   and $\bnd{val}(o)\Downarrow o$ using \rname{val} and so the case a.) trivially holds.
 
-\vspace{0.75em}\noindent(6) $\ident{bind-expr}_{\Gamma, \Delta}(x)$ -- The initial $\Gamma$ is empty,
-  so $x$ must have been added to $\Gamma$ by case (3) or (4). Hence,
+\item $\ident{bind-expr}_{\Gamma, \Delta}(x)$ -- The initial $\Gamma$ is empty,
+  so $x$ must have been added to $\Gamma$ by case \labelcref{itm:3} or \labelcref{itm:4}. Hence,
   $\bndclr{v}=\bnd{var}(x)$, $\bndclr{v}\Downarrow \llbracket x \rrbracket_{x}$ using \rname{var}
   and so $e_p = e = x$ and the case b.) trivially holds.
-
+\end{enumerate}
 \end{proof}
 
 \subsection{Binding sub-expressions}
@@ -1802,21 +1821,21 @@ and use the induction hypothesis, i.e.~if $C'[e_b] \rightsquigarrow o$ for some 
 
 \begin{lem}[Binding sub-expressions]
 \label{thm:sub-expr}
-Assume we have programs $p_1 = c_1; \ldots; c_k; K_c[e]; c_{k+1};\ldots; c_n$ and
+Assume we have programs $p_1, p_2$ such that $p_1 = c_1; \ldots; c_k; K_c[e]; c_{k+1};\ldots; c_n$ and
 $p_2 = c'_1; \ldots; c'_k; K'_c[e]; c'_{k+1};\ldots;c'_n$ and $I\subseteq \{1\ldots k\}$ such
 that $\forall i\!\in\!I.\,c_i\!=\!c'_i$ and for each $x \in \bigcup_{i\in I}FV(c_i) \cup FV(e)$
 there exists $j\in I$ such that $c_j = \kvd{let}\,x=e$ for some $e$.
 %
 Given any $\Delta$, assume that the the first program is bound,
-i.e.~$\bndclr{v_1};\ldots;\bndclr{v_n}, (V, E) = \ident{bind-prog}_{\emptyset, \Delta}(p_1)$,
+i.\hairspace e.~$\bndclr{v_1};\ldots;\bndclr{v_n}, (V, E) = \ident{bind-prog}_{\emptyset, \Delta}(p_1)$,
 the cache is updated $\Delta' = \ident{update}_{V, E}(\Delta)$ and the second
 program is bound,
-i.e.~$\bndclr{v'_1};\ldots;\bndclr{v'_n}, (V', E') = \ident{bind-prog}_{\emptyset, \Delta'}(p_2)$.
+i.\hairspace e.~$\bndclr{v'_1};\ldots;\bndclr{v'_n}, (V', E') = \ident{bind-prog}_{\emptyset, \Delta'}(p_2)$.
 
 Now, assume $\bndclr{v}, G = \ident{bind-expr}_{\Gamma, \Delta}(e)$ and
 $\bndclr{v'}, G' = \ident{bind-expr}_{\Gamma', \Delta'}(e)$ are the recursive calls to bind
 $e$ during the first and the second binding, respectively. Then, the graph nodes assigned to the
-sub-expression $e$ are the same, i.e.~$\bndclr{v} = \bndclr{v'}$.
+sub-expression $e$ are the same, i.\hairspace e.~$\bndclr{v} = \bndclr{v'}$.
 \end{lem}
 \begin{proof}
 First, assuming that $\forall x\in FV(e). \Gamma(x) = \Gamma'(x)$, we show by induction over the binding process of $e$
@@ -1846,14 +1865,14 @@ The construction of delayed previews is related to meta-programming. Assuming
 we have delayed previews $\llbracket e_0 \rrbracket_x$ and $\llbracket e_1 \rrbracket_y$ and
 we invoke a member $m$ on $e_0$ using $e_1$ as an argument. To do this, we construct a new
 delayed preview $\llbracket e_0.m(e_1) \rrbracket_{x, y}$. This operation is akin to expression
-splicing from meta-programming \cite{metaml,quotations}.
+splicing from meta-programming~\cite{metaml,quotations}.
 
 The semantics of delayed previews can be more formally captured by Contextual Modal Type Theory
-(CMTT) \cite{cmtt} and comonads \cite{cmtt-denotation}. In CMTT, $\lbrack \Psi \rbrack A$ denotes
+(CMTT)~\cite{cmtt} and comonads~\cite{cmtt-denotation}. In CMTT, $\lbrack \Psi \rbrack A$ denotes
 that a proposition $A$ is valid in context $\Psi$, which is similar to our delayed previews written
 as $\llbracket A \rrbracket_\Psi$. CMTT defines rules for composing context-dependent propositions
 that would allow us to express the splicing operation used in \rname{mem-expr}. In categorical
-terms, the context-dependent proposition can be modelled as a graded comonad \cite{effectrev,graded}.
+terms, the context-dependent proposition can be modelled as a graded comonad~\cite{effectrev,graded}.
 The evaluation of a preview with no context dependencies (built implicitly into our evaluation rules)
 corresponds to the counit operation of a comonad and would be explicitly written as
 $\llbracket A \rrbracket_\emptyset \rightarrow A$.
@@ -1887,22 +1906,22 @@ members without having to wait until the value of the object is available.
 
 \paragraph{Revised dependency graph.}
 Type checking of small programs is typically fast enough that no caching is necessary. However,
-The Gamma supports \emph{type providers} \cite{providers-fsharp,providers-idris}, which can
-generate types based on an external file or a REST service call, e.g.~\cite{fsdata}. For this
+The Gamma supports \emph{type providers}~\cite{providers-fsharp,providers-idris}, which can
+generate types based on an external file or a REST service call, e.\hairspace g.~\cite{fsdata}. For this
 reason, type checking can be relatively time consuming and can benefit from the same caching
 facilities as those available for instant previews.
 
 Adding type checking requires revising the way we construct the dependency graph introduced in
-Section~\ref{sec:formal}. Previously, a variable bound by a lambda function had no dependencies.
+\cref{sec:formal}. Previously, a variable bound by a lambda function had no dependencies.
 However, the type of the variable depends on the context in which it appears. Given an expression
 $o.m(\lambda x\rightarrow x)$, we infer the type of $x$ from the type of the first argument
 of the member $m$. A variable node for $x$ thus needs to depend on the call site of $m$.
 We capture that by adding an edge $\blbl{callsite}(m, i)$ from $x$ to $o$ which indicates that
 $x$ is the input variable of a function passes as the $i^\textnormal{th}$ argument to the $m$
 member of the expression represented by the target node. We also add $\blbl{callsite}(m, i)$
-as an edge from the node of the function. Figure~\ref{fig:graph-func} shows the
+as an edge from the node of the function. \Cref{fig:graph-func} shows the
 revised dependency graph for $o.m(\lambda x\rightarrow x)$. %A revised version of the algorithm
-%that constructs the dependency graph is included in Appendix~\ref{sec:app-types}.
+%that constructs the dependency graph is included in \cref{sec:app-types}.
 
 \paragraph{Type checking.}
 The structure of typing rules is similar to the evaluation relation $\bndclr{v}\Downarrow d$
@@ -1911,8 +1930,8 @@ $\bndclr{v}\vdash \tau$. The type $\tau$ can be a primitive type, a function $\t
 or an object type $\{m_1\!:\!\sigma_1, \ldots, m_n\!:\!\sigma_n\}$ with member types
 $\sigma = (\tau_1, \ldots, \tau_n) \rightarrow \tau$.
 
-The typing rules for variables, functions and member access are shown in Figure~\ref{fig:tc}.
-%Remaining rules are available in Appendix~\ref{sec:app-types}.
+The typing rules for variables, functions and member access are shown in \cref{fig:tc}.
+%Remaining rules are available in \cref{sec:app-types}.
 When type checking a member access \rname{mem}, we find its dependencies $\bndclr{v_i}$ and
 check that the instance is an object with the required member $m$. The types of arguments of the
 member then need to match the types of the remaining (non-instance) nodes.
@@ -1922,7 +1941,7 @@ and use the type of the argument to check the type of the function or infer the 
 variable.
 
 The results of type checking can be cached and reused in the same way as instant previews, although
-we leave out the details. A property akin to correctness (Theorem~\ref{thm:correcntess})
+we leave out the details. A property akin to correctness (\cref{thm:correcntess})
 requires defining standard type checking over the structure of expressions, which we also
 omit for space reasons.
 
@@ -1960,7 +1979,7 @@ omit for space reasons.
 \section{Feedback-friendly abstraction}
 \label{sec:extra-abstraction}
 
-The data analysis by Financial Times in Section~\ref{sec:background-jupyter} illustrates why
+The data analysis by Financial Times in \cref{sec:background-jupyter} illustrates why
 notebook users often avoid abstraction. Wrapping code in a function makes it impossible to
 split code into cells and see results of intermediate steps. Instead, the analysis used a
 global variable with possible values in a comment.
@@ -1984,20 +2003,20 @@ p &=& c_1; \ldots; c_n\\
 c &=& \kvd{let}\,x=t \lsep t \lsep \textit{lbl}\!:\,p \lsep \textit{lbl}
 \end{array}
 \end{equation*}
-
-\noindent
+%
+%
 We introduce two new kinds of commands: a labelled sequence of commands and a reference to a label.
 When evaluating, the command $\textit{lbl}$ is replaced with the associated sequence of
 commands $p$ before any other reductions. Consequently, variables used in the labelled block are
 dynamically scoped and we can use let binding to redefine a value of a variable before invoking
 the block repeatedly. The correct use of dynamic scoping can be checked using
-coeffects \cite{coeffects}.
+coeffects~\cite{coeffects}.
 
 This minimalistic abstraction mechanism supports code reuse without affecting how instant previews
 are computed. Commands in a labelled block require variables to be defined before the block.
 Those define sample data for development and can be redefined before reusing the block. We
 intend to implement this mechanism in a future version of our data
-exploration environment (Section~\ref{sec:evaluation-case}).
+exploration environment (\cref{sec:evaluation-case}).
 
 % ==================================================================================================
 
