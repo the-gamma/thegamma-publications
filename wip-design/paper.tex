@@ -8,7 +8,7 @@
 \DefineVerbatimEnvironment{thegamma}{Verbatim}{fontfamily=zi4,numbers=left,xleftmargin=6mm,fontsize=\small,commandchars=\\\{\}}
 %\newcommand{\kvd}[1]{\textcolor{kvdclr}{#1}}
 \newcommand{\kvd}[1]{\textbf{#1}}
-\newcommand{\ikvd}[1]{{\fontfamily{zi4}\selectfont #1}}
+\newcommand{\ikvd}[1]{{\fontfamily{zi4}\selectfont\small #1}}
 \newcommand{\tg}{The Gamma\xspace}
 
 % Use this section to set the ACM copyright statement (e.g. for
@@ -269,6 +269,12 @@ The Gamma is available as open-source at \href{http://thegamma.net}{\small\bf\tt
 \textbf{Programming tools.}
 Notebooks
 
+Both follow from assistant tools for software development \cite{assistants}. Our implementation,
+outlined in the previous section, implements iterative prompting through a code editor mechanism
+designed for code completion. Finally, the work on type providers \cite{inforich,fsdata,dotdriven},
+which we extend, also utilizes code completion.
+
+
 \textbf{Journalism.}
 Idyll \cite{idyll}
 
@@ -286,7 +292,7 @@ PL work
 \label{fig:nyt}
 \end{figure}
 
-\section{Background and design goals}
+\section{Motivation}
 \label{sec:motivation}
 
 The Gamma aims to adapt the recent innovations in programming language research, especially the
@@ -443,63 +449,135 @@ When the code evaluates to a data series with a categorical (textual) key and a 
 \tg switches from displaying the result as a table to a column chart:
 
 \includegraphics[width=1\columnwidth]{figures/lords5}
+\vspace{-1.5em}
 
 \subsection{Querying via Iterative Prompting}
-The
+In the example, the journalists constructs a query that filters and sorts a data table. This is
+not unlike writing a query in the SQL language. However, the whole query is constructed through
+a single interaction mechanism that we refer to as \emph{iterative prompting}. The user triggers
+the interaction by typing `.' at the end of the query constructed so far. She is then offered a
+list of available operations in the current context. This may include a choice of top-level
+operations (e.g.~at the start and then again after choosing \ikvd{then}) or possible
+parameters for an operation (such as possible sorting keys and directions after choosing
+\ikvd{sort data}). The user then merely needs to choose one of the available options, rather than
+learning the syntax and semantics of SQL in order to know what constructs can be used in the
+given context.
+We discuss the important aspects of The Gamma design in the next section and then discuss the
+integration of specific data sources in detail, revisiting the type provider for querying
+data tables.
 
-
-
-\newpage
-
+% ==================================================================================================
 
 \section{Design}
 \label{sec:design}
 
+We identified a number of requirements for a data exploration tool for journalists earlier.
+First, using the tool should result in transparent and reproducible data analyses that can be
+understood and modified by non-experts. Second, the tool should minimze the number of concepts
+that the user needs to understand and, subsequently, allow them to learn through exploration
+and from examples. In this section, we discuss how our design aims to satisfy those requirements.
 
-interaction = iterative prompting
-how is this different from just auto-complete?
+\subsection{Lowering the Barrier to Entry}
+Data exploration tasks, such as querying tables, have a certain irreducible complexity.
+Regardless of the interface, the user will be exposed to concepts such as filtering,
+sorting and grouping. Our design aims to lower the barrier to entry by stratifying the concepts
+into first-level \emph{iterative prompting} principle and second-level \emph{domain specific
+languages} for each kind of data source.
+The user needs to master the iterative prompting principle in order to start working
+with the system. However, using individual data sources can be mastered gradually.
 
-trace = for transparency and learning
+\paragraph{Iterative Prompting}
+Iterative prompting is an interaction principle where the user repeatedly invokes an
+auto-complete prompt and makes a selection from the offered options. The principle is closely
+related to both code completion and the use of command line. Iterative prompting is novel as an
+overarching interaction principle for program construction.
 
-One important observation from the above list is that our tool should be accessible to non-expert
-users such as readers and non-technical journalists, while providing extra capabilities for more
-technical users. It should be easy to use if one just wants to modify existing code and should
-encourage experimentation. Considering these challenges, we identify the following technical
-design principles. todo{There must be papers on learning programming that can be referenced
-here.}
+In code completion, the auto-complete
+prompt is invoked only in certain contexts, e.g.~when accessing a member of an object through a
+variable defined earlier in code. It requires the user to be sufficiently familiar with the
+programming language in order to get to a point where they are offered a list of members. In
+contrast, our system only requires choosing the initial data source. The rest of the programming
+is done via iterative prompting. The iterative nature of iterative prompting makes it similar to
+using the command line or REPL (read-eval-print-loop) tools. However, those repeatedly ask the
+user to type code or commands.
 
-\paragraph{B1. Learning from examples and by experimentation.} We should support two ways of learning.
-Users of tools such as spreadsheets
-often learn by looking at existing problem solutions todo{Advait's PPIG}. Our design should allow
-this by making it possible to inspect and retrace steps used while solving a problem in an existing
-application. Another principle of spreadsheets that we want to keep is the ability to experiment
-and see results immediately. Our design should allow users to try invoking an operation or modifying
-a parameter and quickly see if this leads to the desired results.
+We argue that iterative prompting is easier than other forms of interaction, because it
+follows the \emph{recognition over recall} usability heuristic. The users are only required to
+choose from an offered list of options, rather than having to recall a possible command
+(to type in a command line) or a syntax in a text-based programming environment.
 
-\paragraph{B2. Choice over construction.} To minimize the amount of information that users have to
-learn and remember, our system should work in a way that allows constructing programs by
-choosing from options that can reasonably appear in a current context, rather than requiring
-users to recall particular syntax or exact identifier name.
-todo{recognition over recall?}
+\paragraph{Domain Specific Languages}
+The access to individual data sources in The Gamma is facilitated through a domain specific
+language, which defines the primitives that are offered to the user in the auto-complete prompts
+invoked through iterative prompting. The domain specific languages are embedded in The Gamma --
+they define merely the available members (and specify how to evaluate a chain of members), but
+they cannot define any custom syntax.
 
-\paragraph{B3. Make simple things easy and complex things possible.} Some users of the system may, over time, become advanced users
-and the system should support those. In other words, the upper bound on what can be achieved
-should be well above the most common use cases. At the same time, the complex features that power users might
-need should not affect the most elementary uses of the system and should remain completely hidden
-until needed. In other words, the lower bound on what one needs to know to use the system for basic
-tasks should be as low as possible. todo{I think I got this idea of "boundaries" on what
-is possible from some paper, but cannot recall which...}
+We discuss the individual domain specific languages for querying data tables, graph databases and
+data cubes in a later section. The complexity of those languages differs. The previously discussed
+language for querying tabular data is the most complex one. However, The Gamma makes it easy for
+the user to start exploring and learning new languages, because they are all accessible via
+iterative prompting.
 
-\paragraph{B4. Visibility of state.} To support transparency, the system should make its entire state
-transparent -- when reviewing a data analysis, all parameters should be immediately visible and the
-user should not need to, e.g.~navigate through complex user interface to find them.
+\subsection{Building the Magic Escalator of Knowledge}
+As discussed earlier, The Gamma is designed for users who work under tight deadlines and only
+analyse data as their secondary task. The Gamma aims to support such users by having a low
+barrier for entry and making it easy to learn independently.
+
+\paragraph{Design for Percolation}
+When analysing how Excel users learn Sarkar \cite{learning} points out that users learn new
+features opportunistically when the usage of a feature is apparent in a spreadsheet. For
+example, users can learn different functions to use in formulas, because those are visible in
+the cell. Learning how to use a wizard for creating charts in this way is not possible because
+it leaves no trace in the spreadsheet -- only the final result. Sarkar's recommendation is to
+\emph{design for percolation}, i.e.~in a way where looking at the final result makes it apparent
+what feature has been used and how.
+
+\paragraph{Text-based Source Code}
+In The Gamma, each step in the iterative prompting process results in an identifier that is
+added to the source code. This means that a program constructed solely through iterative prompting
+keeps a full trace of how it was created. Seeing the resulting source code provides the user all
+information that they need to recreate the program, not just by copying it, but also by using the
+iterative prompting mechanism. The Gamma represents code as text and allows the user to edit it
+freely, so not all interactions leave a trace. For example, deleting the most recently selected
+option and choosing a different one is not apparent from the result.
+
+\subsection{Making Complex Things Possible}
+Although the focus on The Gamma is simple data exploration and almost all the use cases we
+envision can be achieved using the iterative prompting interaction principle, there remain a
+few cases where more flexibility is needed. We aim to \emph{make simple things easy and
+complex things possible}. The language thus supports a small number of additional constructs that
+can only be used through text editing. The following example illustrates three additional
+constructs:
+
+\begin{thegamma}
+\kvd{let} topTravel =
+  expenses
+    .'sort data'.'by Travel Costs descending'.then
+    .paging.take(5).'get series'
+    .'with key Name'.'and value Travel Costs'
+
+charts.column(topTravel)
+  .setTitle("House of Lords members by travel expenses")
+  .setColors(["red","blue","green"])
+\end{thegamma}
+
+First, The Gamma allows operations with parameters such as \ikvd{take(3)} or \ikvd{setTitle("...")}.
+This is currently needed when writing a query that skips or takes first N elements from a table.
+The remaining features are not needed for basic data exploration, but allow other scenarios, such
+as manual creation of charts. The \ikvd{let} construct can be used to define (immutable) variables
+and The Gamma also supports lists written as \ikvd{[1,2,3]}.
+
+% ==================================================================================================
 
 \section{Implementation}
 \label{sec:implementation}
 
 \subsection{Language}
 
-\subsection{Type providers}
+\subsection{Data sources}
+
+% ==================================================================================================
 
 \section{Use cases}
 \label{sec:cases}
@@ -592,6 +670,15 @@ We'll have more data sources than we can write tutorials for
 
 4) What do we need to teach about a data source?
 
+"i haven't done 'then' "
+
+USABILITY ISSUES
+- need to delete the rest of the line
+- when you leave ".c" there, things break
+- typing . without indentation does not work
+- purple box vs. black wrench icons in the completion
+- how do you know top level data sources
+- 'games is' bit (with the year) - methods suck!
 
 \section{Discussion}
 
