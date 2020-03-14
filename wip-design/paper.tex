@@ -3,6 +3,11 @@
 \usepackage{fancyvrb}
 \usepackage{inconsolata}
 \usepackage{xcolor}
+\usepackage{tikz}
+\newcommand*{\priority}[1]{\begin{tikzpicture}[scale=0.12]%
+    \draw (0,0) circle (1);
+    \fill[fill opacity=1,fill=black] (0,0) -- (90:1) arc (90:90-#1*3.6:1) -- cycle;
+    \end{tikzpicture}}
 
 \definecolor{kvdclr}{rgb}{0.3,0.0,0.8}
 \DefineVerbatimEnvironment{thegamma}{Verbatim}{fontfamily=zi4,numbers=left,xleftmargin=6mm,fontsize=\small,commandchars=\\\{\}}
@@ -501,6 +506,7 @@ is done via iterative prompting. The iterative nature of iterative prompting mak
 using the command line or REPL (read-eval-print-loop) tools. However, those repeatedly ask the
 user to type code or commands.
 
+%https://www.nngroup.com/articles/recognition-and-recall/
 We argue that iterative prompting is easier than other forms of interaction, because it
 follows the \emph{recognition over recall} usability heuristic. The users are only required to
 choose from an offered list of options, rather than having to recall a possible command
@@ -582,103 +588,144 @@ and The Gamma also supports lists written as \ikvd{[1,2,3]}.
 \section{Use cases}
 \label{sec:cases}
 
+\newpage
+~
+\newpage
+
+% ==================================================================================================
+
 \section{User study}
 \label{sec:study}
 
+business team of a non-profit research organization, including a former journalist
+
+\subsection{Research questions}
+
+\paragraph{RQ1: Can end users explore data with The Gamma?}
+
+\paragraph{RQ2: Can knowledge transfer between data sources?}
+
+\paragraph{RQ3: Can users learn from just code samples?}
+
+\subsection{Study design}
 this is between-user user study
 
-FIRST: How one area transfers to another?
+\subsection{Results}
+it is good
+
+\paragraph{Can end users explore data with The Gamma?}
+Yes, the table shows the results.
+People who spent between 10 and 25 minutes (average 18 minutes) working with The Gamma
+Out of 13 people, all completed some work, 1 person completed partly and 6 were able
+  to complete the task with small assistance (related to methods and syntax, as discussed below)
+
+\begin{quote}
+\emph{``This is actually pretty simple to use. You think about the logic of what you're actually asking and
+    then you try to get it into the format you can. But knowing where it comes from would tell you how
+    to trust it.''}
+\end{quote}
+
+we should use it as a training resource for students - would students get this?
+
+\begin{quote}
+\emph{``I don't think they'd need more than 5 minute video. This is a data
+  source, this is what's in there.''}
+\end{quote}
+
+\begin{quote}
+\emph{``for somebody who does not do coding or programming, this does not feel that daunting. it's not like you're giving me large screen full of code, which is reassurring" (~36)''}
+\end{quote}
 
 
-DEMO: WorldBank
-explain everything
+\paragraph{RQ2: Can knowledge transfer between data sources?}
+expenditure task (#1-#5) and lords task (#9-#11) - is transfer from worldbank to expenditure and
+from graph data to lords; the former transfers more directly, the latter less so (mainly because
+of then and methods, which we discuss below)
 
-DISPLAY: Public order and safety, Defence
-\begin{verbatim}
-expenditure.byService.'Public order and safety'.inTermsOf.GDP
-expenditure.byService.Defence.inTermsOf.GDP
-\end{verbatim}
-
-DEMO: Graph DB
-explain everything
-
-\begin{verbatim}
-drWho.Character.Doctor.'ENEMY_OF'.'[any]'
-  .'APPEARED_IN'.'[any]'.'explore_properties'.explore
-  .'group data'.'by 1-name'.'count distinct 2-title'
-\end{verbatim}
-
-DISPLAY: Who has larges travel expenses?
-(and in London only?)
-
-\begin{verbatim}
-lords.'sort data'.'by Travel Costs descending'
-
-lords
-  .'filter data'.'County is'.London.then
-  .'sort data'.'by Travel Costs descending'
-\end{verbatim}
-
-SECOND: No experts are needed
-
-DEMO: explain how live preview works, explain how '.' works,
-explain how newlines and indentation work
-
-DISPLAY 'CO2 emissions (metric tons per capita)'
-
-\begin{verbatim}
-worldbank.byCountry.'United Kingdom'
-  .'Economy & Growth'.'GDP per capita (current US$)'
-
-worldbank.byCountry.Germany
-  .'Economy & Growth'.'GDP per capita (current US$)'
-
-worldbank.byCountry.'Czech Republic'
-  .'Economy & Growth'.'GDP per capita (current US$)'
-\end{verbatim}
+\begin{quote}
+  \emph{``I found it quite easy to translate what you showed us in the demo to the new dataset, i though it was quite easy to just get how that works''}
+\end{quote}
 
 
-DISPLAY: Top athletes from London
+\paragraph{RQ3: Can users learn from just code samples?}
+in the worldbank task (#6-#9), users were given just a code sample and demo using no real
+data source. They were able to complete based on just following and modifying code sample (to find other data).
+(no problems they had were related to data source)
 
-\begin{verbatim}
-olympics
-  .'group data'.'by Team'.'sum Gold'.then
-  .'sort data'.'by Gold descending'.then
-  .paging.take(5)
-  .'get series'.'with key Team'.'and value Gold'
-\end{verbatim}
+- "a video would just be this [code samples] anyway" (~19)
+- "keystroke by keystroke video would be good"
+
+\begin{quote}
+  \emph{``I think providing one video of one example is good and maybe a couple of little examples of code wher people can see the kind of things you can do" (28:02)''}
+\end{quote}
+
+"more than one example of code would be useful because I'd be less confused about options"
 
 
-THIRD: 'then'
+\subsection{Further observations}
 
-DEMO: Show worldbank
-GIVE: Commented source code using 'olympics'
-DISPLAY: Top athletes from London (think-aloud)
+\paragraph{Making complex things possible hurts}
+#11, #12, #13 all struggled with methods (they show in the completion lists)
 
-QUESTIONS
+\paragraph{Benefits and drawbacks of text}
 
-1) Did I tell you enough in the introduction to get started?
+AG - confused by indentation (Monaco inserts it automatically - duh!)
+it does not work if you have it and add a new to-level thing;
 
-Say we want to provide educational materials for journalists
-(with limited budgets), what would be the most important?
+BM uses copy & paste to copy thing and replace one identifier in the middle
+(which would be difficult to do with non-textual representation)
 
-2) Video or just code samples?
+people occasionally miss '.' when typing and try to use a space
 
-We'll have more data sources than we can write tutorials for
+\paragraph{How users understand the then keyword}
 
-3) Do we just teach them how the environment works?
+what is then: "allows us to chain together the operations"
+is it special? "maybe I need it just to split over multiple lines" (experiments..) "no!"
 
-4) What do we need to teach about a data source?
+"when you explained about the "dot then" that was a really useful thing to know. When I found that, I was like 'this is fine, this is doable'. If I knew this from the start, it would [have been easier]" (~27)
 
-"i haven't done 'then' "
+"I thought 'then' starts a new line. (...) I realised there was no 'then' after the 'paging' command. "
+"It starts a new line or a new query? I assumed there would be one after 'paging' too."
 
-USABILITY ISSUES
-- need to delete the rest of the line
-- when you leave ".c" there, things break
-- typing . without indentation does not work
-- purple box vs. black wrench icons in the completion
-- how do you know top level data sources
-- 'games is' bit (with the year) - methods suck!
+\subsection{Conclusions}
+(former journalist)
+Do you think this is something journalists could figure out how to use?
+"Yeah, I think so. There's a lot of effort going into data journalism that programming could make much quicker,
+but I was always nervous about code." ... "Something like this would really simplify things."
+
+\begin{table}
+  \centering
+  \begin{tabular}{l l l c l}
+    \toprule
+      & {\small \textit{Task}}
+      & {\small \textit{Kind}} & {\small \textit{Completed}}
+      & {\small \textit{Notes}} \\
+    \midrule
+    \small \#1 & \small expenditure & \small cube & \priority{50} & {\small Obtained one of two data series}\\
+    \small \#2 & \small expenditure & \small cube & \priority{100} & {\small Explored furhter data series }\\
+    \small \#3 & \small expenditure & \small cube & \priority{100}& {\small Explored further data series }\\
+    \small \#4 & \small expenditure & \small cube & \priority{75}& {\small With hint to use another member }\\
+    \small \#5 & \small expenditure & \small cube & \priority{100}& {\small Explored further data series }\\
+    \small \#6 & \small worldbank & \small cube & \priority{75} & {\small With general syntax hint }\\
+    \small \#7 & \small worldbank & \small cube & \priority{100} & {\small Completed very quickly }\\
+    \small \#8 & \small worldbank & \small cube & \priority{100} & {\small Extra time to find data }\\
+    \small \#9 & \small lords & \small table & \priority{75} & {\small  Struggled with composition}\\
+    \small \#10 & \small lords & \small table & \priority{100} & {\small Completed very quickly }\\
+    \small \#11 & \small lords & \small table & \priority{75} & {\small With a hint to avoid methods}\\
+    \small \#12 & \small olympics & \small table & \priority{75}  & {\small With a hint to avoid methods}\\
+    \small \#13 & \small olympics & \small table & \priority{75}  & {\small With a hint to avoid methods}\\
+    \bottomrule
+  \end{tabular}
+  \caption{Table captions should be placed below the table. We
+    recommend table lines be 1 point, 25\% black. Minimize use of
+    table grid lines.}~\label{tab:table1}
+\end{table}
+
+\newpage
+~
+\newpage
+
+% ==================================================================================================
 
 \section{Discussion}
 
