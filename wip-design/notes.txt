@@ -1,0 +1,217 @@
+
+FIRST: How one area transfers to another?
+
+
+DEMO: WorldBank
+explain everything
+
+DISPLAY: Public order and safety, Defence
+\begin{verbatim}
+expenditure.byService.'Public order and safety'.inTermsOf.GDP
+expenditure.byService.Defence.inTermsOf.GDP
+\end{verbatim}
+
+DEMO: Graph DB
+explain everything
+
+\begin{verbatim}
+drWho.Character.Doctor.'ENEMY_OF'.'[any]'
+  .'APPEARED_IN'.'[any]'.'explore_properties'.explore
+  .'group data'.'by 1-name'.'count distinct 2-title'
+\end{verbatim}
+
+DISPLAY: Who has larges travel expenses?
+(and in London only?)
+
+\begin{verbatim}
+lords.'sort data'.'by Travel Costs descending'
+
+lords
+  .'filter data'.'County is'.London.then
+  .'sort data'.'by Travel Costs descending'
+\end{verbatim}
+
+SECOND: No experts are needed
+
+DEMO: explain how live preview works, explain how '.' works,
+explain how newlines and indentation work
+
+DISPLAY 'CO2 emissions (metric tons per capita)'
+
+\begin{verbatim}
+worldbank.byCountry.'United Kingdom'
+  .'Economy & Growth'.'GDP per capita (current US$)'
+
+worldbank.byCountry.Germany
+  .'Economy & Growth'.'GDP per capita (current US$)'
+
+worldbank.byCountry.'Czech Republic'
+  .'Economy & Growth'.'GDP per capita (current US$)'
+\end{verbatim}
+
+
+DISPLAY: Top athletes from London
+
+\begin{verbatim}
+olympics
+  .'group data'.'by Team'.'sum Gold'.then
+  .'sort data'.'by Gold descending'.then
+  .paging.take(5)
+  .'get series'.'with key Team'.'and value Gold'
+\end{verbatim}
+
+
+THIRD: 'then'
+
+DEMO: Show worldbank
+GIVE: Commented source code using 'olympics'
+DISPLAY: Top athletes from London (think-aloud)
+
+QUESTIONS
+
+1) Did I tell you enough in the introduction to get started?
+
+Say we want to provide educational materials for journalists
+(with limited budgets), what would be the most important?
+
+2) Video or just code samples?
+
+We'll have more data sources than we can write tutorials for
+
+3) Do we just teach them how the environment works?
+
+4) What do we need to teach about a data source?
+
+"i haven't done 'then' "
+
+USABILITY ISSUES
+- need to delete the rest of the line
+- when you leave ".c" there, things break
+- typing . without indentation does not work
+- purple box vs. black wrench icons in the completion
+- how do you know top level data sources
+- 'games is' bit (with the year) - methods suck!
+
+% ==================================================================================================
+
+TODO: How many people actually finish the tasks?
+
+1 KK - expenditure - finished partly (one data source, not the other)
+2 AG - expenditure - finished (and did some more exploration)
+3 HM - expenditure - finished (and did some more exploration)
+4 KR - expenditure - finished with minor hint (do not use by Year)
+5 BM - expenditure - finished (and did some more exploration)
+6 AW - worldbank - figured it out (with minor syntax hint about '.c')
+7 SL - worldbank - figured it out fine
+8 MB - worldbank - figured it out (maybe needed minor hint?)
+9 AR - lords - figured it out (after some struggling)
+10 KP - lords - figured it out (quickly)
+11 GK - lords - figured it out with some help (not filter using method)
+12 PF - olympics - finished with minor hint (methods)
+13 RN - olympics - finished with minor hint (methods)
+
+
+
+data scientist (PF)
+  * confused by methods ('Year is'.2012, 'Games contains'.2012 before 'Games is'.'London (2012)')
+  * it's more powerful than SQL because "i don't need to keep in my head the members because it's giving me context" (~11min)
+  * what is then: "allows us to chain together the operations"
+    is it special? "maybe I need it just to split over multiple lines" (experiments..) "no!" (~14min)
+  * what educational material?
+  * didn't know whether to indent it - "is it useful to show a video? maybe for one, you don't need it for everything" [every data source]
+
+
+business team 1 (KK, AG, HM, KR, BM) -- expenditure (transfer from worldbank)
+  - people can find what they are looking for if they know what they are looking for
+  - everyone who managed it continued to explore further (other things that government spends on such as education)
+  - most poeple type to use the search in auto-complete
+  - triggered discussion about misleading data visualizations
+
+  * KK - tried various different things
+  * AG - confused by indentation (Monaco inserts it automatically - duh!), it does not work if you have it and add a new to-level thing;
+    continued to explore other areas of government spending independently
+  * KR - tries to get data for individual years (to compare data over multiple years)
+    -> maybe we need to help with some sort of 'what you migth get prediction'
+  * BM - perfect; uses copy & paste to copy thing and replace one identifier in the middle
+    (which would be difficult to do with non-textual representation)
+  Discussion
+  - How do you get comparison (KR) between multiple different years?
+  "This is actually pretty simple to use. You think about the logic of what you're actually asking and
+    then you try to get it into the format you can. But knowing where it comes from would tell you how
+    to trust it."
+  - show a tree of what your options are (= show options, commands, etc.)
+  - were you able to learn from 'worldbank'?
+    "it would be time expensive to produce vidoes of what is basically the same action" (~23:55)
+    "once you know what's the question, you know how to get it"
+    what logic do we need to teach? "how you understand the data set"
+  - "ignore this, think about - because you can see all the options; think about what you want to know?
+      then, get it clear in your head what you need to ask, then start with the data source, see where to go" (~25:29)
+  - "I found it quite easy to translate what you showed us in the demo to the new dataset, i though it was quite easy to just get how that works" (~27:12)
+  - HM: it was good to just play around with it
+
+  - "you could use it as a training resource .. you could say 'here's data, tell a story'
+    you could ask them to present a story - austerity is terrible or opposite
+    (..) present different perspectives on data [training nationally]" (~33:50)
+  - would students get this? "I don't think they'd need more than 5 minute video. This is a data
+    source, this is what's in there."
+
+business team 2 (AR, KP, GK) -- lords, transfer from drWho
+  - it is hard to understand what operations are (get the data, group data, filter data)
+  - people occasionally miss '.' when typing and try to use a space
+  - people try typing "by" even for e.g. filtering
+  - not many (1/3) people try exploring independenntly afterwards
+
+  - AR figured it out eventually (help - don't need 'get the data')
+  - KP figured it out quickly
+  - GK spent a lot of time figuring out that 'then' is needed
+
+  - "having an example was helpful, you kind of know what the end goal is"
+  - "when you explained about the "dot then" that was a really useful thing to know. When I found that, I was like 'this is fine, this is doable'. If I knew this from the start, it would [have been easier]" (~27)
+  - "keystroke by keystroke video would be good"
+  - "the interface itself is clear and easy to use, but you have to be able to understand the concepts" - "it is quite different than excel; you want to click on columns"
+  - "dr who was a very accessible example, journalists will know their specialist areas; it's quite a good ... for understanding it and they can then use it for more complex ..." (~31)
+  - how do you sort to find county? then i realised i need to filter - general intro to sort, filter, etc. - once I understood that, I was okay (~32)
+  - "i quite liked those little commends 'this code is good!'" (~35)
+  - "for somebody who does not do coding or programming, this does not feel that daunting. it's not like you're giving me large screen full of code, which is reassurring" (~36)
+
+
+business team 3 (AW, MB, SL)
+  - AW - completed, but text was not helping (need to keep it syntax correct somewhat)
+  - MB - completed towards the end?
+  - SL - completed quickly, some whitespace issues
+
+  - "a video would just be this [code samples] anyway" (~19)
+  - "i don't think it was hard per se; you have to be precise. it feels like this is really a powerful tool" (~26)
+  - detailed error messages are rubbish
+
+former journalist (RN)
+  (including a bit of data journalism work)
+  * how do I start? it's just a text editor...
+  * confused by indentation: need a space before the dot
+  * confused by methods ('Year is in range' tries 'Year is in range 2012')
+  * forgot 'then' at the end of group data (when copying example)
+
+  * Do you think this is something journalists could figure out how to use?
+    "Yeah, I think so. There's a lot of effort going into data journalism that programming could make much quicker,
+    but I was always nervous about code." ... "Something like this would really simplify things."
+    "If they had a clear idea of what they're looking for and had access to the right data set, [Journalists] would find it quite easy to use." (~21:53)
+  * Stuck on 'Games is' bit
+  * If I had in front of me all the options, that would be helpful (22:53)
+  * "Getting the final table was very easy, so I think it's good. I would definitely use it as a journalist."
+
+  * we have more data sources (e.g. worldbank) - what kind of info do we need to give people?
+    "more than one example of code would be useful because I'd be less confused about options" (27:16)
+    "I think providing one video of one example is good and maybe a couple of little examples of code wher people can see the kind of things you can do" (28:02)
+
+  * then - what does it do?
+    "I thought 'then' starts a new line. (...) I realised there was no 'then' after the 'paging' command. "
+    "It starts a new line or a new query? I assumed there would be one after 'paging' too."
+
+PROBLEMS NOT SOLVED
+ - data sources
+ - chart labels
+ - where's the data come from?
+ - how to embed it, integrate in CMS - download as Excel
+
+FOLLOW UP QUESTIONS
+ - something around how hesitant people are about code

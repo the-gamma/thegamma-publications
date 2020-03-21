@@ -8,6 +8,11 @@
     \draw (0,0) circle (1);
     \fill[fill opacity=1,fill=black] (0,0) -- (90:1) arc (90:90-#1*3.6:1) -- cycle;
     \end{tikzpicture}}
+\newcommand*{\priorityc}[1]{
+\resizebox{0.8em}{0.8em}{
+  {\protect\tikz{ \protect
+    \draw[line width=1mm, black] (0,0) circle (1); \fill[fill opacity=1,fill=black] (0,0) -- (90:1) arc (90:90-#1*3.6:1) -- cycle;
+    } }}}
 
 \definecolor{kvdclr}{rgb}{0.3,0.0,0.8}
 \DefineVerbatimEnvironment{thegamma}{Verbatim}{fontfamily=zi4,numbers=left,xleftmargin=6mm,fontsize=\small,commandchars=\\\{\}}
@@ -581,7 +586,11 @@ and The Gamma also supports lists written as \ikvd{[1,2,3]}.
 
 \subsection{Language}
 
-\subsection{Data sources}
+\subsection{Data cube}
+
+\subsection{Tabular data}
+
+\subsection{Graph database}
 
 % ==================================================================================================
 
@@ -597,75 +606,181 @@ and The Gamma also supports lists written as \ikvd{[1,2,3]}.
 \section{User study}
 \label{sec:study}
 
-business team of a non-profit research organization, including a former journalist
+Our goal is to develop an easy-to-learn tool that journalists and other non-programmers can use
+for producing transparent data analyses. To evaluate the extent to which The Gamma achieves this,
+we conduct a user study. We recruit participants among the operations and business team of a
+non-profit research organization and investigate three research questions.
 
-\subsection{Research questions}
-
-\paragraph{RQ1: Can end users explore data with The Gamma?}
+\paragraph{RQ1: Can non-programmers explore data with The Gamma?}
+We give participants one of four simeple data exploration tasks and see if they can complete the
+task using The Gamma and, possibly, how much assistance they need.
 
 \paragraph{RQ2: Can knowledge transfer between data sources?}
+Our first hypothesis is that users familiar with the iterative prompting principle will be able to
+use an unfamiliar data source. In two of the tasks, participants are shown one data source and
+then asked to work with a different one.
 
 \paragraph{RQ3: Can users learn from just code samples?}
+Our second hypothesis is that users can learn through precolation, i.e.~by looking at the source
+code of published analyses. In one of our tasks, participants are given a code sample, but only a
+minimal explanation of The Gamma environment.
 
 \subsection{Study design}
-this is between-user user study
+We perform between-subjects study to evaluate the first experience of using The Gamma.
+We recruit 13 participants (5 male, 8 female) from a business team
+of a research lab working in various non-technical roles (project management,
+partnerships, communications) including one former journalist.
+
+We split participants into 4 groups. We first gave a brief 5 minute demonstration of The
+Gamma and then asked participants to complete a task. Finally, we conducted a short semi-structured
+group interview and later sent participants a follow-up questionnaire. The four tasks were:
+
+\begin{itemize}
+\item \emph{Expenditure.} Participants were given a demo using \emph{worldbank}.
+  They were asked to use the \emph{expenditure} data source to compare the UK government spending
+  on ``Public order and safety'' and ``Defence'' in terms of GDP.
+\item \emph{Lodrs.} Participants were given a demo using \emph{worldbank}.
+  They were asked to use the \emph{lords} data source (a table with House of Lords
+  members expenses) to find a members representing London with the highest travel costs.
+\item \emph{Worldbank.} Participants were given a minimal explanation of The Gamma environment and
+  a code sample using \emph{worldbank}. They were asked to solve a different task using
+  the \emph{worldbank} data source.
+\item \emph{Olympics.} Participnts were given a demo using \emph{olympics}.
+  They were asked to solve a more complex problem using the same data source.
+\end{itemize}
+
+We let participants work independently, but offered guidance if they got stuck for longer period of
+time. Tasks \emph{expenditure} and \emph{lords} aim to answer the questions RQ1 and RQ2; the task
+\emph{worldbank} aims to answer RQ1 and RQ3. In \emph{olympics}, we test RQ1 using a more complex
+data source and we ask further questions to explore their understanding of the data source.
+
+\begin{table}
+  \centering
+  \begin{tabular}{l l l c l}
+    \toprule
+      & {\small \textit{Task}}
+      & {\small \textit{Kind}} & {\small \textit{Done}}
+      & {\small \textit{Notes}} \\
+    \midrule
+    \small \#1 & \small expenditure & \small cube & \priority{50} & {\small Obtained one of two data series}\\
+    \small \#2 & \small expenditure & \small cube & \priority{100} & {\small Explored furhter data series }\\
+    \small \#3 & \small expenditure & \small cube & \priority{100}& {\small Explored further data series }\\
+    \small \#4 & \small expenditure & \small cube & \priority{75}& {\small With hint to use another member }\\
+    \small \#5 & \small expenditure & \small cube & \priority{100}& {\small Explored further data series }\\
+    \small \#6 & \small worldbank & \small cube & \priority{75} & {\small With general syntax hint }\\
+    \small \#7 & \small worldbank & \small cube & \priority{100} & {\small Completed very quickly }\\
+    \small \#8 & \small worldbank & \small cube & \priority{100} & {\small Extra time to find data }\\
+    \small \#9 & \small lords & \small table & \priority{75} & {\small  Struggled with composition}\\
+    \small \#10 & \small lords & \small table & \priority{100} & {\small Completed very quickly }\\
+    \small \#11 & \small lords & \small table & \priority{75} & {\small With a hint to avoid operations}\\
+    \small \#12 & \small olympics & \small table & \priority{75}  & {\small With a hint to avoid operations}\\
+    \small \#13 & \small olympics & \small table & \priority{75}  & {\small With a hint to avoid operations}\\
+    \bottomrule
+  \end{tabular}
+  \caption{Overview of the work completed by individual participants. The marks denote:
+    \priorityc{75} = required some guidance, \priorityc{50} = partially completed.}
+  \label{tab:tasks}
+  \vspace{-1em}
+\end{table}
 
 \subsection{Results}
-it is good
+Table~\ref{tab:tasks} summarizes the work done by the study participants.
+For each participant, we record the task, the kind of data source used in the task and the
+level of completion. For participants who needed assistance, the notes section details the help
+given. We analyse the hints in the next section. Table~\ref{tab:quest} shows the results of the
+follow-up questionnaire.
 
-\paragraph{Can end users explore data with The Gamma?}
-Yes, the table shows the results.
-People who spent between 10 and 25 minutes (average 18 minutes) working with The Gamma
-Out of 13 people, all completed some work, 1 person completed partly and 6 were able
-  to complete the task with small assistance (related to methods and syntax, as discussed below)
+\paragraph{RQ1: Can non-programmers explore data with The Gamma?}
+Three results allow us to answer RQ1 in the affirmative. First, 7 out of 9
+participants agree or strongly agree that they ``found the system easy to use''. Second,
+participants spent between 10 and 25 minutes (average 17 minutes) working with The Gamma and
+all 12 out of 13 participants completed the task; 6 participants required some assistance,
+but 3 of those faced one issue (discussed later) that could be covered in the introductory
+presentation. Third, a number of participants shared positive comments in the semi-structured
+interview.
+
+Participant \#3 found the system simple, but also points out an issue about data provenance,
+which we discuss later:
 
 \begin{quote}
-\emph{``This is actually pretty simple to use. You think about the logic of what you're actually asking and
-    then you try to get it into the format you can. But knowing where it comes from would tell you how
-    to trust it.''}
+\emph{``This is actually pretty simple to use. You think about the logic of what you're actually
+  asking and then you try to get it into the format you can. But knowing where it comes from
+  would tell you how to trust it.''}
 \end{quote}
 
-we should use it as a training resource for students - would students get this?
+Similarly, participant \#2, notes that The Gamma alleviated their unease about code:
 
 \begin{quote}
-\emph{``I don't think they'd need more than 5 minute video. This is a data
+\emph{``For somebody who does not do coding or programming, this does not feel that daunting.
+  It's not like you're giving me large screen full of code, which is reassurring.''}
+\end{quote}
+
+Finally, participant \#5 suggested the system could be used as an educational tool for teaching
+critical thinking with data. They answer a follow-up question about what training materials would
+the students need as follows:
+
+\begin{quote}
+\emph{``I don't think they'd need more than 5 minute video (..) this is the data
   source, this is what's in there.''}
 \end{quote}
 
-\begin{quote}
-\emph{``for somebody who does not do coding or programming, this does not feel that daunting. it's not like you're giving me large screen full of code, which is reassurring" (~36)''}
-\end{quote}
-
-
 \paragraph{RQ2: Can knowledge transfer between data sources?}
-expenditure task (#1-#5) and lords task (#9-#11) - is transfer from worldbank to expenditure and
-from graph data to lords; the former transfers more directly, the latter less so (mainly because
-of then and methods, which we discuss below)
+Our study does not conclusively answer RQ2. There is some evidence in favor of a positive answer.
+In the practical part, two of the tasks (\emph{expenditure} and \emph{lords}) used a different data
+source in the introductory presentation than the one that the participants were asked to use.
+Participants were able to complete those tasks, although \emph{lords} has been more challenging
+as it involves a more complex data source. In the interview, participant \#2 also gives a positive
+answer:
 
 \begin{quote}
-  \emph{``I found it quite easy to translate what you showed us in the demo to the new dataset, i though it was quite easy to just get how that works''}
+\emph{``I found it quite easy to translate what you showed us in the demo to the new dataset.
+   I though it was quite easy to just get how that works.''}
 \end{quote}
 
+Negative evidence is offered by the follow-up questionnaire. When asked
+whether they would know how to approach a task using a new data source, 5 out of 9 participants
+diagree or strongly disagree that they would know how to approach it without any further guidance.
+Participants did not believe that knowledge can easily transfer to another
+data source.
 
 \paragraph{RQ3: Can users learn from just code samples?}
-in the worldbank task (#6-#9), users were given just a code sample and demo using no real
-data source. They were able to complete based on just following and modifying code sample (to find other data).
-(no problems they had were related to data source)
+A positive answer to RQ3 is supported by the \emph{worldbank} task results, the follow-up questionnaire
+and interview comments. In the task, participants were given only a
+minimal demo of the iterative prompting principle together with print-out of 2 code samples.
+All three were able to complete a related task using the same data source. In the follow-up
+questionnaire, only 2 out of 9 participants disagree or strongly disagree that
+they would know how to approach a task using an unfamiliar data source when given ``a number
+of code samples''.
 
-- "a video would just be this [code samples] anyway" (~19)
-- "keystroke by keystroke video would be good"
+In the semi-structured interview, participants were asked what would be the most useful format
+of educational material about The Gamma (code samples, video tutorials, etc.).
+Participant \#7 noted that \emph{``a video would just be this [i.e.~a code sample] anyway''}, while
+participant \#13 (former journalist) answered:
 
 \begin{quote}
-  \emph{``I think providing one video of one example is good and maybe a couple of little examples of code wher people can see the kind of things you can do" (28:02)''}
+  \emph{``I think providing one video of one example is good and maybe a couple of little examples
+  of code wher people can see the kind of things you can do.''}
 \end{quote}
 
-"more than one example of code would be useful because I'd be less confused about options"
-
+This is aligned with our design goal. Once the user understands the iterative prompting principle
+(which can be done through a video tutorial), they can learn how to use any specific data source
+just from code samples.
 
 \subsection{Further observations}
+In this section, we briefly discuss a number of observations about The Gamma design that
+emerged from the study, some of which suggest ways of improving the system.
 
-\paragraph{Making complex things possible hurts}
-#11, #12, #13 all struggled with methods (they show in the completion lists)
+\paragraph{Making complex things possible may hurt}
+As discussed earlier, The Gamma language supports operations such as \ikvd{take(5)}. Most type
+providers never generate those, but the provider for working with tabular data is an exception.
+When filtering data, the provider allows specifying a condition on numerical attributes such as
+\ikvd{olympics.\textquotesingle filter data\textquotesingle.\textquotesingle Year is greater than\textquotesingle(2004)}.
+
+Three participants (\#11, \#12, \#13) struggled to complete a task, because they
+initially attempted to use those operations. However, those violate the iterative prompting
+principle as one cannot type `.' after \ikvd{\textquotesingle Year is greater than\textquotesingle}.
+This suggests that we should avoid operations in type providers for data access, even if it
+limits the expressive power of the type provider.
 
 \paragraph{Benefits and drawbacks of text}
 
@@ -687,39 +802,36 @@ is it special? "maybe I need it just to split over multiple lines" (experiments.
 "I thought 'then' starts a new line. (...) I realised there was no 'then' after the 'paging' command. "
 "It starts a new line or a new query? I assumed there would be one after 'paging' too."
 
+\begin{table}
+  \centering
+  \begin{tabular}{p{19em} c c}
+    \toprule
+      {\small \textit{Questionnaire item}} & {\small \textit{Avg}} & {\small \textit{Sdv}} \\
+    \midrule
+    \small Considering your experience \& possible use of The Gamma:\\
+    \small \quad I found the system easy to use. & \small 2.11 & \small 0.87\\
+    \small \quad Journalists will be able to use it to analyse data. & \small 2.67 & \small 1.05\\
+    \small \quad Readers will be able to critically examine the analyses. & \small 2.44 & \small 0.68\\
+    \small Thinking about the usability of the system:\\
+    \small \quad The resulting programs are easy to understand. & \small 2.33 & \small 0.82\\
+    \small \quad The text editor for creating them was easy to use. & \small 2.33 & \small 0.94\\
+    \small \quad Finding the right item in the auto-complete was easy. & \small 2.56 & \small 1.42\\
+    \small I would know how to approach a task using a new data source\\
+    \small \quad If given a comprehensive video tutorial. & \small 2.00 & \small 1.24\\
+    \small \quad If given a number of code samples. & \small 2.78 & \small 1.13\\
+    \small \quad Without any further guidance. & \small 3.56 & \small 1.17\\
+    \bottomrule
+  \end{tabular}
+  \caption{Summary of follow-up questionnaire responses using
+    a 5-point Likert scale (1 = strongly agree, 5 = strongly disagree) over 9 subjects.}
+  \label{tab:quest}
+\end{table}
+
 \subsection{Conclusions}
 (former journalist)
 Do you think this is something journalists could figure out how to use?
 "Yeah, I think so. There's a lot of effort going into data journalism that programming could make much quicker,
 but I was always nervous about code." ... "Something like this would really simplify things."
-
-\begin{table}
-  \centering
-  \begin{tabular}{l l l c l}
-    \toprule
-      & {\small \textit{Task}}
-      & {\small \textit{Kind}} & {\small \textit{Completed}}
-      & {\small \textit{Notes}} \\
-    \midrule
-    \small \#1 & \small expenditure & \small cube & \priority{50} & {\small Obtained one of two data series}\\
-    \small \#2 & \small expenditure & \small cube & \priority{100} & {\small Explored furhter data series }\\
-    \small \#3 & \small expenditure & \small cube & \priority{100}& {\small Explored further data series }\\
-    \small \#4 & \small expenditure & \small cube & \priority{75}& {\small With hint to use another member }\\
-    \small \#5 & \small expenditure & \small cube & \priority{100}& {\small Explored further data series }\\
-    \small \#6 & \small worldbank & \small cube & \priority{75} & {\small With general syntax hint }\\
-    \small \#7 & \small worldbank & \small cube & \priority{100} & {\small Completed very quickly }\\
-    \small \#8 & \small worldbank & \small cube & \priority{100} & {\small Extra time to find data }\\
-    \small \#9 & \small lords & \small table & \priority{75} & {\small  Struggled with composition}\\
-    \small \#10 & \small lords & \small table & \priority{100} & {\small Completed very quickly }\\
-    \small \#11 & \small lords & \small table & \priority{75} & {\small With a hint to avoid methods}\\
-    \small \#12 & \small olympics & \small table & \priority{75}  & {\small With a hint to avoid methods}\\
-    \small \#13 & \small olympics & \small table & \priority{75}  & {\small With a hint to avoid methods}\\
-    \bottomrule
-  \end{tabular}
-  \caption{Table captions should be placed below the table. We
-    recommend table lines be 1 point, 25\% black. Minimize use of
-    table grid lines.}~\label{tab:table1}
-\end{table}
 
 \newpage
 ~
@@ -728,6 +840,9 @@ but I was always nervous about code." ... "Something like this would really simp
 % ==================================================================================================
 
 \section{Discussion}
+
+Data provenance (where data comes from)
+What are the data sources availbale (how to start)?
 
 \subsection{Study limitations}
 exploratory in nature so we do not make any quantitative claims about effects
