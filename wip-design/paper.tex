@@ -274,6 +274,93 @@ The Gamma is available as open-source at \href{http://thegamma.net}{\small\bf\tt
 
 \section{Related work}
 
+Evaluating ui systems research
+\cite{evaluating}
+
+Type providers
+\cite{inforich,fsdata,dotdriven}
+
+Assistants for SW / auto-complete
+\cite{assistants}
+
+Journalism tools
+\cite{idyll}
+
+Notebook systems
+\cite{jupyter} or more transparency \cite{wrattler}
+managing messes \cite{messes}
+
+Visual data exploration tools
+\cite{control,tableau,vizdom}
+
+Wrangler
+\cite{wrangler}
+
+Victor
+\cite{learnable,principle}
+
+Live and exploratory programming
+\cite{review} - review of the two
+\cite{exploratory}, which led to new tools~\cite{variolite} (supports informal versioning),
+
+
+\cite{liveroad}
+review the use of live programming in a Smalltalk derived environment. Lighttable~\cite{lighttable}
+
+A more principled approach can be used by systems based on structured editing~\cite{structure-based,livenut,lamdu}
+
+Subtext
+\cite{subtext,directprog}
+
+sketch and sketch
+\cite{sketchnsketch}
+
+lower this barrier to valid, replicablestatistical analysis, we introduce Tea1, a high-level declar-ative language and runtime system
+(still JSON, but good aims)
+\cite{tea}
+
+DS.js: Turn Any Webpage into an Example-Centric Live Programming Environment for Learning Data Science
+(cool but just JS)
+\cite{dsjs}
+
+Eviza: A Natural Language Interface for Visual Analysis
+(from Tableau; uses auto-complete to suggest natural language phrases)
+\cite{eviza}
+
+Declarative Interaction Design for Data Visualization
+(interactive construction of vega-like grammar of graphics)
+\cite{interactionviz}
+
+programming by demonstration
+\cite{watch}
+
+"Dontcheva et al. [4] use PBD techniques to enable
+extraction, integration, and templated search of web data.
+Gulwani [8] introduces an algorithm for learning expres-
+sive string processing programs from input-output examples"
+
+programming by example as an alternative
+\cite{spreadsheetpbe,flashextract}
+
+Lyra: An interactive visualization design environment
+\cite{lyra}
+
+end-user programming
+\cite{enduser} - overview, \cite{smallmatter} book
+
+touch based data science??? must inevitably have fewer intraections
+NA
+
+autocomplete / predictive text work
+\cite{predictive} - predicting data transformation scripts in a somewhat more complex language
+\cite{proactive} -
+
+\cite{potter}
+Potter’s Wheel: An Interactive Data Cleaning System
+n interactive data clean-ing system that tightly integrates transformation anddiscrepancy detection.   Users  gradually build  trans-formations  to  clean  the  data  by  adding  or  undoingtransforms on a spreadsheet-like interface; the effectof a transform is shown at once on records visible onscreen.
+
+\newpage
+
 \textbf{Visual tools.}
 
 \textbf{Programming tools.}
@@ -721,10 +808,85 @@ using the tabular data type provider.
 
 % ==================================================================================================
 
+
 \section{Use cases}
 \label{sec:cases}
 
+The Gamma aims to simplify programmatic data exploration while keeping enough expressive power
+to allow users to create interesting data visualizations. We consider the expressive power in
+this section and assess simplicity in the next one. We used The Gamma to analyse
+the UK government expenditure, activities of a research institute, Olympic medals and
+information about the Doctor Who series\footnote{Links removed to preserve anonymity.}.
+In this section, we consider two interesting larger examples.
+
+\subsection{If Michael Phelps were a Country}
+Michael Phelps has won so many medals that media compared him to
+countries.\footnote{\href{https://www.npr.org/sections/thetorch/2016/08/14/489832779/}{\small\bf\ttfamily npr.org/sections/thetorch/2016/08/14/489832779/}}
+Using the tabular data provider, we construct a chart shown in Figure~\ref{fig:cases} that
+produces a country league table including Michael Phelps:\footnote{Available at: \url{http://gallery.thegamma.net/86/}}
+
+\begin{thegamma}
+\kvd{let} data = olympics
+    .'group data'.'by Team'.'sum Gold'.then
+    .'sort data'.'by Gold descending'.then
+    .paging.skip(43).take(4)
+    .'get series'.'with key Team'.'and value Gold'
+
+\kvd{let} phelps = olympics
+  .'filter data'.'Athlete is'.'Michael Phelps'.then
+  .'group data'.'by Athlete'.'sum Gold'.then
+  .'get series'.'with key Athlete'.'and value Gold'
+
+charts.bar(data.append(phelps))
+  .setColors(["#aec7e8","#aec7e8","#1f77b4"])
+\end{thegamma}
+
+The core of the data analysis is done in two commands. The first counts gold medals by countries
+and uses paging to fetch 4 countries with suitable number of medals. In the second, we abuse the
+grouping operation to aggregate data for just a single group. The two data series are then assigned
+to local variables (for readability) and passed to the \ikvd{chart.columns} function.
+In this case study, the core data exploration can be constructed via iterative prompting, but
+building a chart requires invoking the \ikvd{append} operation and specifying colors using a list.
+
+\subsection{The Most Frequent Doctor Who Villains}
+In the second case study, we list Doctor Who villains by the number of episodes in which they
+appear.\footnote{Available at: \url{http://gallery.thegamma.net/87/}} This is interesting as it
+combines the graph database provider for fetching the data with the tabular data provider for
+summarization:
+
+\begin{thegamma}
+\kvd{let} topEnemies = drWho.Character.Doctor
+  .'ENEMY OF'.'[any]'.'APPEARED IN'.'[any]'.explore
+  .'group data'.'by Character name'
+    .'count distinct Episode name'.then
+  .'sort data'.'by Episode name descending'.then
+  .paging.take(8).'get series'
+    .'with key Character name'.'and value Episode name'
+
+chart.bar(topEnemies)
+\end{thegamma}
+
+Lines 1-2 use the graph database provider to find all paths linking the Doctor node with any
+character linked via \ikvd{ENEMY OF}, followed by any episode linked by \ikvd{APPEARED IN}.
+This produces a table that can be analysed using the tabular data provider by choosing the
+\ikvd{explore} member. For each character (the villain) we count the total number of
+distinct episodes in the table. The result is shown in Figure~\ref{fig:cases}.
+
+The logic is not trivial, but it performs a fairly sophisticated data analysis that involves a
+graph database query followed by an SQL-like data aggregation. The code can be constructed
+using iterative prompting (with the exception of the numbers in paging). It can also be constructed
+gradually and instantaneous prviews support the user while doing so.
+
 \newpage
+
+
+\begin{figure}
+\centering
+\includegraphics[width=1\columnwidth]{figures/cases}
+\caption{Charts produced by two The Gamma case studies.}
+\label{fig:cases}
+\end{figure}
+
 ~
 \newpage
 
