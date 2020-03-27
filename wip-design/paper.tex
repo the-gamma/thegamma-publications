@@ -154,20 +154,12 @@
 
 \title{\plaintitle}
 
-\numberofauthors{3}
+\numberofauthors{1}
 \author{%
   \alignauthor{Leave Authors Anonymous\\
     \affaddr{for Submission}\\
     \affaddr{City, Country}\\
-    \email{e-mail address}}\\
-  \alignauthor{Leave Authors Anonymous\\
-    \affaddr{for Submission}\\
-    \affaddr{City, Country}\\
-    \email{e-mail address}}\\
-  \alignauthor{Leave Authors Anonymous\\
-    \affaddr{for Submission}\\
-    \affaddr{City, Country}\\
-    \email{e-mail address}}\\
+    \email{e-mail address}}
 }
 
 \maketitle
@@ -274,113 +266,74 @@ The Gamma is available as open-source at \href{http://thegamma.net}{\small\bf\tt
 
 \section{Related work}
 
-Evaluating ui systems research
-\cite{evaluating}
+The Gamma brings together recent programming language innovations for working with data
+\cite{inforich}, work on making programming accessible to non-programmers \cite{enduser,smallmatter}
+and work on tools for journalists such as Idyll \cite{idyll}. Related work includes a range of
+visual and programmatic tools used by data scientists, work that aims to simplify programming
+or explore alternative paradigms and various predictive tools that assist users in completing
+programming or data exploration tasks.
 
-Type providers
-\cite{inforich,fsdata,dotdriven}
+% Evaluating ui systems research
+% \cite{evaluating}
 
-Assistants for SW / auto-complete
-\cite{assistants}
+\subsection{Data science tools}
+Data exploration is typically done using spreadsheets, comprehensive visual tools or
+via code using notebooks. Notebooks such as Jupyter \cite{jupyter} are also popular with technically
+skilled journalists as they allow combining code with commentary and visual outputs. However,
+notebooks can lead to messy hard to reproduce code \cite{messes,wrattler}.
 
-Journalism tools
-\cite{idyll}
+Visual data analytics tools \cite{control,vizdom} such as Tableau \cite{tableau} do not require
+programming skills, but require mastering a range of different interactions. They also make it
+hard to see what data transformations have been done. Several systems for data exploration,
+e.g.~Potter's Wheel and Wrangler \cite{potter,wrangler}, and visualization, e.g.~Lyra \cite{lyra},
+provide a GUI, but record a transparent script that can be seen and modified by the user.
 
-Notebook systems
-\cite{jupyter} or more transparency \cite{wrattler}
-managing messes \cite{messes}
+\subsection{Easier programming tools}
+We aim to design a programming environment that is easy to use and learn. Many approaches to this
+goal have been tried. Victor \cite{learnable,principle} introduced design principles that
+inspired many to build live programming systems \cite{review,liveroad,lighttable} that give
+immediate feedaback to help programmers understand how code relates to output and
+exploratory systems \cite{variolite,exploratory} that assist with completing open-ended tasks.
 
-Visual data exploration tools
-\cite{control,tableau,vizdom}
+To avoid difficulties with editing code as text, some systems use structured editors~\cite{structure-based,livenut,lamdu}.
+In Subtext \cite{subtext,directprog} the language itself is co-designed with the editor to make
+the interactions with code more natural. Finally, programming can be made easier by designing
+high-level declarative abstractions. Tea does so for statistical analyses \cite{tea} and
+Satyanarayan et al. \cite{interactionviz,vegalite} does so for interactive data visualizations.
 
-Wrangler
-\cite{wrangler}
+The Gamma is live in that it gives an instant preview of the results. It is text-based,
+although it is syntactically simple. The code written in The Gamma is high-level and so work
+on declarative abstractions is a valuable inspiration.
 
-Victor
-\cite{learnable,principle}
+\subsection{Code completion and assistants}
+A key component in The Gamma design is the use of auto-complete for offering possible
+operations. Code completion has been pioneerd by Kaiser~\cite{assistants}, but our work is more
+directly inspired by the work on type providers \cite{inforich,fsdata,dotdriven}, which utilize
+code completion to integrate external data into a statically typed programming language.
 
-Live and exploratory programming
-\cite{review} - review of the two
-\cite{exploratory}, which led to new tools~\cite{variolite} (supports informal versioning),
+When using type providers, completions are offered as the user types code. However, completion
+tools can also recmmend scripts when users begin interacting with data \cite{predictive,proactive}.
+Alternatively, they can also be guided by natural language as for example Eviza~\cite{eviza},
+which uses natural language for data exploration. CodeMend~\cite{codemend} uses natural language
+for more general code edits, but uses data visualization as a case study.
+Finally, data entry interfaces based on completion such as Dasher \cite{dasher} utilize an
+interaction principle similar to our iterative prompting.
 
+\subsection{Programming without writing code}
 
-\cite{liveroad}
-review the use of live programming in a Smalltalk derived environment. Lighttable~\cite{lighttable}
+A number of tools for data exploration use alternative approaches to programming where
+the user does not write code. In programming by example \cite{byexample}, the user gives
+examples of desired results. In data science, this approach has been used for example for
+specifying data transformations in spreadsheets and data extraction \cite{spreadsheetpbe,flashextract}.
 
-A more principled approach can be used by systems based on structured editing~\cite{structure-based,livenut,lamdu}
-
-Subtext
-\cite{subtext,directprog}
-
-sketch and sketch
-\cite{sketchnsketch}
-
-lower this barrier to valid, replicablestatistical analysis, we introduce Tea1, a high-level declar-ative language and runtime system
-(still JSON, but good aims)
-\cite{tea}
-
-DS.js: Turn Any Webpage into an Example-Centric Live Programming Environment for Learning Data Science
-(cool but just JS)
-\cite{dsjs}
-
-Eviza: A Natural Language Interface for Visual Analysis
-(from Tableau; uses auto-complete to suggest natural language phrases)
-\cite{eviza}
-
-Declarative Interaction Design for Data Visualization
-(interactive construction of vega-like grammar of graphics)
-\cite{interactionviz}
-
-programming by demonstration
-\cite{watch}
-
-"Dontcheva et al. [4] use PBD techniques to enable
-extraction, integration, and templated search of web data.
-Gulwani [8] introduces an algorithm for learning expres-
-sive string processing programs from input-output examples"
-
-programming by example as an alternative
-\cite{spreadsheetpbe,flashextract}
-
-Lyra: An interactive visualization design environment
-\cite{lyra}
-
-end-user programming
-\cite{enduser} - overview, \cite{smallmatter} book
-
-touch based data science??? must inevitably have fewer intraections
-NA
-
-autocomplete / predictive text work
-\cite{predictive} - predicting data transformation scripts in a somewhat more complex language
-\cite{proactive} -
-
-\cite{potter}
-Potter’s Wheel: An Interactive Data Cleaning System
-n interactive data clean-ing system that tightly integrates transformation anddiscrepancy detection.   Users  gradually build  trans-formations  to  clean  the  data  by  adding  or  undoingtransforms on a spreadsheet-like interface; the effectof a transform is shown at once on records visible onscreen.
+In direct manipulation \cite{direct}, a program is specified by directly interacting with the
+output. This has been used in the visual domain \cite{sketchnsketch}, but also for data querying
+\cite{dynamicq,vlang}. The VQE language~\cite{visage} also considers how to allow code reuse and
+modification in this context. Direct manipulation can also support data exploration by letting
+users partially edit queries,~e.g. by changing quantifiers as in DataPlay~\cite{dataplay}.
 
 \newpage
 
-\textbf{Visual tools.}
-
-\textbf{Programming tools.}
-Notebooks
-
-Both follow from assistant tools for software development \cite{assistants}. Our implementation,
-outlined in the previous section, implements iterative prompting through a code editor mechanism
-designed for code completion. Finally, the work on type providers \cite{inforich,fsdata,dotdriven},
-which we extend, also utilizes code completion.
-
-
-\textbf{Journalism.}
-Idyll \cite{idyll}
-
-\textbf{Type providers.}
-PL work
-
-\newpage
-~
-\newpage
 
 \begin{figure}
 \includegraphics[width=1\columnwidth]{figures/nyt}
