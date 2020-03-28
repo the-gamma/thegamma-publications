@@ -273,9 +273,6 @@ visual and programmatic tools used by data scientists, work that aims to simplif
 or explore alternative paradigms and various predictive tools that assist users in completing
 programming or data exploration tasks.
 
-% Evaluating ui systems research
-% \cite{evaluating}
-
 \subsection{Data science tools}
 Data exploration is typically done using spreadsheets, comprehensive visual tools or
 via code using notebooks. Notebooks such as Jupyter \cite{jupyter} are also popular with technically
@@ -332,15 +329,7 @@ output. This has been used in the visual domain \cite{sketchnsketch}, but also f
 modification in this context. Direct manipulation can also support data exploration by letting
 users partially edit queries,~e.g. by changing quantifiers as in DataPlay~\cite{dataplay}.
 
-\newpage
-
-
-\begin{figure}
-\includegraphics[width=1\columnwidth]{figures/nyt}
-\caption{New York Times article on Obama's legacy \cite{youdraw}. The article asks the reader to make a guess
-(engagement), but only lists ``Immigration and Customs Enforcement'' as a source of data.}
-\label{fig:nyt}
-\end{figure}
+% ==================================================================================================
 
 \section{Motivation}
 \label{sec:motivation}
@@ -359,7 +348,9 @@ journalism.
 Journalism continually develops and responds to the many challenges it faces \cite{future}.
 Two recent challenges are relevant to our work. The first is building trust in media.
 One way of establishing trust in the age of fake news is to be more transparent about editorial
-decisions, process and original sources. Many journalists believe that opening up the process
+decisions, process and original sources.
+
+Many journalists believe that opening up the process
 shows the quality and trustworthiness of their work~\cite{transparency}.
 The second challenge is reader engagement. To develop a relationship with readers, journalists are
 increasingly looking for meaningful ways of engagement. This includes reader comments, involvement
@@ -383,10 +374,10 @@ For example, it should allow modifying of parameters of a data visualization in 
 how different choices affect the final result.
 
 \begin{figure}
-\includegraphics[width=1\columnwidth]{figures/ft}
-\caption{Financial Times analysis of recyclable waste. Full source is provided as Jupyter Notebooks
-on GitHub \cite{ftnotebooks}, but re-running the analysis is difficult, even for an expert.}
-\label{fig:ft}
+\includegraphics[width=1\columnwidth]{figures/nyt}
+\caption{New York Times article on Obama's legacy \cite{youdraw}. The article asks the reader to make a guess
+(engagement), but only lists ``Immigration and Customs Enforcement'' as a source of data.}
+\label{fig:nyt}
 \end{figure}
 
 \subsection{End-user Data Exploration}
@@ -417,10 +408,14 @@ are unlikely to be available, so the tool should support learning from examples.
 a work done and published by another person, the user needs to see (and be able to understand)
 how a task was completed.
 
-\newpage
-~
-\newpage
+\begin{figure}
+\includegraphics[width=1\columnwidth]{figures/ft}
+\caption{Financial Times analysis of recyclable waste. Full source is provided as Jupyter Notebooks
+on GitHub \cite{ftnotebooks}, but re-running the analysis is difficult, even for an expert.}
+\label{fig:ft}
+\end{figure}
 
+% ==================================================================================================
 
 \section{Overview}
 \label{sec:overview}
@@ -628,7 +623,6 @@ of China and United States.}
 \label{fig:sidebyside}
 \end{figure}
 
-
 \section{Implementation}
 \label{sec:implementation}
 The Gamma consists of a programming language with a web-based coding environment and a number
@@ -761,7 +755,6 @@ using the tabular data type provider.
 
 % ==================================================================================================
 
-
 \section{Use cases}
 \label{sec:cases}
 
@@ -830,18 +823,12 @@ graph database query followed by an SQL-like data aggregation. The code can be c
 using iterative prompting (with the exception of the numbers in paging). It can also be constructed
 gradually and instantaneous prviews support the user while doing so.
 
-\newpage
-
-
 \begin{figure}
 \centering
 \includegraphics[width=1\columnwidth]{figures/cases}
 \caption{Charts produced by two The Gamma case studies.}
 \label{fig:cases}
 \end{figure}
-
-~
-\newpage
 
 % ==================================================================================================
 
@@ -1093,7 +1080,7 @@ This comment summarizes an important fact. Although iterative prompting allows t
 exploring new data sources, the domain specific languages used by more complex data sources have
 their own design principles that users need to understand to use the data source effectively.
 
-\subsection{Conclusions}
+\subsection{Study conclusions}
 The motivation behind The Gamma is to make simple programmatic data exploration accessible to
 journalists and other non-experts. Main-stream programming languages have the benefit of
 reproducibility and transparency, but are difficult to use. Our study shows that non-experts
@@ -1111,37 +1098,84 @@ it is worth noting that it does not fully eliminate complexity involved in data 
 Instead, it provides a way of structuring the complexity. Iterative prompting makes it easy to
 get started, but complex data sources will inevitably require additional learning. The Gamma
 makes this easier by allowing users to learn from published code samples.
-\newpage
-~
-\newpage
 
 % ==================================================================================================
 
 \section{Discussion}
+We design a programming environment that can make programmatic data exploration accessible
+to journalists. This is aligned with recent developments in journalism, which aims to build
+trust through transparency and greater reproducibility as well as provide meaningful ways of
+engagement.
 
-Data provenance (where data comes from)
-What are the data sources availbale (how to start)?
+\subsection{Evaluating The Gamma}
+Data exploration environments are complex systems that do not yield to simple controlled
+experimentation. We evaluate The Gamma using criteria inspired by Olsen~\cite{evaluating}.
 
-\subsection{Study limitations}
-exploratory in nature so we do not make any quantitative claims about effects
+\begin{itemize}
+\item \emph{Importance.} Open journalism has the potential to make factual claims backed by
+data more commonplace and enable wider audience engage with such claims. As such, we contribute
+towards solving an important societal issue.
 
-not comparing against other systems
+\item \emph{Expressive leverage.} The Gamma reduces the number of concepts that the user needs
+to master to just the \emph{iterative prompting} principle, although complex data sources may
+add more concepts through their domain specific languages.
 
-\subsection{Design principles}
-How well did we do wrt design principles?
+\item \emph{Empowering new participants.} As demonstrated by our user study, The Gamma allows
+non-experts, including those not comfortable with code, to perform basic programmatic
+data exploration tasks.
 
-\subsection{Design issues}
-future challenges and limitations of the model - such as issues when modifying code
-in the middle of the call chain
+\item \emph{Generality.} Finally, our case studies show that The Gamma can be used to solve
+a wide range of data manipulation tasks involving many data sources including tabular data,
+data cubes and graph databases.
+\end{itemize}
+
+\subsection{Remaining design issues}
+There remain a number of aspects of data exploration in the context of journalism that
+The Gamma does not address. Two of those, data provenance and data availability were also
+observed by the participants in our study.
+
+\paragraph{Data provenance}
+Data sources such as \ikvd{olympics} or \ikvd{worldbank} are defined when initializing The Gamma
+programming environment, but the system does not currently show where such data comes from.
+For some data sources, the source is e.g.~a CSV file published by the government. In this case,
+we can easily show the source. However, other type providers may pre-process data. Displaying
+data source in such cases would require more sophisticated provenance tracking \cite{provenance}.
+
+\paragraph{Data availability}
+In the current version, The Gamma does not have a way of informing the user what data sources
+are available. In other words, the user needs to know the first identifier, such as \ikvd{olympics},
+to get started. We could address this by choosing a data source as the first step of iterative
+prompting and perhaps typing \ikvd{.olympics}. However, a more fundamental issue is finding
+the data source in the first place. This could be partly addressed by a type provider for a
+currated online database such as Enigma Public\footnote{\url{https://docs.enigma.com/public}}.
+Providing access to open government data repositories such as \href{http://data.gov.uk}{\small\bf\ttfamily data.gov.uk}
+is more appealing, but very challenging due to their unstructured nature.
+
+\subsection{Evaluation limitations}
+The evaluation conducted in this paper is qualitative and exploratory in nature. In particular,
+we do not make any quantitative claims about the usability of The Gamma and its learning curve.
+Our study also focused on the core iterative prompting interaction, but our case studies often
+required using other features such as operations with parameters.
+
+Although The Gamma is open-source, it has not been deployed in production in a newsroom so far.
+This would lead to valuable insights, but it requires finding a suitable fortuitous opportunity.
+Finally, we also do not compare the usability of The Gamma with the usability of other popular
+systems such as Tableau \cite{tableau}. It would be possible to set tasks that can be completed
+in both systems, but the systems have very different aims making such comparison problematic.
 
 \section{Conclusions}
+We present The Gamma, a simple data exploration environment. The Gamma is motivated by the needs
+of journalists working with data, who need to produce transparent and easy-to-understand reports
+backed by data that are transparent and engaging, all the while facing tight deadlines.
 
-\newpage
-~
-\newpage
+The Gamma is based on a single interaction principle, \emph{iterative prompting}, can be used to
+complete a wide range of data exploration tasks using a variety of data sources including tabular
+data, data cubes and graph databases. The design lowers the barrier to entry for programmatic
+data exploration and it makes it easy to learn the system independently from examples and by
+experimentation.
 
-\section{Acknowledgments}
-Yo
+% \section{Acknowledgments}
+% Yo
 
 % BALANCE COLUMNS
 \balance{}
