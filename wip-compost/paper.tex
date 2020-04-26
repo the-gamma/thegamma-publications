@@ -87,13 +87,21 @@ those in requires careful thinking about geometry and projections, but there are
 surprises. A complete F\# implementation, including the examples used in this paper, is available
 at: \urrl{http://github.com/compostjs}.
 
-\section{Composing visualization primitives}
+\section{Composing simple visualizations}
 I will introduce individual features of the Compost library gradually. The first important aspect of
 Compost is that properties of shapes are defined in terms of domain-specific values. I first
 explain what this means and then use domain-specific values to specify the core part of the
 UK election results bar chart.
 
-\subsection{Domain-specific values}
+\begin{figure}[t]
+\includegraphics[scale=1,trim={0cm 6.5cm 6cm 0cm},clip]{figures/values.pdf}
+\caption{On a continuous scale (above), an exact position is determined by a number.
+  On a categorical scale (below), an exact position is determined by the category and a
+  numerical ratio from 0 to 1.}
+\label{fig:scales}
+\end{figure}
+
+\subsection{Working with domain-specific values}
 
 In the election results chart in Figure~\ref{fig:charts} (left), the X values are categorical
 values representing the political parties such as \strf{Conservative} or \strf{Labour}. The
@@ -114,143 +122,181 @@ divides the available space between the six categorical values (political partie
 an exact position, we also need to attach a value between $\num{0}$ and $\num{1}$ to the
 categorical value. This identifies a relative position in the available range.
 
+Figure~\ref{fig:scales} illustrates the two kinds of values using the axes from the UK
+election results chart. In Figure~\ref{fig:shape}, we define a value $v$ as either a continuous value
+$\kvd{cont}~n$ containing any number $n$ or a categorical value $\kvd{cat}~c, r$, consisting
+of a categorical value $c$ (implemented as a string) and a ratio $r$ between $0$ and $1$.
+%
 \begin{figure}
-\includegraphics[scale=1,trim={0cm 6.5cm 6cm 0cm},clip]{figures/values.pdf}
-\caption{On a continuous scale (above), an exact position is determined by a number.
-  On a categorical scale (below), an exact position is determined by the category and a
-  numerical ratio from 0 to 1.}
-\label{fig:scales}
+\begin{equation*}
+\begin{array}{rcl}
+v & = & \kvd{cat}~c, r \\
+  & | & \kvd{cont}~n\\
+  ~
+\end{array}
+\qquad
+\begin{array}{rclcl}
+s & = &\kvd{line}~\gamma, [\,v_{x1}, v_{y1}, \ldots, v_{xn}, v_{yn}\,] & | & \kvd{overlay}~[\,s_1, \ldots, s_n\,]\\
+ & | & \kvd{fill}~\gamma, [\,v_{x1}, v_{y1}, \ldots, v_{xn}, v_{yn}\,] & | &\kvd{axis}_{l/r/t/b}~s\\
+ & | & \kvd{text}~\gamma, v_x, v_y, t & | &\kvd{padding}~n_t,n_r,n_b,n_l,s
+\end{array}
+\end{equation*}
+\caption{Core primitives of the Compost domain-specific language. Values $v$ are either categorical
+  or continuous; a shape $s$ is then defined as a simple recursive algebraic data type.}
+\label{fig:shape}
 \end{figure}
 
-Figure~\ref{fig:scales} illustrates the two kinds of values using the axes from the UK
-election results chart. More formally, we define a value $v$ as either a continuous value
-$\kvd{cont}~n$ containing any number $n$ or a categorical value $\kvd{cat}~c, r$, consisting
-of a categorical value $c$ (implemented as a string) and a ratio $r$ between $0$ and $1$:
+\subsection{Introducing basic primitives and combinators}
+
+Now that we know how Compost represents values, we can define the basic elements of its
+domain-specific langauge. A chart is represeted by the shape $s$ defined in Figure~\ref{fig:shape}.
+A primitive shape can be a text label, a line connecting a list of points or a filled polygon
+defined by a list of points. The position of points is specified by X and Y coordinates,
+which can be either categorical or continuous values. For text, line and polygon, we also include
+a parameter $\gamma$ that specifies the element color.
+
+Figure~\ref{fig:shape} also defines three combinators. The most important is $\kvd{overlay}$,
+which overlays all shapes from a given list. When doing this, Compost automatically infers the
+scales of X and Y axes and calculates suitable projections using a method discussed in the next
+section. Finally, $\kvd{padding}$ adds padding around a specified shape and $\kvd{axis}$ adds
+an axis showing the inferred scale on the left, right, top or bottom of a given shape.
+Using those primitives, we can construct the simple UK election results bar chart in Figure~\ref{fig:simple} as follows:
 %
 \begin{equation*}
-\begin{array}{rcl}
-v & = & \kvd{cat}~c, r \lsep \kvd{cont}~n
+\begin{array}{l}
+\kvd{axis}_l~(\kvd{axis}_b~(\kvd{overlay}~[\\
+\quad \kvd{fill}~\strf{\#0000ff},
+ ~[\;\,(\kvd{cat}~\strf{Conservative}, \num{0}), (\kvd{cont}~\num{0}), (\kvd{cat}~\strf{Conservative}, \num{0}), (\kvd{cont}~\num{365}),\\
+\hspace{6.7em}\;(\kvd{cat}~\strf{Conservative}, \num{1}), (\kvd{cont}~\num{365}), (\kvd{cat}~\strf{Conservative}, \num{1}), (\kvd{cont}~\num{0})\;\,],\\
+\quad \kvd{fill}~\strf{\#ff0000},
+ ~[\;\,(\kvd{cat}~\strf{Labour}, \num{0}), (\kvd{cont}~\num{0}), (\kvd{cat}~\strf{Labour}, \num{0}), (\kvd{cont}~\num{202}),\\
+\hspace{6.7em}\;(\kvd{cat}~\strf{Labour}, \num{1}), (\kvd{cont}~\num{202}), (\kvd{cat}~\strf{Labour}, \num{1}), (\kvd{cont}~\num{0})\,\;]~]))\\
 \end{array}
 \end{equation*}
 
-\vspace{-2.5em}
-\subsection{Visualization primitives}
+\noindent
+The chart specification overlays two bars of different colors and then adds axes to the bottom and
+left of the chart. The two bars are filled rectangles defined using four corner points. The Y
+coordinates are specified as continuous values, while the X coordinates are categorical. For
+the Conservative party, two of the points have the Y coordinate set to $\kvd{cont}~\num{0}$ (bottom of the bar)
+and two have the Y coordinate set to $\kvd{cont}~\num{365}$ (top of the bar). The two X coordinates
+are the start and the end of the range allocated for the \strf{Conservative} category,
+i.e.~$\kvd{cat}~\strf{Conservative}, \num{0}$ on the left and $\kvd{cat}~\strf{Conservative}, \num{1}$
+on the right.
 
-\begin{equation*}
-\begin{array}{rcl}
-s & = & \kvd{overlay}~[\,s_1, \ldots, s_n\,]\\
- & | & \kvd{text}~\gamma, v_x, v_y, t\\
- & | & \kvd{line}~\gamma, v_{x1}, v_{y1}, \ldots, v_{xn}, v_{yn}\\
- & | & \kvd{fill}~\gamma, v_{x1}, v_{y1}, \ldots, v_{xn}, v_{yn}\\
- & | & \kvd{axis}_{x/y} s
-\end{array}
-\end{equation*}
+\begin{figure}
+  \includegraphics[scale=0.57]{figures/simple}
+  \vspace{0.25em}
+  \caption{Two charts about the UK politics: Comparison of election results from 2017 and 2019 (left)
+    and GBP-USD exchange rate with highlighted areas before and after the 23 June 2016 Brexit vote.}
+  \label{fig:simple}
+\end{figure}
 
-~
-
-xx
-
-~
-
-
+Extending the snippet to generate a grouped bar chart that shows two results
+for each party as in Figure~\ref{fig:charts} is easy. Given a party $p$, we need to
+generate two rectangles, one with X coordinates $\kvd{cat}~p, 0$ and $\kvd{cat}~p, 0.5$
+and the other with X coordinates $\kvd{cat}~p, 0.5$ and $\kvd{cat}~p, 1$.
+In the following snippet, we use a \fkvd{for} comprehension to generate the list. All remaining
+constructs are primitives of the Compost domain-specific language. Assuming \ident{elections} is a
+list of election results containing a five-element tuple consisting of a party name, colors for
+2017 and 2019 and results for 2017 and 2019 we create the chart using:
+%
 \begin{equation*}
 \begin{array}{l}
-  \kvd{axis}_x~(\kvd{axis}_y~(\kvd{overlay}~[\\
+  \kvd{axis}_l~(\kvd{axis}_b~(\kvd{overlay}~[\\
   \quad \fkvd{for}~\ident{party}, \ident{clr17}, \ident{clr19}, \ident{mp17}, \ident{mp19}~\fkvd{in}~\ident{elections}~\rightarrow\\
   \quad\quad \kvd{padding}~0,10,0,10,\,\kvd{overlay}~[\\
-  \quad\quad\quad \kvd{fill}~\ident{clr},~(\kvd{cat}~\ident{party}, \num{0}), (\kvd{cont}~\num{0}), (\kvd{cat}~\ident{party}, \num{0}), (\kvd{cont}~\ident{mp17}),\\
-  \quad\quad\quad \hspace{2.65em}           ~(\kvd{cat}~\ident{party}, \num{0.5}), (\kvd{cont}~\ident{mp17}), (\kvd{cat}~\ident{party}, \num{0.5}), (\kvd{cont}~\num{0})\\
-  \quad\quad\quad \kvd{fill}~\ident{clr},~(\kvd{cat}~\ident{party}, \num{0.5}), (\kvd{cont}~\num{0}), (\kvd{cat}~\ident{party}, \num{0.5}), (\kvd{cont}~\ident{mp19}),\\
-  \quad\quad\quad \hspace{2.65em}           ~(\kvd{cat}~\ident{party}, \num{1}), (\kvd{cont}~\ident{mp19}), (\kvd{cat}~\ident{party}, \num{1}), (\kvd{cont}~\num{0})~~]\\
-  ]\,)\,)
+  \quad\quad\quad \kvd{fill}~\ident{clr17},~[\,(\kvd{cat}~\ident{party}, \num{0}), (\kvd{cont}~\num{0}), (\kvd{cat}~\ident{party}, \num{0}), (\kvd{cont}~\ident{mp17}),\\
+  \quad\quad\quad \hspace{4.08em}           ~(\kvd{cat}~\ident{party}, \num{0.5}), (\kvd{cont}~\ident{mp17}), (\kvd{cat}~\ident{party}, \num{0.5}), (\kvd{cont}~\num{0}) \,], \\
+  \quad\quad\quad \kvd{fill}~\ident{clr19},~[\,(\kvd{cat}~\ident{party}, \num{0.5}), (\kvd{cont}~\num{0}), (\kvd{cat}~\ident{party}, \num{0.5}), (\kvd{cont}~\ident{mp19}),\\
+  \quad\quad\quad \hspace{4.08em}           ~(\kvd{cat}~\ident{party}, \num{1}), (\kvd{cont}~\ident{mp19}), (\kvd{cat}~\ident{party}, \num{1}), (\kvd{cont}~\num{0})\,]~~]~~]\,)\,)\\
 \end{array}
 \end{equation*}
 
+\noindent
+Aside from iterating over all available parties and splitting the bar, the example also adds padding
+around the bars. A padding is specified in pixels rather than in terms of domain values. This is
+sometimes preferrable over, for example, drawing a bar using a range from $\num{0.05}$ to $\num{0.5}$.
+One remaining feature of the chart in Figure~\ref{fig:charts} that is still missing is the caption.
+We will add this in Section~\ref{sec:abstractions}.
 
-\subsection{Inferring scales and projections}
+\subsection{Inferring scales and projections automatically}
 
-\section{Fancy scale features}
+When composing shapes using the \kvd{overlay} primitive, the user does not need to specify how
+to position the child elements relatively to each other. The Compost library positions the elements
+automatically. This is done in two steps. First, Compost infers the \emph{scales} for X and Y
+axes. A scale represents the range of values that needs to fit in the space available for the chart.
+Second, Compost calculates a \emph{projection}, a mapping from domain-specific values of the scale
+to the available screen space. A scale $l$ can be either categorical or continuous:
+
+\begin{equation*}
+\begin{array}{rcl}
+l & = & \kvd{continuous}~n_{min}, n_{max} \lsep \kvd{categorical}~[\,c_1, \ldots, c_k\,]
+\end{array}
+\end{equation*}
+
+\vspace{-0.5em}
+\noindent
+A continuous scale is defined by a minimal and maximal value that need to be mapped to the
+available chart space. A categorical scale is defined by a list of individual categorical values.
+Note that we do not need a minimal and maximal ratios of the used categorical values as Compost
+will use an equal space for each category, regardless of where in this space a shape needs to
+appear.
+
+Inferring scales is done by a simple recursive function that walks over the given shape and
+constructs two scales for the X and Y axis, using the X and Y coordinates that appear in the shape.
+Most of the work is done by a simple helper function that takes two scales, $l_1$ and $l_2$,
+and produces a new scale that represents the union of the two:
+%
+\begin{equation*}
+\begin{array}{l}
+\ident{union}~(\kvd{continuous}~n_l, n_h)~(\kvd{continuous}~n'_l, n'_h) =\\
+\qquad\kvd{continuous}~\min(n_l, n'_l), \max(n_h, n'_h)\\[0.5em]
+\ident{union}~(\kvd{categorical}~[\,c_1, \ldots, c_p\,])~(\kvd{categorical}~[\,c'_1, \ldots, c'_q\,]) =\\
+\qquad \kvd{categorical}~[\,c_1, \ldots, c_p\,] \;@\; [\,c'_i~|~ \forall i\in 1\ldots q, \nexists j. c_j = c'_i \;]
+\end{array}
+\end{equation*}
+
+\vspace{-0.5em}
+\noindent
+When unioning two continuous scales, the minimum and maximum of the resulting scale is the smallest
+and largest of the two minimums and maximums, respectively. When unioning two categorical scales,
+we take all values of the first scale and append all values of the second scale that do not appear
+in the first one. Note that this means that the order of categorical values in a scale depends on
+the order in which they appear in the shape. (A possible improvement to Compost would be to support
+ordinal values, which are categorical values with a well-defined ordering.) It is also worth noting
+that a categorical scale cannot be combined with a continuous scale. In other words, mixing
+categorical and continuous values in a single scale results in an error.
+
+Once Compost computes scales for the given shape and all its sub-shapes, it constructs a projection
+function that maps domain-specific values to the available chart space. I say more about this in
+Section~\ref{sec:impl}. For a continuous scale, the projection is a linear transformation. For
+categorical scale with $k$ values, we split the available chart space into $k$ equally sized
+regions and then map a categorical value $\kvd{cat}~c, r$ to the region corresponding to $c$
+according to the ratio $r$.
+
+\newpage
+
+\section{Composing advanced visualizations}
+\label{sec:fancy}
+
+\subsection{Creating scales with nice ranges}
+
+\subsection{Controlling the composition of scales}
+
+\newpage
 
 \section{Definining abstractions}
+\label{sec:abstractions}
 
 \section{Interactive charts}
 
 \section{Implementation structure}
+\label{sec:impl}
 
 \newpage
 
-\section{Domain-specific language}
-\label{sec:intro}
-\subsection*{Domain-specific values}
 
-
-\subsection*{Language of composable charts}
-Now that we defined our representation of values, we can define a basic composable language of
-data visualizations. A shape $s$ represents a chart. In the most basic form, it can be text label,
-line connecting a list of points and a filled polygon determined by a list of points. For line,
-text and polygon, we also include a parameter $\gamma$ indicating the color to be used. In addition,
-a shape can be constructed by overlaying several other shapes:
-%
-\begin{equation*}
-\begin{array}{rcl}
-s & = & \kvd{overlay}~s_1, \ldots, s_n\\
- & | & \kvd{text}~\gamma, v_x, v_y, t\\
- & | & \kvd{line}~\gamma, v_{x1}, v_{y1}, \ldots, v_{xn}, v_{yn}\\
- & | & \kvd{fill}~\gamma, v_{x1}, v_{y1}, \ldots, v_{xn}, v_{yn}
-\end{array}
-\end{equation*}
-%
-As an example, consider bar chart with \strf{UK} and \strf{CZ} as two categorical values on the X
-axis and their population in millions (continuous value) on the Y axis. This can be constructed by
-creating two filled rectangles using \kvd{fill} and overlaying them using \kvd{overlay}:
-%
-\begin{equation*}
-\begin{array}{l}
-\kvd{overlay}\\
-\quad \kvd{fill}~\strf{\#0000ff},
- ~(\kvd{cat}~\strf{UK}, \num{0}), (\kvd{cont}~\num{00.00}), (\kvd{cat}~\strf{UK}, \num{0}), (\kvd{cont}~\num{66.04}),\\
-\hspace{5.9em}(\kvd{cat}~\strf{UK}, \num{1}), (\kvd{cont}~\num{66.04}), (\kvd{cat}~\strf{UK}, \num{1}), (\kvd{cont}~\num{00.00}),\\
-\quad \kvd{fill}~\strf{\#ff0000},
- ~(\kvd{cat}~\strf{CZ}, \num{0}), (\kvd{cont}~\num{00.00}), (\kvd{cat}~\strf{CZ}, \num{0}), (\kvd{cont}~\num{10.58}),\\
-\hspace{5.9em}(\kvd{cat}~\strf{CZ}, \num{1}), (\kvd{cont}~\num{10.58}), (\kvd{cat}~\strf{CZ}, \num{1}), (\kvd{cont}~\num{00.00})\\
-\end{array}
-\end{equation*}
-%
-The shape specification overlays two bars of different colours. To construct a rectangle, we
-define four points. For the UK, two of the points have Y value set to 0 (bottom of the bar) and
-two have it set to 66.04 (top of the bar indiciating the population value). The values on the X
-axis are categorical \strf{UK} values -- two are on the left as indicated by the ratio $\num{0}$
-and two are on the right as indicated by ratio $\num{1}$. The ratio is always relative to the
-category, so the ratios for the second bar are also $\num{0}$ and $\num{1}$.
-\subsection*{Calculating scales and projections}
-When processing shape specification such as the one given in the previous section, the Compost
-library infers the scales for the X and Y axes and computes a projection function that can be
-used for mapping domain-specific values to pixels. While doing this, it also checks for consistency --
-all values on one axis have to be either categorical or continuous, but not a mix of the two.
-The first step is to determine the scales for each of the axes. A scale can be continuous,
-defined by a minimal and maximal value, or a categorical, defined by a list of categorical values.
-Note that we do not need to track the ratios used as each category
-will be allocated equal amount of space, regardless of where in that space shapes need to
-appear. A scale $l$ is thus defined as:
-%
-\begin{equation*}
-\begin{array}{rcl}
-l & = & \kvd{categorical}~c_1, \ldots, c_k \lsep \kvd{continuous}~n_{min}, \ldots, n_{max}
-\end{array}
-\end{equation*}
-%
-A scale is obtained by recursively walking over the shape and gradually constructing two scales,
-for X and Y axis, from the X and Y coordinates that appear in the shape. The process is fairly
-straightforward and we won't discuss it in detail (for now). The first value encountered determines
-what kind of a scale will be constructed. If the type of a later value does not match the type of a
-scale, the process fails.
-Once we obtain scales for both X and Y axes, we calculate a projection function for each axis.
-The function takes a value $v$ together with total space available (say, in pixels) and produces
-a position in pixels corresponding to $v$. We also omit the details here (for now), but briefly --
-for continuous values, we produce a simple linear transformation; for categorical values, we split
-the available space into $k$ equally sized regions (where $k$ is the number of categorical values
-in the scale) and then map a categorical value $\kvd{cat}~c, r$ to the region corresponding to $c$
-according to the ratio $r$.
 \subsection*{Controlling and nesting scales}
 The process of computing scales can be controlled by additional primitives in the Compost
 domain-specific language for describing shapes that were not discussed earlier. The following
