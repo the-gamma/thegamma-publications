@@ -73,7 +73,7 @@ let gbpeur = [ 1.1823; 1.1867; 1.1838; 1.1936; 1.1944; 1.1961; 1.1917; 1.2017; 1
 
 let Title(text, chart) = 
   let title =
-    Shape.InnerScale(Some(co 0, co 100), Some(co 0, co 100),
+    Shape.InnerScale(Some(Continuous(co 0, co 100)), Some(Continuous(co 0, co 100)),
       Derived.Font("12pt arial", "black",
         Shape.Text(numv 50, numv 50, Middle, 
           Center, 0.0, text) ))
@@ -94,7 +94,7 @@ let partColumn f t x y =
   Shape [ CAR(x, f), COV y; CAR(x, t), COV y; CAR(x, t), COV (CO f); CAR(x, f), COV (CO t) ]
 
 let bars = 
-  Shape.InnerScale(None, Some(co 0, co 410), Shape.Layered [ 
+  Shape.InnerScale(None, Some(Continuous(co 0, co 410)), Shape.Layered [ 
     for p, clr, s17, s19 in elections -> 
       Shape.Padding((0., 10., 0., 10.), 
         Shape.Layered [
@@ -130,8 +130,23 @@ let chart =
   ]
 
 Title("GBP-USD and GBP-EUR rates (June-July 2016)", chart) |> render "out2"
+chart |> render "out2"
 
 
+
+let chart1 = 
+  Shape.Layered [
+    Shape.OuterScale(None, Some(Continuous(co 0, co 50)), 
+      Shape.Axes(false, true, true, true, 
+        Derived.StrokeColor("#202020", line gbpusd)))
+    Shape.OuterScale(None, Some(Continuous(co 50, co 100)), 
+      Shape.Axes(false, true, true, true, 
+        Derived.StrokeColor("#202020", line gbpeur)))
+  ]
+
+chart1 |> render "out1"
+
+(*
 let bars1 : Shape<1,1> = 
   Shape.Layered [ 
     for p, clr, s17, s19 in Seq.take 2 elections -> 
@@ -144,21 +159,22 @@ let bars1 : Shape<1,1> =
         //] //) ]
   ]
 
-Shape.Axes(false, false, true, true, bars1) |> render "out2"
+Shape.Axes(false, false, true, true, bars1) |> render "out1"
 
 let bars3 : Shape<1,1> = 
-  Shape.Layered [ 
-    for p, clr, s17, s19 in Seq.take 2 elections -> 
-      //Shape.Padding((0., 10., 0., 10.), 
-      partColumn 0. 1. (ca p) (co s19)
-        //Shape.Layered [
-        //  Derived.FillColor(adjust 0.8 clr, partColumn 0.0 0.5 (ca p) (co s17))
-        //  Derived.FillColor(adjust 1.2 clr, partColumn 0.5 1.0 (ca p) (co s19))
-        //]          
-        //] //) ]
-  ]
+  Shape.InnerScale(Some(Categorical [|ca "Labour"; ca "Conservative"|]), Some(Continuous(co 0, co 420)), 
+    Shape.Layered [ 
+      for p, clr, s17, s19 in Seq.take 2 elections -> 
+        //Shape.Padding((0., 10., 0., 10.), 
+        Derived.FillColor(adjust 1.2 clr, partColumn 0. 1. (ca p) (co s19))
+          //Shape.Layered [
+          //  Derived.FillColor(adjust 0.8 clr, partColumn 0.0 0.5 (ca p) (co s17))
+          //  Derived.FillColor(adjust 1.2 clr, partColumn 0.5 1.0 (ca p) (co s19))
+          //]          
+          //] //) ]
+    ])
 
-bars3 |> render "out1"
+Shape.Axes(false, false, true, true, bars3) |> render "out2"
 
 let bars2 : Shape<1,1> = 
   Shape.Layered [ 
@@ -182,3 +198,4 @@ let body2 lo hi data =
 
 
 
+*)

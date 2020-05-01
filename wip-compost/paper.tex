@@ -87,7 +87,7 @@ those in requires careful thinking about geometry and projections, but there are
 surprises. A complete F\# implementation, including the examples used in this paper, is available
 at: \urrl{http://github.com/compostjs}.
 
-\section{Composing simple visualizations}
+\section{Basic charts: Overlaying chart primitives}
 I will introduce individual features of the Compost library gradually. The first important aspect of
 Compost is that properties of shapes are defined in terms of domain-specific values. I first
 explain what this means and then use domain-specific values to specify the core part of the
@@ -101,7 +101,7 @@ UK election results bar chart.
 \label{fig:scales}
 \end{figure}
 
-\subsection{Working with domain-specific values}
+\subsection{Domain-specific values}
 
 In the election results chart in Figure~\ref{fig:charts} (left), the X values are categorical
 values representing the political parties such as \strf{Conservative} or \strf{Labour}. The
@@ -146,7 +146,7 @@ s & = &\kvd{line}~\gamma, [\,v_{x1}, v_{y1}, \ldots, v_{xn}, v_{yn}\,] & | & \kv
 \label{fig:shape}
 \end{figure}
 
-\subsection{Introducing basic primitives and combinators}
+\subsection{Basic primitives and combinators}
 
 Now that we know how Compost represents values, we can define the basic elements of its
 domain-specific langauge. A chart is represeted by the shape $s$ defined in Figure~\ref{fig:shape}.
@@ -160,17 +160,19 @@ which overlays all shapes from a given list. When doing this, Compost automatica
 scales of X and Y axes and calculates suitable projections using a method discussed in the next
 section. Finally, $\kvd{padding}$ adds padding around a specified shape and $\kvd{axis}$ adds
 an axis showing the inferred scale on the left, right, top or bottom of a given shape.
-Using those primitives, we can construct the simple UK election results bar chart in Figure~\ref{fig:simple} as follows:
+Using those primitives, we can construct the simple UK election results bar chart in Figure~\ref{fig:simple} (left).
+We use the \fkvd{let} construct of the host functional language to structure the code:
 %
 \begin{equation*}
 \begin{array}{l}
-\kvd{axis}_l~(\kvd{axis}_b~(\kvd{overlay}~[\\
+\fkvd{let}~\ident{conservative},~\ident{labour}~=\\
 \quad \kvd{fill}~\strf{\#0000ff},
  ~[\;\,(\kvd{cat}~\strf{Conservative}, \num{0}), (\kvd{cont}~\num{0}), (\kvd{cat}~\strf{Conservative}, \num{0}), (\kvd{cont}~\num{365}),\\
 \hspace{6.7em}\;(\kvd{cat}~\strf{Conservative}, \num{1}), (\kvd{cont}~\num{365}), (\kvd{cat}~\strf{Conservative}, \num{1}), (\kvd{cont}~\num{0})\;\,],\\
 \quad \kvd{fill}~\strf{\#ff0000},
  ~[\;\,(\kvd{cat}~\strf{Labour}, \num{0}), (\kvd{cont}~\num{0}), (\kvd{cat}~\strf{Labour}, \num{0}), (\kvd{cont}~\num{202}),\\
-\hspace{6.7em}\;(\kvd{cat}~\strf{Labour}, \num{1}), (\kvd{cont}~\num{202}), (\kvd{cat}~\strf{Labour}, \num{1}), (\kvd{cont}~\num{0})\,\;]~]))\\
+\hspace{6.7em}\;(\kvd{cat}~\strf{Labour}, \num{1}), (\kvd{cont}~\num{202}), (\kvd{cat}~\strf{Labour}, \num{1}), (\kvd{cont}~\num{0})\,\;]\\[0.5em]
+\kvd{axis}_l~(\kvd{axis}_b~(\kvd{overlay}~[~\ident{labour}, \ident{conservative}~]))\\
 \end{array}
 \end{equation*}
 
@@ -187,8 +189,8 @@ on the right.
 \begin{figure}
   \includegraphics[scale=0.57]{figures/simple}
   \vspace{0.25em}
-  \caption{Two charts about the UK politics: Comparison of election results from 2017 and 2019 (left)
-    and GBP-USD exchange rate with highlighted areas before and after the 23 June 2016 Brexit vote.}
+  \caption{Simple chart showing the UK election results; using automatically inferred scales (left)
+    and using rounded Y scale and explicitly defined (reordered) X scale (right).}
   \label{fig:simple}
 \end{figure}
 
@@ -220,23 +222,25 @@ sometimes preferrable over, for example, drawing a bar using a range from $\num{
 One remaining feature of the chart in Figure~\ref{fig:charts} that is still missing is the caption.
 We will add this in Section~\ref{sec:abstractions}.
 
-\subsection{Inferring scales and projections automatically}
+\subsection{Inferring scales and projections}
 
 When composing shapes using the \kvd{overlay} primitive, the user does not need to specify how
 to position the child elements relatively to each other. The Compost library positions the elements
 automatically. This is done in two steps. First, Compost infers the \emph{scales} for X and Y
 axes. A scale represents the range of values that needs to fit in the space available for the chart.
 Second, Compost calculates a \emph{projection}, a mapping from domain-specific values of the scale
-to the available screen space. A scale $l$ can be either categorical or continuous:
+to the available screen space. A scale $l$ is defined in Figure~\ref{fig:scale}.
 
+\begin{figure}
 \begin{equation*}
 \begin{array}{rcl}
 l & = & \kvd{continuous}~n_{min}, n_{max} \lsep \kvd{categorical}~[\,c_1, \ldots, c_k\,]
 \end{array}
 \end{equation*}
+\caption{A scale $l$ can be continuous, defined by a range, or categorical, defined by a list of values.}
+\label{fig:scale}
+\end{figure}
 
-\vspace{-0.5em}
-\noindent
 A continuous scale is defined by a minimal and maximal value that need to be mapped to the
 available chart space. A categorical scale is defined by a list of individual categorical values.
 Note that we do not need a minimal and maximal ratios of the used categorical values as Compost
@@ -268,21 +272,108 @@ ordinal values, which are categorical values with a well-defined ordering.) It i
 that a categorical scale cannot be combined with a continuous scale. In other words, mixing
 categorical and continuous values in a single scale results in an error.
 
-Once Compost computes scales for the given shape and all its sub-shapes, it constructs a projection
-function that maps domain-specific values to the available chart space. I say more about this in
+Once Compost computes scales for a given shape and its sub-shapes, it constructs a projection
+that maps domain-specific values to the available chart space. We discuss this in
 Section~\ref{sec:impl}. For a continuous scale, the projection is a linear transformation. For
 categorical scale with $k$ values, we split the available chart space into $k$ equally sized
 regions and then map a categorical value $\kvd{cat}~c, r$ to the region corresponding to $c$
 according to the ratio $r$.
 
-\newpage
-
-\section{Composing advanced visualizations}
+\section{Advanced charts: Controlling scale composition}
 \label{sec:fancy}
 
-\subsection{Creating scales with nice ranges}
+Most charts have one X and one Y axis that are determined by the values the chart shows,
+but there are interesting exceptions. The chart in Figure~\ref{fig:charts} (right)
+has two different Y axes, one for GBP-USD and one for GBP-EUR. In the next two sections, we look at
+three combinators that control the scale inferrence process and what flexibility this enables.
 
-\subsection{Controlling the composition of scales}
+\subsection{Defining nice scale ranges}
+
+The automatic scale inference often results in scales where the maximum is a non-round number.
+This leads to charts that fully utilize the available space, but may not be easy to read.
+The first two primitives, shown in Figure~\ref{fig:control} (left) allow the chart designer
+to adjust the automatically inferred range of scales.
+
+\begin{figure}
+  \begin{equation*}
+  \begin{array}{rclcl}
+  s & = & \kvd{roundScale}_{x/y} s      &|& \kvd{nest}_{x/y}~v_{min}, v_{max}, s \\
+    & | & \kvd{explicitScale}_{x/y}~l, s &|&  (\ldots)
+  \end{array}
+  \end{equation*}
+  \caption{Additional combinators for controlling scales; \kvd{roundScale} and \kvd{explicitScale}
+    can be used for creating nice scale ranges; \kvd{nest} makes it possible to create charts with
+    multiple scales.}
+\label{fig:control}
+\end{figure}
+
+The two combinators for controlling the range of scales are \kvd{roundScale} and \kvd{explicitScale}.
+The oprations can be applied to either the X scale or the Y scale, which is indicated by the
+$x/y$ sub-script. The \kvd{roundScale} primitve takes the inferred X or Y scale of the shape $s$
+and, if it is a continuous scale, rounds its minimal and maximal values to a ``nice'' number.
+For example, if a continuous scale has minimum $\num{0}$ and maximum $\num{365}$, the resulting
+scale would have a maximum $\num{400}$. For categorical scale, the operation does not have any effect.
+The \kvd{explicitScale} operation is similar, but it replaces the inferred scale with an explicitly
+provided scale (the type of the inferred scale has to match with the type of the explicitly given
+scale). For example, the chart in Figure~\ref{fig:simple} (right) is constructed using the
+following code (reusing the \ident{labour} and \ident{conservative} variables defined earlier):
+%
+\begin{equation*}
+\begin{array}{l}
+\kvd{axis}_l~(\kvd{axis}_b~(\kvd{roundScale}_y~(\kvd{explicitScale}_x~(\kvd{categorical}~[\,\strf{Labour},\strf{Conservative}\,]),\\
+\qquad \kvd{overlay}~[~\ident{labour}, \ident{conservative}~]~)))\\
+\end{array}
+\end{equation*}
+
+\noindent
+Reading the code from the inside out, the snippet first overlays the two coloured bars defined
+earlier; it then replaces the X axis with an explicitly given one that changes the order of the
+values. As a result, the bar for \strf{Labour} will appear on the left, even though the value
+comes later in the list of overlaid chart elements.
+
+The code next uses \kvd{roundScale} to automatically round the minimum and maximum of the
+continuous Y scale (showing the total number of seats). Finally, we add axes around the shape,
+producing a usual labelled chart.  It is worth noting that \kvd{axis} and \kvd{roundScale}
+could be implemented as derived operations; \kvd{roundScale} would need to infer the scale of
+the nested shape and then insert \kvd{explicitScale} with a rounded number; \kvd{axis}
+would also need to infer the scales and then generates labels and lines in suitable locations.
+
+\subsection{Nested scales}
+
+\newpage
+
+codezzz
+%
+\begin{equation*}
+\begin{array}{l}
+\kvd{overlay}~[~
+\kvd{nest}_y~(\kvd{continuous}~\num{0},\num{50}), (\kvd{axis}_l~(\kvd{axis}_r~(\kvd{axis}_b~(\kvd{line}~\strf{\#202020}~\ident{gbpusd}))))\\
+\hspace{3.68em} \kvd{nest}_y~(\kvd{continuous}~\num{50},\num{100}), (\kvd{axis}_l~(\kvd{axis}_r~(\kvd{axis}_b~(\kvd{line}~\strf{\#202020}~\ident{gbpeur}))))~]\\
+\end{array}
+\end{equation*}
+
+moar codezzzz
+
+\begin{equation*}
+\begin{array}{l}
+\fkvd{let}~\ident{brexitRate}~(\ident{lo}, \ident{hi})~\ident{rates}~=\\
+\quad \kvd{overlay}~[\\
+\qquad \kvd{fill}~\strf{\#1F77B460}, [\;\,\kvd{cont}~\num{0}, \kvd{cont}~\ident{lo}, \kvd{cont}~\num{16}, \kvd{cont}~\ident{lo}, \kvd{cont}~\num{16}, \kvd{cont}~\ident{hi}, \kvd{cont}~\num{0}, \kvd{cont}~\ident{hi}\;],\\
+\qquad \kvd{fill}~\strf{\#D6272860}, [\;\,\kvd{cont}~\num{16}, \kvd{cont}~\ident{lo}, \kvd{cont}~\num{44}, \kvd{cont}~\ident{lo}, \kvd{cont}~\num{44}, \kvd{cont}~\ident{hi}, \kvd{cont}~\num{16}, \kvd{cont}~\ident{hi}\;],\\
+\qquad \kvd{line}~\strf{\#202020}~\ident{rates}~]\\[0.5em]
+\kvd{overlay}~[~
+\kvd{nest}_y~(\kvd{continuous}~\num{0},\num{50}), (\kvd{axis}_l~(\kvd{axis}_r~(\kvd{axis}_b~(\ident{brexitRate}~(\num{1.25}, \num{1.50})~\ident{gbpusd}))))\\
+\hspace{3.68em} \kvd{nest}_y~(\kvd{continuous}~\num{50},\num{100}), (\kvd{axis}_l~(\kvd{axis}_r~(\kvd{axis}_b~(\ident{brexitRate}~(\num{1.15}, \num{1.30})~\ident{gbpeur}))))~]\\
+\end{array}
+\end{equation*}
+
+\begin{figure}
+  \includegraphics[scale=0.57]{figures/lines}
+  \vspace{0.25em}
+  \caption{TBA.}
+  \label{fig:lines}
+\end{figure}
+
 
 \newpage
 
@@ -298,58 +389,13 @@ according to the ratio $r$.
 
 
 \subsection*{Controlling and nesting scales}
-The process of computing scales can be controlled by additional primitives in the Compost
-domain-specific language for describing shapes that were not discussed earlier. The following
-definition lists additional primitives that are also a part of the definition of $s$. Note that
-the primitives can be applied either to the X scale or to the Y scale - we write $x/y$ to indicate
-that a sub-script on those primitives can be set either to $x$ or to $y$ (both scales can be
-modified by nesting two primitives):
-%
-\begin{equation*}
-\begin{array}{rcl}
-s & = & (\ldots)\\
- & | & \kvd{axis}_{x/y} s\\
- & | & \kvd{roundScale}_{x/y} s\\
- & | & \kvd{explicitScale}_{x/y}~l, s\\
- & | & \kvd{nest}_{x/y}~v_{min}, v_{max}, s
-\end{array}
-\end{equation*}
-%
-We first focus on the first three primitives, while the \kvd{nest} primitive will be discussed in
-the next section. The \kvd{axis} and \kvd{roundScale} constructs could be defined as derived constructs,
-but it is easier to consider them as primitives for now. The \kvd{axis} primitive simply takes the shape
-$s$ and draws an axis around the contents of $s$, using the inferred scale of $s$ to determine values
-displayed on the axis. This could be a derived construct, because axes can be rendered using lines
-and text labels.
-The \kvd{roundScale} operation takes the inferred X or Y scale of the shape $s$ and, if it is a
-continuous scale, rounds its minimal and maximal values to ``nice'' numbers. For example, if a
-continuous scale has minimum $\num{0}$ and maximum $\num{66.04}$, the resulting scale would have
-maximum $\num{70}$. For categorical scale, the operation does not have any effect.
-The \kvd{explicitScale} operation is similar, but it replaces the inferred scale with an explicitly
-provided scale (the type of the inferred scale has to match with the type of the explicitly given
-scale). For example, assuming \ident{populationBar} is the example given earlier, we can write:
-%
-\begin{equation*}
-\begin{array}{l}
-\kvd{axis}_x~(\kvd{axis}_y~(\kvd{roundScale}_y\\
-\quad(\kvd{explicitScale}_x~(\kvd{categorical \strf{CZ},\strf{MN},\strf{UK}})~\ident{populationBar})))
-\end{array}
-\end{equation*}
-%
-This replaces the X axis with an explicitly given one that includes extra country code and also
-overrides the implicitly inferred order of the categorical values. We then ask Compost to
-automatically round the Y scale (showing population) so that we get a ``nice'' number as the
-maximum. Finally, we add axes around the shape, producing a usual labelled chart.
-As noted earlier, both \kvd{axis} and \kvd{roundScale} could be defined as derived -- \kvd{axis}
-would have to infer the scales of the nested shape, calculate appropriate labels and insert
-suitable lines and labels; the \kvd{roundScale} operation would need to infer the scale too and
-then add an explicit \kvd{explicitScale} with a rounded minimal and maximal value of a continuous
-scale.
+
 \begin{figure}[!h]
 \includegraphics[scale=1,trim={0cm 7.5cm 6cm 0cm},clip]{nest.pdf}
 \caption{A continuous scale with values from $0$ to $6$, nested in another scale.}
 \label{fig:nesting}
 \end{figure}
+
 \subsection*{Nesting of charts and scales}
 Finally, one more primitive that we added in the above definition and that we have not explained
 yet is $\kvd{nest}_{x/y}$. The parameters of the primitive are two values, $v_{min}$ and $v_{max}$

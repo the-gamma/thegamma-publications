@@ -66,7 +66,7 @@ type Shape<[<Measure>] 'vx, [<Measure>] 'vy> =
   | Style of (Style -> Style) * Shape<'vx, 'vy>
   | Text of Value<'vx> * Value<'vy> * VerticalAlign * HorizontalAlign * float * string
   | AutoScale of bool * bool * Shape<'vx, 'vy>
-  | InnerScale of option<continuous<'vx> * continuous<'vx>> * option<continuous<'vy> * continuous<'vy>> * Shape<'vx, 'vy>
+  | InnerScale of option<Scale<'vx>> * option<Scale<'vy>> * Shape<'vx, 'vy>
   | OuterScale of option<Scale<'vx>> * option<Scale<'vy>> * Shape<'vx, 'vy>
   | Line of seq<Value<'vx> * Value<'vy>>
   | Bubble of Value<'vx> * Value<'vy> * float * float
@@ -324,8 +324,8 @@ module Scales =
     | InnerScale(sx, sy, shape) ->
         let (Scaled((asx, asy), _, shape)) = calculateScales shape
         let scales = 
-          (match sx with Some sx -> Continuous(sx) | _ -> asx), 
-          (match sy with Some sy -> Continuous(sy) | _ -> asy) 
+          (match sx with Some sx -> sx | _ -> asx), 
+          (match sy with Some sy -> sy | _ -> asy) 
         Scaled(scales, scales, shape) |> replaceScales scales
 
     | AutoScale(ax, ay, shape) ->
