@@ -500,7 +500,7 @@ module Projections =
     | Continuous(CO slv, CO shv), (COV (CO v)) ->
         CO((v - slv) / (shv - slv) * (thv - tlv) + tlv)
     | Categorical _, COV _ -> failwith "Cannot project continuous value on a categorical scale."
-    | Continuous _, CAR _ -> failwith "Cannot project categorical value on a continuous scale."
+    | Continuous _, CAR _ -> failwithf "Cannot project categorical value (%A) on a continuous scale (%A)." coord scale
 
   let rec project<[<Measure>] 'vx, [<Measure>] 'vy, [<Measure>] 'ux, [<Measure>] 'uy> 
       (sx:Scale<'vx>) (sy:Scale<'vy>) point (projection:Projection<'vx, 'vy, 'ux, 'uy>) : continuous<'ux> * continuous<'uy> = 
@@ -631,12 +631,12 @@ module Projections =
     | Scaled(scales, _, ScaledShape points) -> 
         Projected(projection, scales, ProjectedShape points)
 
-    | Scaled(_, _, ScaledPadding((t,r,b,l), shape)) ->
+    | Scaled((sxouter, syouter), _, ScaledPadding((t,r,b,l), shape)) ->
         let (lx, hx), (ly, hy) = 
           let (Scaled(_, (sxinner, syinner), _)) = shape 
           getExtremes sxinner, getExtremes syinner
         let ppad = Padding((t, r, b, l), (lx, hx, ly, hy), projection)
-        calculateProjections shape ppad
+        calculateProjections shape ppad // projection TODO: This bit is wrong
 
     | Scaled(scales, _, ScaledStack(orient, shapes)) ->
         Projected(projection, scales, ProjectedStack(orient, shapes |> Array.map (fun s -> calculateProjections s projection)))
@@ -667,7 +667,7 @@ module Drawing =
 
   let rec drawShape<[<Measure>] 'ux, [<Measure>] 'uy> ctx (shape:ProjectedShape<'ux, 'uy>) = 
     let (Projected(projection, (sx, sy), shape)) = shape
-
+    
     let projectCont (x, y) = 
       match project sx sy (x, y) projection with
       | (CO x), (CO y) -> x, y

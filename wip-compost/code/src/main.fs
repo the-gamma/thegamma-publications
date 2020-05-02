@@ -19,6 +19,14 @@ let elections =
 let gbpusd = [ 1.3206; 1.3267; 1.312; 1.3114; 1.3116; 1.3122; 1.3085; 1.3211; 1.3175; 1.3136; 1.3286; 1.3231; 1.3323; 1.3215; 1.3186; 1.2987; 1.296; 1.2932; 1.2885; 1.3048; 1.3287; 1.327; 1.3429; 1.3523; 1.3322; 1.3152; 1.3621; 1.4798; 1.4687; 1.467; 1.4694; 1.4293; 1.4064; 1.4196; 1.4114; 1.4282; 1.4334; 1.4465; 1.4552; 1.456; 1.4464; 1.4517; 1.4447; 1.4414 ] |> List.rev
 let gbpeur = [ 1.1823; 1.1867; 1.1838; 1.1936; 1.1944; 1.1961; 1.1917; 1.2017; 1.1969; 1.193; 1.2006; 1.1952; 1.1998; 1.1903; 1.1909; 1.1759; 1.1743; 1.168; 1.1639; 1.175; 1.1929; 1.192; 1.2081; 1.2177; 1.2054; 1.1986; 1.2254; 1.3039; 1.3018; 1.3018; 1.296; 1.2709; 1.2617; 1.2634; 1.2589; 1.2639; 1.2687; 1.2771; 1.2773; 1.2823; 1.2726; 1.2814; 1.2947; 1.2898 ] |> List.rev
 
+let inline i a b c d s = 
+  dict ["sepal.length", float a;"sepal.width", float b;"petal.length",float c; "petal.width",float d], s
+let iris = 
+  [ i 5.1 3.5 1.4 0.2 "Setosa"; i 4.9 3 1.4 0.2 "Setosa"; i 4.7 3.2 1.3 0.2 "Setosa"; i 4.6 3.1 1.5 0.2 "Setosa"; i 5 3.6 1.4 0.2 "Setosa"; i 5.4 3.9 1.7 0.4 "Setosa"; i 4.6 3.4 1.4 0.3 "Setosa"; i 5 3.4 1.5 0.2 "Setosa"; i 4.4 2.9 1.4 0.2 "Setosa"; i 4.9 3.1 1.5 0.1 "Setosa"; i 5.4 3.7 1.5 0.2 "Setosa"; i 4.8 3.4 1.6 0.2 "Setosa"; i 4.8 3 1.4 0.1 "Setosa"; i 4.3 3 1.1 0.1 "Setosa"; i 5.8 4 1.2 0.2 "Setosa"; i 5.7 4.4 1.5 0.4 "Setosa"; i 5.4 3.9 1.3 0.4 "Setosa"; i 5.1 3.5 1.4 0.3 "Setosa"; i 5.7 3.8 1.7 0.3 "Setosa"; i 5.1 3.8 1.5 0.3 "Setosa"; i 5.4 3.4 1.7 0.2 "Setosa"; i 5.1 3.7 1.5 0.4 "Setosa"; i 4.6 3.6 1 0.2 "Setosa"; i 5.1 3.3 1.7 0.5 "Setosa"; i 4.8 3.4 1.9 0.2 "Setosa"; i 5 3 1.6 0.2 "Setosa"; i 5 3.4 1.6 0.4 "Setosa"; i 5.2 3.5 1.5 0.2 "Setosa"; i 5.2 3.4 1.4 0.2 "Setosa"; i 4.7 3.2 1.6 0.2 "Setosa"; i 4.8 3.1 1.6 0.2 "Setosa"; i 5.4 3.4 1.5 0.4 "Setosa"; i 5.2 4.1 1.5 0.1 "Setosa"; i 5.5 4.2 1.4 0.2 "Setosa"; i 4.9 3.1 1.5 0.2 "Setosa"; i 5 3.2 1.2 0.2 "Setosa"; i 5.5 3.5 1.3 0.2 "Setosa"; i 4.9 3.6 1.4 0.1 "Setosa"; i 4.4 3 1.3 0.2 "Setosa"; i 5.1 3.4 1.5 0.2 "Setosa"; i 5 3.5 1.3 0.3 "Setosa"; i 4.5 2.3 1.3 0.3 "Setosa"; 
+    i 4.4 3.2 1.3 0.2 "Setosa"; i 5 3.5 1.6 0.6 "Setosa"; i 5.1 3.8 1.9 0.4 "Setosa"; i 4.8 3 1.4 0.3 "Setosa"; i 5.1 3.8 1.6 0.2 "Setosa"; i 4.6 3.2 1.4 0.2 "Setosa"; i 5.3 3.7 1.5 0.2 "Setosa"; i 5 3.3 1.4 0.2 "Setosa"; i 7 3.2 4.7 1.4 "Versicolor"; i 6.4 3.2 4.5 1.5 "Versicolor"; i 6.9 3.1 4.9 1.5 "Versicolor"; i 5.5 2.3 4 1.3 "Versicolor"; i 6.5 2.8 4.6 1.5 "Versicolor"; i 5.7 2.8 4.5 1.3 "Versicolor"; i 6.3 3.3 4.7 1.6 "Versicolor"; i 4.9 2.4 3.3 1 "Versicolor"; i 6.6 2.9 4.6 1.3 "Versicolor"; i 5.2 2.7 3.9 1.4 "Versicolor"; i 5 2 3.5 1 "Versicolor"; i 5.9 3 4.2 1.5 "Versicolor"; i 6 2.2 4 1 "Versicolor"; i 6.1 2.9 4.7 1.4 "Versicolor"; i 5.6 2.9 3.6 1.3 "Versicolor"; i 6.7 3.1 4.4 1.4 "Versicolor"; i 5.6 3 4.5 1.5 "Versicolor"; i 5.8 2.7 4.1 1 "Versicolor"; i 6.2 2.2 4.5 1.5 "Versicolor"; i 5.6 2.5 3.9 1.1 "Versicolor"; i 5.9 3.2 4.8 1.8 "Versicolor"; i 6.1 2.8 4 1.3 "Versicolor"; i 6.3 2.5 4.9 1.5 "Versicolor"; i 6.1 2.8 4.7 1.2 "Versicolor"; i 6.4 2.9 4.3 1.3 "Versicolor"; i 6.6 3 4.4 1.4 "Versicolor"; i 6.8 2.8 4.8 1.4 "Versicolor"; i 6.7 3 5 1.7 "Versicolor"; i 6 2.9 4.5 1.5 "Versicolor"; 
+    i 5.7 2.6 3.5 1 "Versicolor"; i 5.5 2.4 3.8 1.1 "Versicolor"; i 5.5 2.4 3.7 1 "Versicolor"; i 5.8 2.7 3.9 1.2 "Versicolor"; i 6 2.7 5.1 1.6 "Versicolor"; i 5.4 3 4.5 1.5 "Versicolor"; i 6 3.4 4.5 1.6 "Versicolor"; i 6.7 3.1 4.7 1.5 "Versicolor"; i 6.3 2.3 4.4 1.3 "Versicolor"; i 5.6 3 4.1 1.3 "Versicolor"; i 5.5 2.5 4 1.3 "Versicolor"; i 5.5 2.6 4.4 1.2 "Versicolor"; i 6.1 3 4.6 1.4 "Versicolor"; i 5.8 2.6 4 1.2 "Versicolor"; i 5 2.3 3.3 1 "Versicolor"; i 5.6 2.7 4.2 1.3 "Versicolor"; i 5.7 3 4.2 1.2 "Versicolor"; i 5.7 2.9 4.2 1.3 "Versicolor"; i 6.2 2.9 4.3 1.3 "Versicolor"; i 5.1 2.5 3 1.1 "Versicolor"; i 5.7 2.8 4.1 1.3 "Versicolor"; i 6.3 3.3 6 2.5 "Virginica"; i 5.8 2.7 5.1 1.9 "Virginica"; i 7.1 3 5.9 2.1 "Virginica"; i 6.3 2.9 5.6 1.8 "Virginica"; i 6.5 3 5.8 2.2 "Virginica"; i 7.6 3 6.6 2.1 "Virginica"; i 4.9 2.5 4.5 1.7 "Virginica"; i 7.3 2.9 6.3 1.8 "Virginica"; i 6.7 2.5 5.8 1.8 "Virginica"; i 7.2 3.6 6.1 2.5 "Virginica"; i 6.5 3.2 5.1 2 "Virginica"; i 6.4 2.7 5.3 1.9 "Virginica"; i 6.8 3 5.5 2.1 "Virginica"; i 5.7 2.5 5 2 "Virginica"; i 5.8 2.8 5.1 2.4 "Virginica"; 
+    i 6.4 3.2 5.3 2.3 "Virginica"; i 6.5 3 5.5 1.8 "Virginica"; i 7.7 3.8 6.7 2.2 "Virginica"; i 7.7 2.6 6.9 2.3 "Virginica"; i 6 2.2 5 1.5 "Virginica"; i 6.9 3.2 5.7 2.3 "Virginica"; i 5.6 2.8 4.9 2 "Virginica"; i 7.7 2.8 6.7 2 "Virginica"; i 6.3 2.7 4.9 1.8 "Virginica"; i 6.7 3.3 5.7 2.1 "Virginica"; i 7.2 3.2 6 1.8 "Virginica"; i 6.2 2.8 4.8 1.8 "Virginica"; i 6.1 3 4.9 1.8 "Virginica"; i 6.4 2.8 5.6 2.1 "Virginica"; i 7.2 3 5.8 1.6 "Virginica"; i 7.4 2.8 6.1 1.9 "Virginica"; i 7.9 3.8 6.4 2 "Virginica"; i 6.4 2.8 5.6 2.2 "Virginica"; i 6.3 2.8 5.1 1.5 "Virginica"; i 6.1 2.6 5.6 1.4 "Virginica"; i 7.7 3 6.1 2.3 "Virginica"; i 6.3 3.4 5.6 2.4 "Virginica"; i 6.4 3.1 5.5 1.8 "Virginica"; i 6 3 4.8 1.8 "Virginica"; i 6.9 3.1 5.4 2.1 "Virginica"; i 6.7 3.1 5.6 2.4 "Virginica"; i 6.9 3.1 5.1 2.3 "Virginica"; i 5.8 2.7 5.1 1.9 "Virginica"; i 6.8 3.2 5.9 2.3 "Virginica"; i 6.7 3.3 5.7 2.5 "Virginica"; i 6.7 3 5.2 2.3 "Virginica"; i 6.3 2.5 5 1.9 "Virginica"; i 6.5 3 5.2 2 "Virginica"; i 6.2 3.4 5.4 2.3 "Virginica"; i 5.9 3 5.1 1.8 "Virginica" ]
+
 // ----------------------------------------------------------------------------
 // DEMO #1: Creating a bar chart
 // ----------------------------------------------------------------------------
@@ -145,6 +153,25 @@ let chart1 =
   ]
 
 chart1 |> render "out1"
+
+
+let colors = dict ["Setosa", "blue"; "Virginica", "green"; "Versicolor", "red"] 
+Shape.Layered [
+  for x in ["sepal.length"; "sepal.width"; "petal.length"; "petal.width" ] do
+    for y in ["sepal.length"; "sepal.width"; "petal.length"; "petal.width" ] do
+      yield Shape.OuterScale(Some(Categorical [| ca x |]), Some(Categorical [| ca y |]), 
+        Shape.Axes(false, false, true, true, Shape.Layered [
+          //if x = y then 
+          //  let data = [ for v, _ in iris -> v.[x] ] 
+          //  let lo, hi = Seq.min data, Seq.max data
+          //  let bins = data |> Seq.countBy (fun v -> int ((v - lo) / (hi - lo) * 10. )) |> Seq.sort
+          //  for k, v in bins -> Derived.Column(ca (string k), co v)
+          //else
+            for v, k in iris -> 
+              Derived.StrokeColor(colors.[k], Shape.Bubble(numv v.[x], numv v.[y], 1., 1.))
+        ]))
+] |> render "out3"
+
 
 (*
 let bars1 : Shape<1,1> = 

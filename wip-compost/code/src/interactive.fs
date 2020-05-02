@@ -221,7 +221,8 @@ module Internal =
       | _ -> None
     let sx = getInnerScale ctx.ChartOptions.xAxis ctx.XPoints
     let sy = getInnerScale ctx.ChartOptions.yAxis ctx.YPoints
-    let chart = AutoScale(sx.IsNone, sy.IsNone, InnerScale(sx, sy, ctx.Chart))
+    let unwrap = function Some(lo, hi) -> Some(Continuous(lo, hi)) | _ -> None
+    let chart = AutoScale(sx.IsNone, sy.IsNone, InnerScale(unwrap sx, unwrap sy, ctx.Chart))
     let xp, yp = calculateScales (ctx.Width, ctx.Height) chart 
     { ctx with Chart = chart; XPoints = xp; YPoints = yp }
 
@@ -248,7 +249,7 @@ module Internal =
     | "right", _ | "auto", true -> 
         let ptop, _, _, _ = ctx.Padding
         let labs = 
-          InnerScale(Some(CO 0., CO 100.), None, 
+          InnerScale(Some(Continuous(CO 0., CO 100.)), None, 
               Layered
                 [ for clr, lbl in labels do
                     let style clr = applyStyle (fun s -> { s with Font = "9pt Roboto,sans-serif"; Fill=Solid(1., HTML clr); StrokeColor=(0.0, RGB(0,0,0)) })
@@ -265,7 +266,7 @@ module Internal =
     | "bottom", _ | "auto", false -> 
         let _, pright, _, pleft = ctx.Padding
         let labs = 
-          InnerScale(Some(CO 0., CO 100.), None, 
+          InnerScale(Some(Continuous(CO 0., CO 100.)), None, 
               Layered
                 [ for clr, lbl in labels do
                     let style clr = applyStyle (fun s -> { s with Font = "9pt Roboto,sans-serif"; Fill=Solid(1., HTML clr); StrokeColor=(0.0, RGB(0,0,0)) })
@@ -1071,7 +1072,7 @@ module YouGuessSortHelpers =
     let labs = 
       Padding(
         (0., 20., 20., 25.),
-        InnerScale(Some(CO 0., CO 100.), None, 
+        InnerScale(Some(Continuous(CO 0., CO 100.)), None, 
           Interactive(
             ( if state.Completed then [] else
                 [ EventHandler.MouseDown(fun evt (_, Cat(lbl, _)) -> trigger (SelectItem lbl))

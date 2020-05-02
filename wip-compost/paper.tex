@@ -2,7 +2,7 @@
 \documentclass{jfp}
 \usepackage{xcolor}
 
-\title{Composing data visualizations}
+\title{Composable data visualizations}
 \author[Tomas Petricek]{TOMAS PETRICEK\\
        University of Kent, UK\\
        \email{t.petricek@kent.ac.uk}}
@@ -232,13 +232,27 @@ Second, Compost calculates a \emph{projection}, a mapping from domain-specific v
 to the available screen space. A scale $l$ is defined in Figure~\ref{fig:scale}.
 
 \begin{figure}
+\vspace{-0.5em}
 \begin{equation*}
 \begin{array}{rcl}
 l & = & \kvd{continuous}~n_{min}, n_{max} \lsep \kvd{categorical}~[\,c_1, \ldots, c_k\,]
 \end{array}
 \end{equation*}
+\vspace{-1em}
 \caption{A scale $l$ can be continuous, defined by a range, or categorical, defined by a list of values.}
 \label{fig:scale}
+\vspace{-1em}
+\end{figure}
+\begin{figure}
+\begin{equation*}
+\begin{array}{rclcl}
+s & = & \kvd{roundScale}_{x/y} s      &|& \kvd{nest}_{x/y}~v_{min}, v_{max}, s \\
+  & | & \kvd{explicitScale}_{x/y}~l, s &|&  (\ldots)
+\end{array}
+\end{equation*}
+\vspace{-0.5em}
+\caption{Additional combinators for controlling and nesting scales, extending earlier definition of $s$.}
+\label{fig:control}
 \end{figure}
 
 A continuous scale is defined by a minimal and maximal value that need to be mapped to the
@@ -294,19 +308,6 @@ This leads to charts that fully utilize the available space, but may not be easy
 The first two primitives, shown in Figure~\ref{fig:control} (left) allow the chart designer
 to adjust the automatically inferred range of scales.
 
-\begin{figure}
-  \begin{equation*}
-  \begin{array}{rclcl}
-  s & = & \kvd{roundScale}_{x/y} s      &|& \kvd{nest}_{x/y}~v_{min}, v_{max}, s \\
-    & | & \kvd{explicitScale}_{x/y}~l, s &|&  (\ldots)
-  \end{array}
-  \end{equation*}
-  \caption{Additional combinators for controlling scales; \kvd{roundScale} and \kvd{explicitScale}
-    can be used for creating nice scale ranges; \kvd{nest} makes it possible to create charts with
-    multiple scales.}
-\label{fig:control}
-\end{figure}
-
 The two combinators for controlling the range of scales are \kvd{roundScale} and \kvd{explicitScale}.
 The oprations can be applied to either the X scale or the Y scale, which is indicated by the
 $x/y$ sub-script. The \kvd{roundScale} primitve takes the inferred X or Y scale of the shape $s$
@@ -324,6 +325,7 @@ following code (reusing the \ident{labour} and \ident{conservative} variables de
 \qquad \kvd{overlay}~[~\ident{labour}, \ident{conservative}~]~)))\\
 \end{array}
 \end{equation*}
+\vspace{-0.5em}
 
 \noindent
 Reading the code from the inside out, the snippet first overlays the two coloured bars defined
@@ -338,47 +340,125 @@ could be implemented as derived operations; \kvd{roundScale} would need to infer
 the nested shape and then insert \kvd{explicitScale} with a rounded number; \kvd{axis}
 would also need to infer the scales and then generates labels and lines in suitable locations.
 
+\begin{figure}
+\includegraphics[scale=0.57]{figures/lines}
+\vspace{0.25em}
+\caption{Two charts showing currency exchange rates with a shared X scale and separate Y scales.}
+\label{fig:lines}
+\end{figure}
+
 \subsection{Nested scales}
 
-\newpage
+The most interesting primitive for controlling scale composition defined in Figure~\ref{fig:control}
+is $\kvd{nest}_{x/y}$. The combinator takes two values, $v_{min}, v_{max}$ and a shape $s$ as arguments
+and it nests the scale of the shape $s$ inside the region defined by $v_{min}, v_{max}$. When inferring
+scales of shapes, the scale of $\kvd{nest}_{x/y}~l, s$ will be a categorical or continuous scale
+inferred using the values $v_{min}$ and $v_{max}$, regardless of the values that are used inside
+the shape $s$. The chart space between $v_{max}$ and $v_{min}$ will then be used to render the
+nested shape $s$ using its inferred scale. An example of nesting is shown in Figure~\ref{fig:nesting}.
+Here, a chart with a continous scale from $\num{1.1}$ to $\num{1.4}$ (e.g.~GBP-EUR exchange rates)
+is nested in the left half of another chart, which has a continuous scale from $\num{0}$ to $\num{100}$.
 
-codezzz
+\begin{figure}
+\includegraphics[scale=1,trim={0cm 7.5cm 6cm 0cm},clip]{figures/nest}
+\caption{A continuous scale with values from $0$ to $6$, nested in another scale.}
+\label{fig:nesting}
+\end{figure}
+
+The nesting of scales can be used in a variety of ways. We can, for example, nest a line chart
+inside a bar of a bar chart. In that case, the values for $v_{min}$ and $v_{max}$ would be
+$\kvd{cat}~\strf{ABC}, 0$ and $\kvd{cat}~\strf{ABC}, 1$, which define the start and the end of
+the region allocated to the $\strf{ABC}$ category on a categorical scale. A simpler use case for
+the combinator is showing multiple charts in a single view. For example, the motivating example
+in Figure~\ref{fig:charts} (right) comapres aligned line charts of exchange rates for two
+different currencies. Assuming \ident{gbpusd} and \ident{gbpeur} are lists containing days as X
+values and exchange rates as Y values, we can construct a simple chart with two line charts,
+shown in Figure~\ref{fig:lines} (left), using:
 %
 \begin{equation*}
 \begin{array}{l}
 \kvd{overlay}~[~
-\kvd{nest}_y~(\kvd{continuous}~\num{0},\num{50}), (\kvd{axis}_l~(\kvd{axis}_r~(\kvd{axis}_b~(\kvd{line}~\strf{\#202020}~\ident{gbpusd}))))\\
-\hspace{3.68em} \kvd{nest}_y~(\kvd{continuous}~\num{50},\num{100}), (\kvd{axis}_l~(\kvd{axis}_r~(\kvd{axis}_b~(\kvd{line}~\strf{\#202020}~\ident{gbpeur}))))~]\\
+\kvd{nest}_y~(\kvd{cont}~\num{0}),(\kvd{cont}~\num{50}), (\kvd{axis}_l~(\kvd{axis}_r~(\kvd{axis}_b~(\kvd{line}~\strf{\#202020}~\ident{gbpusd}))))\\
+\hspace{3.68em} \kvd{nest}_y~(\kvd{cont}~\num{50}),(\kvd{cont}~\num{100}), (\kvd{axis}_l~(\kvd{axis}_r~(\kvd{axis}_b~(\kvd{line}~\strf{\#202020}~\ident{gbpeur}))))~]\\
 \end{array}
 \end{equation*}
 
-moar codezzzz
+\vspace{-0.5em}
+\noindent
+In this example, the X scale shows the days of the year. This scale is shared by both of the charts.
+Indeed, if data was only available for the second half of the month for one of the charts,
+we would want the line to start in the middle of the chart. However, the Y scale needs to be
+separate for each of the charts. To achieve this, we use $\kvd{nest}_y$. The scale of the inner
+shapes is continuous, from the minimal to the maximal exchange rate for a given period. The
+outer scale is determined by the explicitly defined points. For the upper chart, these are
+$\kvd{cont}~\num{0}$ and $\kvd{cont}~\num{50}$; for the lower chart, these are
+$\kvd{cont}~\num{50}$ and $\kvd{cont}~\num{100}$. The continuous values define a scale that only
+contain two shapes -- one in the upper half, one in the lower half -- and so the three numbers could
+have equally been, for example, $\num{0},\num{1}, \num{2}$. The outer scale used here is
+synthetic and it is not aligned with other chart elements. An example of a more complex chart
+that follows a similar style, but does not have synthetic outer scale would be pairplot from
+the seaborn Python library. % \cite
 
+For completeness, the following code snippet shows how to construct the full currency exchange
+rate chart shown in Figure~\ref{fig:lines} (right), including the blue and red background:
+%
 \begin{equation*}
 \begin{array}{l}
-\fkvd{let}~\ident{brexitRate}~(\ident{lo}, \ident{hi})~\ident{rates}~=\\
-\quad \kvd{overlay}~[\\
-\qquad \kvd{fill}~\strf{\#1F77B460}, [\;\,\kvd{cont}~\num{0}, \kvd{cont}~\ident{lo}, \kvd{cont}~\num{16}, \kvd{cont}~\ident{lo}, \kvd{cont}~\num{16}, \kvd{cont}~\ident{hi}, \kvd{cont}~\num{0}, \kvd{cont}~\ident{hi}\;],\\
-\qquad \kvd{fill}~\strf{\#D6272860}, [\;\,\kvd{cont}~\num{16}, \kvd{cont}~\ident{lo}, \kvd{cont}~\num{44}, \kvd{cont}~\ident{lo}, \kvd{cont}~\num{44}, \kvd{cont}~\ident{hi}, \kvd{cont}~\num{16}, \kvd{cont}~\ident{hi}\;],\\
-\qquad \kvd{line}~\strf{\#202020}~\ident{rates}~]\\[0.5em]
+\fkvd{let}~\ident{brexitRate}~(\ident{lo}, \ident{hi})~\ident{rates}~=\kvd{overlay}~[\\
+\quad \kvd{fill}~\strf{\#1F77B460}, [\;\,\kvd{cont}~\num{0}, \kvd{cont}~\ident{lo}, \kvd{cont}~\num{16}, \kvd{cont}~\ident{lo}, \kvd{cont}~\num{16}, \kvd{cont}~\ident{hi}, \kvd{cont}~\num{0}, \kvd{cont}~\ident{hi}\;],\\
+\quad \kvd{fill}~\strf{\#D6272860}, [\;\,\kvd{cont}~\num{16}, \kvd{cont}~\ident{lo}, \kvd{cont}~\num{44}, \kvd{cont}~\ident{lo}, \kvd{cont}~\num{44}, \kvd{cont}~\ident{hi}, \kvd{cont}~\num{16}, \kvd{cont}~\ident{hi}\;],\\
+\quad \kvd{line}~\strf{\#202020}~\ident{rates}~]\\[0.5em]
 \kvd{overlay}~[~
-\kvd{nest}_y~(\kvd{continuous}~\num{0},\num{50}), (\kvd{axis}_l~(\kvd{axis}_r~(\kvd{axis}_b~(\ident{brexitRate}~(\num{1.25}, \num{1.50})~\ident{gbpusd}))))\\
-\hspace{3.68em} \kvd{nest}_y~(\kvd{continuous}~\num{50},\num{100}), (\kvd{axis}_l~(\kvd{axis}_r~(\kvd{axis}_b~(\ident{brexitRate}~(\num{1.15}, \num{1.30})~\ident{gbpeur}))))~]\\
+\kvd{nest}_y~(\kvd{cont}~\num{0}),(\kvd{cont}~\num{50}), (\kvd{axis}_l~(\kvd{axis}_r~(\kvd{axis}_b~(\ident{brexitRate}~(\num{1.25}, \num{1.50})~\ident{gbpusd}))))\\
+\hspace{3.68em} \kvd{nest}_y~(\kvd{cont}~\num{50}),(\kvd{cont}~\num{100}), (\kvd{axis}_l~(\kvd{axis}_r~(\kvd{axis}_b~(\ident{brexitRate}~(\num{1.15}, \num{1.30})~\ident{gbpeur}))))~]\\
 \end{array}
 \end{equation*}
 
-\begin{figure}
-  \includegraphics[scale=0.57]{figures/lines}
-  \vspace{0.25em}
-  \caption{TBA.}
-  \label{fig:lines}
-\end{figure}
-
-
-\newpage
+\noindent
+Here, we use the \fkvd{let} binding of the host language to define a function that takes
+a the data \ident{rates} together with the minimum and maximum. This is used for drawing
+two filled rectangles, covering the first 16 days of the view in blue and the rest in red.
+The shapes combined using \kvd{overlay} are rendered in the order in which they appear and so
+the line shape is last, so that it appears above the background.
 
 \section{Definining abstractions}
 \label{sec:abstractions}
+
+\begin{equation*}
+\begin{array}{l}
+\fkvd{let}~\ident{title}~t~s~=\ident{overlay}~[\\
+\quad \kvd{nest}_x~(\kvd{cont}~\num{0}), (\kvd{cont}~\num{100}),
+  (\kvd{nest}_y~(\kvd{cont}~\num{0}), (\kvd{cont}~\num{15}), \\
+\quad\quad \kvd{explicitScale}_x~(\kvd{continuous}~\num{0},\num{100}),~(\kvd{explicitScale}_y~(\kvd{continuous}~\num{0},\num{100}),\\
+\quad\qquad \kvd{text}~\strf{\#000000}, (\kvd{cont}~\num{50}), (\kvd{cont}~\num{50}),~t)~)\\
+\quad \kvd{nest}_x~(\kvd{cont}~\num{0}), (\kvd{cont}~\num{100}),
+  (\kvd{nest}_y~(\kvd{cont}~\num{15}), (\kvd{cont}~\num{100}),~s)~]
+\end{array}
+\end{equation*}
+
+\begin{equation*}
+\begin{array}{l}
+\fkvd{let}~\ident{pairplot}~\ident{attrs}~\ident{data}~=~\kvd{overlay}~[\\
+\quad \kvd{for}~x~\kvd{in}~\ident{attrs}~\rightarrow~\kvd{for}~y~\kvd{in}~\ident{attrs}~\rightarrow\\
+\qquad \kvd{nest}_x~(\kvd{cat}~x, 0), (\kvd{cat}~x, 1), (\kvd{nest}_y~(\kvd{cat}~y, 0), (\kvd{cat}~y, 1), \\
+\quad\qquad (\kvd{axis}_l~(\kvd{axis}_b~(\kvd{overlay}~[~\fkvd{for}~v~\kvd{in}~\ident{data}~\rightarrow~\kvd{bubble}~(\ident{get}~x~v), (\ident{get}~y~v), \num{1}, \num{1} ])))~)]\\
+\end{array}
+\end{equation*}
+
+let
+  Shape.Layered [
+    for x in ["sepal.length"; "sepal.width"; "petal.length"; "petal.width" ] do
+      for y in ["sepal.length"; "sepal.width"; "petal.length"; "petal.width" ] do
+        yield Shape.OuterScale(Some(Categorical [| ca x |]), Some(Categorical [| ca y |]),
+          Shape.Axes(false, false, true, true, Shape.Layered [
+            for v, k in iris ->
+              Derived.StrokeColor(colors.[k], Shape.Bubble(numv v.[x], numv v.[y], 1., 1.))
+          ]))
+  ] |> render "out3"
+
+
+
+\newpage
 
 \section{Interactive charts}
 
@@ -390,54 +470,9 @@ moar codezzzz
 
 \subsection*{Controlling and nesting scales}
 
-\begin{figure}[!h]
-\includegraphics[scale=1,trim={0cm 7.5cm 6cm 0cm},clip]{nest.pdf}
-\caption{A continuous scale with values from $0$ to $6$, nested in another scale.}
-\label{fig:nesting}
-\end{figure}
 
 \subsection*{Nesting of charts and scales}
-Finally, one more primitive that we added in the above definition and that we have not explained
-yet is $\kvd{nest}_{x/y}$. The parameters of the primitive are two values, $v_{min}$ and $v_{max}$
-together with a shape $s$. The primitive makes it possible to nest one scale inside another
-one.
-When inferring the scales, Compost infers the scale of the nested shape $s$. This will then take
-the area determined by the two points $v_{min}$ and $v_{max}$ in the scale determined by other
-shapes that are overlaid with the $\kvd{nest}$ shape. The two points are also used to determine
-the scales of the overall shape, but the scales of $s$ are nested and do not have any effect on
-the outer scales. In fact, the scale of $s$ does not even have to be of the same type as the
-scale of the outer shape.
-Figure~\ref{fig:nesting} illustrates this with an example. Here, we are nesting a continuous scale
-with values ranging from $\num{0}$ to $\num{6}$ into another scale. The values $v_{max}$ and
-$v_{min}$ do not even have to be continuous. We can, for example, nest a line chart inside a
-bar of a bar chart and then the two values could be $\kvd{cat}~\strf{One}, 0$ and $\kvd{cat}~\strf{One}, 1$
-(which are two values that define a region of a categorical scale).
-One area where nesting of scales is particularly useful is when combining multiple charts in
-a single view. For example, let's say that we have two line charts showing prices of two different
-stocks over the same period of time (for simplicity, we can just use UNIX timestamp as a time).
-The prices of the two stocks are orders of magnitude different, so they cannot fit easily into the
-same chart. We want to show two line charts side-by-side (one above each other). They should each
-have their own Y axis (price), but the X axis (time) should be shared.
-Assuming we have \ident{googPrices} and \ident{fbPrices} as two line charts without any axes,
-covering the same date range, we can write:
-%
-\begin{equation*}
-\begin{array}{l}
-\kvd{axis}_x~(\kvd{overlay}\\
-\quad (\kvd{nest}_y~(\kvd{cat}~\strf{top-chart}, \num{0}), (\kvd{cat}~\strf{top-chart}, \num{1}),
- (\kvd{axis}_y~\ident{fbPrices})),\\
-\quad (\kvd{nest}_y~(\kvd{cat}~\strf{bottom-chart}, \num{0}), (\kvd{cat}~\strf{bottom-chart}, \num{1}),
- (\kvd{axis}_y~\ident{googPrices}))~)\\
-\end{array}
-\end{equation*}
-%
-Reading the code from the inner-most part to the outer-most, we first add separate Y axes to both
-of the line charts. Given the difference in the prices, the axes will have quite different values.
-We then nest the (continuous) Y axes using the \kvd{nest} primitive and, at the same time, implicitly
-define a new outer Y axis. The outer Y axis is categorical with just two values, \strf{top-chart}
-and \strf{bottom-chart}. This means that the two nested charts will take equal amount of space,
-one above the other (each of the charts takes the full space allocated for the category -- the
-minimal value has ratio $0$ while the maximal value has ratio $1$).
+
 ~
 ~
 \noindent
