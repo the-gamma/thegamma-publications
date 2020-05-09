@@ -111,9 +111,9 @@ akin to most high-level charting libraries such as Google Charts, but in contras
 flexible libraries like D3.
 
 Our design focuses on two-dimensional charts with X and Y axes. Values mapped to those axes
-can be either categorical (such as different political parties or countries) or continuous
-(such as number of votes or exchange rates). The mapping from categorical and continuous values
-to exact positions on the chart is done automatically. For continuous values, this simply means
+can be either categorical (e.g.~political parties, countries) or continuous
+(e.g.~number of votes, exchange rates). The mapping from categorical and continuous values
+to positions on the chart is done automatically. For continuous values, this involves
 applying a linear transformation. For categorical values, the mapping is more difficult.
 
 For example, in the UK election results chart, the X axis is categorical. The library automatically
@@ -138,7 +138,8 @@ v & = & \kvd{cat}~c, r \\
 \begin{array}{rclcl}
 s & = &\kvd{line}~\gamma, [\,v_{x1}, v_{y1}, \ldots, v_{xn}, v_{yn}\,] & | & \kvd{overlay}~[\,s_1, \ldots, s_n\,]\\
  & | & \kvd{fill}~\gamma, [\,v_{x1}, v_{y1}, \ldots, v_{xn}, v_{yn}\,] & | &\kvd{axis}_{l/r/t/b}~s\\
- & | & \kvd{text}~\gamma, v_x, v_y, t & | &\kvd{padding}~n_t,n_r,n_b,n_l,s
+ & | & \kvd{text}~\gamma, v_x, v_y, t & | &\kvd{padding}~n_t,n_r,n_b,n_l,s\\
+ & | & \kvd{bubble}~\gamma, v_x, v_y, w, h
 \end{array}
 \end{equation*}
 \caption{Core primitives of the Compost domain-specific language. Values $v$ are either categorical
@@ -150,10 +151,11 @@ s & = &\kvd{line}~\gamma, [\,v_{x1}, v_{y1}, \ldots, v_{xn}, v_{yn}\,] & | & \kv
 
 Now that we know how Compost represents values, we can define the basic elements of its
 domain-specific langauge. A chart is represeted by the shape $s$ defined in Figure~\ref{fig:shape}.
-A primitive shape can be a text label, a line connecting a list of points or a filled polygon
-defined by a list of points. The position of points is specified by X and Y coordinates,
-which can be either categorical or continuous values. For text, line and polygon, we also include
-a parameter $\gamma$ that specifies the element color.
+A primitive shape can be a text label, a line connecting a list of points, a filled polygon
+defined by a list of points or a bubble at a given point with a given width and height.
+The position of points is specified by X and Y coordinates, which can be either categorical or
+continuous values. For text, line, polygon and bubble, we also include a parameter $\gamma$
+that specifies the element color. The width and height of a bubble is given in pixels.
 
 Figure~\ref{fig:shape} also defines three combinators. The most important is $\kvd{overlay}$,
 which overlays all shapes from a given list. When doing this, Compost automatically infers the
@@ -219,8 +221,7 @@ list of election results containing a five-element tuple consisting of a party n
 Aside from iterating over all available parties and splitting the bar, the example also adds padding
 around the bars. A padding is specified in pixels rather than in terms of domain values. This is
 sometimes preferrable over, for example, drawing a bar using a range from $\num{0.05}$ to $\num{0.5}$.
-One remaining feature of the chart in Figure~\ref{fig:charts} that is still missing is the caption.
-We will add this in Section~\ref{sec:abstractions}.
+The chart is still missing a title, which we add in Section~\ref{sec:abstractions}.
 
 \subsection{Inferring scales and projections}
 
@@ -404,13 +405,13 @@ rate chart shown in Figure~\ref{fig:lines} (right), including the blue and red b
 %
 \begin{equation*}
 \begin{array}{l}
-\fkvd{let}~\ident{brexitRate}~(\ident{lo}, \ident{hi})~\ident{rates}~=\kvd{overlay}~[\\
+\fkvd{let}~\ident{xrate}~(\ident{lo}, \ident{hi})~\ident{rates}~=\kvd{overlay}~[\\
 \quad \kvd{fill}~\strf{\#1F77B460}, [\;\,\kvd{cont}~\num{0}, \kvd{cont}~\ident{lo}, \kvd{cont}~\num{16}, \kvd{cont}~\ident{lo}, \kvd{cont}~\num{16}, \kvd{cont}~\ident{hi}, \kvd{cont}~\num{0}, \kvd{cont}~\ident{hi}\;],\\
 \quad \kvd{fill}~\strf{\#D6272860}, [\;\,\kvd{cont}~\num{16}, \kvd{cont}~\ident{lo}, \kvd{cont}~\num{44}, \kvd{cont}~\ident{lo}, \kvd{cont}~\num{44}, \kvd{cont}~\ident{hi}, \kvd{cont}~\num{16}, \kvd{cont}~\ident{hi}\;],\\
 \quad \kvd{line}~\strf{\#202020}~\ident{rates}~]\\[0.5em]
 \kvd{overlay}~[~
-\kvd{nest}_y~(\kvd{cont}~\num{0}),(\kvd{cont}~\num{50}), (\kvd{axis}_l~(\kvd{axis}_r~(\kvd{axis}_b~(\ident{brexitRate}~(\num{1.25}, \num{1.50})~\ident{gbpusd}))))\\
-\hspace{3.68em} \kvd{nest}_y~(\kvd{cont}~\num{50}),(\kvd{cont}~\num{100}), (\kvd{axis}_l~(\kvd{axis}_r~(\kvd{axis}_b~(\ident{brexitRate}~(\num{1.15}, \num{1.30})~\ident{gbpeur}))))~]\\
+\kvd{nest}_y~(\kvd{cont}~\num{0}),(\kvd{cont}~\num{50}), (\kvd{axis}_l~(\kvd{axis}_r~(\kvd{axis}_b~(\ident{xrate}~(\num{1.25}, \num{1.50})~\ident{gbpusd}))))\\
+\hspace{3.68em} \kvd{nest}_y~(\kvd{cont}~\num{50}),(\kvd{cont}~\num{100}), (\kvd{axis}_l~(\kvd{axis}_r~(\kvd{axis}_b~(\ident{xrate}~(\num{1.15}, \num{1.30})~\ident{gbpeur}))))~]\\
 \end{array}
 \end{equation*}
 
@@ -421,12 +422,28 @@ two filled rectangles, covering the first 16 days of the view in blue and the re
 The shapes combined using \kvd{overlay} are rendered in the order in which they appear and so
 the line shape is last, so that it appears above the background.
 
-\section{Definining abstractions}
+\begin{figure}
+  \includegraphics[scale=0.57]{figures/standard}
+  \vspace{0.25em}
+  \caption{Sample charts built using derived abstractions; a scatter plot visualizing the Iris\\
+    dataset with a title (left) and a pairplot comparing two Iris features (right).}
+  \label{fig:standard}
+\end{figure}
+
+\section{Standard charts: Definining new abstractions}
 \label{sec:abstractions}
 
+The Compost library does not introduce a rich collection of standard charts and chart features
+as most charting libraries. However, the functional domain-specific language design makes
+it easy to define high-level chart features based on the low-level primitives of the core language.
+To illustrate this, we give two examples.
+
+First, one last remaining feature of the two charts in Figure~\ref{fig:charts} is a chart title.
+This can be added to any chart using the following derived combinator:
+%
 \begin{equation*}
 \begin{array}{l}
-\fkvd{let}~\ident{title}~t~s~=\ident{overlay}~[\\
+\fkvd{let}~\ident{title}~t~s~=\kvd{overlay}~[\\
 \quad \kvd{nest}_x~(\kvd{cont}~\num{0}), (\kvd{cont}~\num{100}),
   (\kvd{nest}_y~(\kvd{cont}~\num{0}), (\kvd{cont}~\num{15}), \\
 \quad\quad \kvd{explicitScale}_x~(\kvd{continuous}~\num{0},\num{100}),~(\kvd{explicitScale}_y~(\kvd{continuous}~\num{0},\num{100}),\\
@@ -436,31 +453,67 @@ the line shape is last, so that it appears above the background.
 \end{array}
 \end{equation*}
 
+\vspace{-0.5em}
+\noindent
+The \ident{title} combinator is a function defined using \fkvd{let} in the host language. It takes
+a title $t$ and a shape $s$. It overlays two shapes. To position the title above the chart, the first
+shape has an outer Y scale $\kvd{continuous}~\num{0},\num{15}$ while the second has an outer Y scale
+$\kvd{continuous}~\num{15},\num{100}$. These are defined using the $\kvd{nest}_y$ primitive. Similarly,
+the outer X scale of both is $\kvd{continuous}~\num{0},\num{100}$, defined using $\kvd{nest}_x$.
+
+The second shape simply wraps the specified chart $s$ to which we are attaching the title. The first
+positions the text title in the middle of the available space. To do so, we explicitly set the X and
+Y scales inside the upper shape to continuous scales from $\num{0}$ to $\num{100}$ and then position
+the text label in the middle, at a point $(\kvd{cont}~\num{50}), (\kvd{cont}~\num{50})$.
+Figure~\ref{fig:standard} (left) shows a sample scatter plot chart with a title created using the
+\ident{title} combinator.
+
+A more complex type of chart that can be easily composed using the Compost primitives is the
+pairplot chart from the seaborn Python library. % \cite
+Pairplot visualizes pairwise relationships between features of a dataset.
+An example using three features (sepal width, petal width, petal length) from the Iris dataset is shown
+in Figure~\ref{fig:standard} (right). % \cite
+A pairplot draws a grid of charts, each visualizing the relationship between two numerical features. For distinct
+features, pairplot shows a scatter plot using one fature for X values and the other for Y values.
+At the diagonal (when the fatures are the same), it draws a histogram of the values of the feature.
+Additionally, a categorical feature can be used to determine the color of dots in the scatter plots.
+
+To generate a pairplot, we use \kvd{nest} to overlay and align a grid of plots. Each of those
+overlays a number of bubbles or filled shapes and adds left and bottom axis. As before, we use
+\fkvd{let} to define a function and list comprehensions to generate individual chart elements.
+We assume that \ident{data} is a list of rows, \ident{attrs} is a list of available attributes and
+$\ident{get}~a~r$ obtains the attribute $a$ of a row $r$. We also assume the dataset contains the \str{color} attribute.
+%
 \begin{equation*}
 \begin{array}{l}
 \fkvd{let}~\ident{pairplot}~\ident{attrs}~\ident{data}~=~\kvd{overlay}~[\\
-\quad \kvd{for}~x~\kvd{in}~\ident{attrs}~\rightarrow~\kvd{for}~y~\kvd{in}~\ident{attrs}~\rightarrow\\
-\qquad \kvd{nest}_x~(\kvd{cat}~x, 0), (\kvd{cat}~x, 1), (\kvd{nest}_y~(\kvd{cat}~y, 0), (\kvd{cat}~y, 1), \\
-\quad\qquad (\kvd{axis}_l~(\kvd{axis}_b~(\kvd{overlay}~[~\fkvd{for}~v~\kvd{in}~\ident{data}~\rightarrow~\kvd{bubble}~(\ident{get}~x~v), (\ident{get}~y~v), \num{1}, \num{1} ])))~)]\\
+\quad \fkvd{for}~x~\fkvd{in}~\ident{attrs}~\rightarrow~\fkvd{for}~y~\fkvd{in}~\ident{attrs}~\rightarrow\\
+\qquad \kvd{nest}_x~(\kvd{cat}~x, 0), (\kvd{cat}~x, 1), (\kvd{nest}_y~(\kvd{cat}~y, 0), (\kvd{cat}~y, 1), \kvd{axis}_l~(\kvd{axis}_b\\
+\quad\qquad (~\fkvd{if}~x \neq y~\fkvd{then}~\kvd{overlay}~[\;\fkvd{for}~r~\fkvd{in}~\ident{data}~\rightarrow~\\
+\qquad\qquad \hspace{0.7em} \kvd{bubble}~(\ident{get}~\str{color}~r),~(\ident{get}~x~r), (\ident{get}~y~r), \num{1}, \num{1}~]\\
+ \quad\qquad \hspace{0.7em} \fkvd{else}~\kvd{overlay}~[\;\fkvd{for}~x_1, x_2, y~\fkvd{in}~\ident{bins}~x~\ident{data}~\rightarrow~\\
+\qquad\qquad \hspace{0.7em}  \kvd{fill}~\strf{\#808080}~[\; x_1, y, x_2, y, x_2, \num{0}, x_1, \num {0}\;]\;])))] \\
 \end{array}
 \end{equation*}
 
-let
-  Shape.Layered [
-    for x in ["sepal.length"; "sepal.width"; "petal.length"; "petal.width" ] do
-      for y in ["sepal.length"; "sepal.width"; "petal.length"; "petal.width" ] do
-        yield Shape.OuterScale(Some(Categorical [| ca x |]), Some(Categorical [| ca y |]),
-          Shape.Axes(false, false, true, true, Shape.Layered [
-            for v, k in iris ->
-              Derived.StrokeColor(colors.[k], Shape.Bubble(numv v.[x], numv v.[y], 1., 1.))
-          ]))
-  ] |> render "out3"
+\vspace{-0.5em}
+\noindent
+As before, \kvd{nest} is essential for composing individual charts. Here, the points that determine
+the locations of individual charts are categorical values defined by the attributes of the dataset.
+The choice between two possible nested charts is made using the host language \fkvd{if} construct.
+Scatter plots are generated by overlaying bubbles with X and Y coordinates obtained using $\ident{get}~x~r$
+and $\ident{get}~y~r$. Histograms are composed from filled shapes. To obtain their locations, we use
+a helper function $\ident{bins}~x~\ident{data}$, which returns a list of bins specified by a tripple
+consisting of a lower and an upper range $x_1, x_2$ and the count $y$.
 
-
-
-\newpage
+The example shows that the Compost is simple yet expressive. With just
+a few lines of code, we are able to construct charts that, in other systems, require dedicated
+libraries. The essential aspect of the language making this possible is the automatic inference
+of scales and their mapping to the available space as well as the \kvd{nest} operation.
 
 \section{Interactive charts}
+
+\newpage
 
 \section{Implementation structure}
 \label{sec:impl}

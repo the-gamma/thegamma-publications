@@ -2,7 +2,6 @@ module Demo.Helpers
 
 open Fable.Import.Browser
 open Compost
-open Compost.Interactive
 
 
 let render out viz = 

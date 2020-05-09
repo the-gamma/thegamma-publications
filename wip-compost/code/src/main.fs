@@ -75,22 +75,6 @@ let iris =
 // TODO: Scale data based on state, trigger timeout
 
 
-
-
-
-
-let Title(text, chart) = 
-  let title =
-    Shape.InnerScale(Some(Continuous(co 0, co 100)), Some(Continuous(co 0, co 100)),
-      Derived.Font("12pt arial", "black",
-        Shape.Text(numv 50, numv 50, Middle, 
-          Center, 0.0, text) ))
-
-  Shape.Layered [  
-    OuterScale(Some(Continuous(co 0, co 100)), Some(Continuous(co 0, co 15)), title)
-    OuterScale(Some(Continuous(co 0, co 100)), Some(Continuous(co 15, co 100)), chart)
-  ]
-
 let adjust k (hex:string) =
   let r = System.Int32.Parse(hex.Substring(1, 2), System.Globalization.NumberStyles.HexNumber)
   let g = System.Int32.Parse(hex.Substring(3, 2), System.Globalization.NumberStyles.HexNumber)
@@ -101,7 +85,30 @@ let adjust k (hex:string) =
 let partColumn f t x y = 
   Shape [ CAR(x, f), COV y; CAR(x, t), COV y; CAR(x, t), COV (CO f); CAR(x, f), COV (CO t) ]
 
-let bars = 
+Axes(false, false, true, true, Shape.Layered [ 
+    for p, clr, s17, s19 in elections -> 
+      Shape.Padding((0., 5., 0., 5.), 
+        Shape.Layered [
+          Derived.FillColor(adjust 0.8 clr, partColumn 0.0 0.5 (ca p) (co s17))
+          Derived.FillColor(adjust 1.2 clr, partColumn 0.5 1.0 (ca p) (co s19))
+        ]          
+        ) ]) |> render "out1"
+
+
+let Title(text, chart) = 
+  let title =
+    Shape.InnerScale(Some(Continuous(co 0, co 100)), Some(Continuous(co 0, co 100)),
+      Derived.Font("12pt arial", "black",
+        Shape.Text(numv 50, numv 80, Middle, 
+          Center, 0.0, text) ))
+
+  Shape.Layered [  
+    NestX(numv 0, numv 100, NestY(numv 85, numv 100, title))
+    NestX(numv 0, numv 100, NestY(numv 0, numv 85, chart))
+  ]
+
+
+let bars : Shape<1, 1> = 
   Shape.InnerScale(None, Some(Continuous(co 0, co 410)), Shape.Layered [ 
     for p, clr, s17, s19 in elections -> 
       Shape.Padding((0., 10., 0., 10.), 
@@ -133,44 +140,72 @@ let body lo hi data =
 
 let chart = 
   Shape.Layered [
-    Shape.OuterScale(None, Some(Continuous(co 0, co 50)), body 1.25 1.52 gbpusd)
-    Shape.OuterScale(None, Some(Continuous(co 50, co 100)), body 1.15 1.32 gbpeur)
+    NestY(numv 0, numv 50, body 1.25 1.52 gbpusd)
+    NestY(numv 50, numv 100, body 1.15 1.32 gbpeur)
   ]
 
 Title("GBP-USD and GBP-EUR rates (June-July 2016)", chart) |> render "out2"
-chart |> render "out2"
 
 
 
 let chart1 = 
   Shape.Layered [
-    Shape.OuterScale(None, Some(Continuous(co 0, co 50)), 
+    NestY(numv 0, numv 50, 
       Shape.Axes(false, true, true, true, 
         Derived.StrokeColor("#202020", line gbpusd)))
-    Shape.OuterScale(None, Some(Continuous(co 50, co 100)), 
+    NestY(numv 50, numv 100, 
       Shape.Axes(false, true, true, true, 
         Derived.StrokeColor("#202020", line gbpeur)))
   ]
 
-chart1 |> render "out1"
-
+chart1 |> ignore//|> render "out1"
 
 let colors = dict ["Setosa", "blue"; "Virginica", "green"; "Versicolor", "red"] 
-Shape.Layered [
-  for x in ["sepal.length"; "sepal.width"; "petal.length"; "petal.width" ] do
-    for y in ["sepal.length"; "sepal.width"; "petal.length"; "petal.width" ] do
-      yield Shape.OuterScale(Some(Categorical [| ca x |]), Some(Categorical [| ca y |]), 
-        Shape.Axes(false, false, true, true, Shape.Layered [
-          //if x = y then 
-          //  let data = [ for v, _ in iris -> v.[x] ] 
-          //  let lo, hi = Seq.min data, Seq.max data
-          //  let bins = data |> Seq.countBy (fun v -> int ((v - lo) / (hi - lo) * 10. )) |> Seq.sort
-          //  for k, v in bins -> Derived.Column(ca (string k), co v)
-          //else
-            for v, k in iris -> 
-              Derived.StrokeColor(colors.[k], Shape.Bubble(numv v.[x], numv v.[y], 1., 1.))
-        ]))
-] |> render "out3"
+//Shape.Padding((10., 10., 10., 10.), 
+let cats = ["sepal.width"; "petal.length"; "petal.width"]
+
+let bins data = 
+  let lo, hi = Seq.min data, Seq.max data
+  let bins = data |> Seq.countBy (fun v -> int ((v - lo) / (hi - lo) * 9. )) |> Seq.sort
+  [ for k, v in bins -> (lo + (hi - lo) * (float k / 10.0)), (lo + (hi - lo) * (float (k + 1) / 10.0)), v ]
+
+(
+  let y = "sepal.width"
+  let x = "petal.length"
+  Title("....... Petal length (x) vs. sepal width (y)", Axes(false, false, true, true, Shape.Layered [
+    if x = y then 
+      for x1, x2, y in bins [ for v, _ in iris -> v.[x] ] -> Derived.FillColor("#808080", Shape [
+        numv x1, numv y
+        numv x2, numv y
+        numv x2, numv 0.0
+        numv x1, numv 0.0 ])
+      
+      //Derived.Column(ca (string k), co v)
+    else
+      for v, k in iris -> 
+        Derived.StrokeColor(colors.[k], Shape.Bubble(numv v.[x], numv v.[y], 1., 1.))
+  ]))
+) |> render "out4"
+
+(Shape.Layered [
+  for x in cats do
+    for y in cats do
+      yield NestX(catv 0.0 x, catv 1.0 x, 
+        NestY(catv 0.0 y, catv 1.0 y, 
+          Axes(false, false, true, true, Shape.Layered [
+            if x = y then 
+              for x1, x2, y in bins [ for v, _ in iris -> v.[x] ] -> Derived.FillColor("#808080", Shape [
+                numv x1, numv y
+                numv x2, numv y
+                numv x2, numv 0.0
+                numv x1, numv 0.0 ])
+              
+              //Derived.Column(ca (string k), co v)
+            else
+              for v, k in iris -> 
+                Derived.StrokeColor(colors.[k], Shape.Bubble(numv v.[x], numv v.[y], 1., 1.))
+          ])))
+]) |> render "out5"
 
 
 (*
@@ -226,3 +261,34 @@ let body2 lo hi data =
 
 
 *)
+type Update = 
+  | Start
+  | Animate
+
+let update state evt = 
+  match evt with 
+  | Start -> 0.02
+  | Animate -> state + 0.02
+
+let barChart data = 
+  ( //Shape.Axes(false, false, true, true, 
+    Shape.InnerScale(None, Some(Continuous(co 0, co 400)), 
+      Shape.Interactive([
+        MouseDown(fun e (x, y) -> printfn "CLICK: %A" (x,y) )
+      ], 
+        Shape.Layered [ 
+        for p, clr, v in data -> 
+          Derived.FillColor(clr,
+            ( //Shape.Padding((0., 10., 0., 10.), 
+              Derived.Column(ca p, co v)) )
+      ])))
+
+let render trigger state = 
+  if state > 0.0 && state < 1.0 then window.setTimeout((fun () -> trigger Animate), 10) |> ignore
+  let data = [ for p, c, v0, v1 in elections -> p, c, float v0 + float (v1 - v0) * state ]
+  h?div [] [
+    svg (barChart data)
+    h?button [ "click" =!> fun _ _ -> trigger Start ] [ text "Show 2020" ]
+  ]
+
+renderAnim 0.0 render update

@@ -6,7 +6,7 @@
   <ItemGroup>
     <Compile Include="html.fs" />
     <Compile Include="compost.fs" />
-    <Compile Include="interactive.fs" />
+    <!--<Compile Include="interactive.fs" />-->
     <Compile Include="helpers.fs" />
     <Compile Include="main.fs" />
   </ItemGroup>

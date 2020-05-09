@@ -67,17 +67,18 @@ type Shape<[<Measure>] 'vx, [<Measure>] 'vy> =
   | Text of Value<'vx> * Value<'vy> * VerticalAlign * HorizontalAlign * float * string
   | AutoScale of bool * bool * Shape<'vx, 'vy>
   | InnerScale of option<Scale<'vx>> * option<Scale<'vy>> * Shape<'vx, 'vy>
-  | OuterScale of option<Scale<'vx>> * option<Scale<'vy>> * Shape<'vx, 'vy>
+  | NestX of Value<'vx> * Value<'vx> * Shape<'vx, 'vy>
+  | NestY of Value<'vy> * Value<'vy> * Shape<'vx, 'vy>
   | Line of seq<Value<'vx> * Value<'vy>>
   | Bubble of Value<'vx> * Value<'vy> * float * float
   | Shape of seq<Value<'vx> * Value<'vy>>
-  | Stack of Orientation * seq<Shape<'vx, 'vy>>
+  //| Stack of Orientation * seq<Shape<'vx, 'vy>>
   | Layered of seq<Shape<'vx, 'vy>>
   | Axes of bool * bool * bool * bool * Shape<'vx, 'vy>
   | Interactive of seq<EventHandler<'vx, 'vy>> * Shape<'vx, 'vy>
   | Padding of (float * float * float * float) * Shape<'vx, 'vy>
   | Offset of (float * float) * Shape<'vx, 'vy>
-
+ 
 // ------------------------------------------------------------------------------------------------
 // SVG stuff
 // ------------------------------------------------------------------------------------------------
@@ -197,21 +198,22 @@ module Svg =
 // ------------------------------------------------------------------------------------------------
 
 module Scales = 
-  type ScaledShapeInner<[<Measure>] 'vx, [<Measure>] 'vy> = 
+
+  type ScaledShape<[<Measure>] 'vx, [<Measure>] 'vy> = 
     | ScaledStyle of (Style -> Style) * ScaledShape<'vx, 'vy>
-    | ScaledOuterScale of option<Scale<'vx>> * option<Scale<'vy>> * ScaledShape<'vx, 'vy>
+    //| ScaledOuterScale of option<Scale<'vx>> * option<Scale<'vy>> * ScaledShape<'vx, 'vy>
     | ScaledText of Value<'vx> * Value<'vy> * VerticalAlign * HorizontalAlign * float * string    
     | ScaledLine of (Value<'vx> * Value<'vy>)[]
     | ScaledBubble of Value<'vx> * Value<'vy> * float * float
     | ScaledShape of (Value<'vx> * Value<'vy>)[]
     | ScaledLayered of ScaledShape<'vx, 'vy>[]
-    | ScaledStack of Orientation * ScaledShape<'vx, 'vy>[]
+    //| ScaledStack of Orientation * ScaledShape<'vx, 'vy>[]
     | ScaledInteractive of seq<EventHandler<'vx, 'vy>> * ScaledShape<'vx, 'vy>
-    | ScaledPadding of (float * float * float * float) * ScaledShape<'vx, 'vy>
+    | ScaledPadding of (float * float * float * float) * Scale<'vx> * Scale<'vy> * ScaledShape<'vx, 'vy>
     | ScaledOffset of (float * float) * ScaledShape<'vx, 'vy>
-
-  and ScaledShape<[<Measure>] 'vx, [<Measure>] 'vy> =
-    Scaled of outer:(Scale<'vx> * Scale<'vy>) * inner:(Scale<'vx> * Scale<'vy>) * ScaledShapeInner<'vx, 'vy>
+    
+    | ScaledNestX of Value<'vx> * Value<'vx> * Scale<'vx> * ScaledShape<'vx, 'vy>
+    | ScaledNestY of Value<'vy> * Value<'vy> * Scale<'vy> * ScaledShape<'vx, 'vy>
 
   let getExtremes = function
     | Continuous(l, h) -> COV l, COV h
@@ -270,7 +272,7 @@ module Scales =
   // Replace scales in all immediately nested things that will
   // share the same scale when combined via Layered
   // (recursively over Interacitve & Layered with Line as leaf)
-
+(*
   let rec replaceScales outer (Scaled(_, inner, shape) as scaled) =
     match shape with
     // Replace at the leafs
@@ -287,7 +289,7 @@ module Scales =
     | ScaledInteractive(f, shape) -> Scaled(outer, inner, ScaledInteractive(f, replaceScales outer shape))
     | ScaledLayered(shapes) -> Scaled(outer, inner, ScaledLayered(Array.map (replaceScales outer) shapes))
     | ScaledStack(orient, shapes) -> Scaled(outer, inner, ScaledStack(orient, Array.map (replaceScales outer) shapes))
-
+*)
   // From the leafs to the root, calculate the scales of
   // everything (composing sales of leafs to get scale of root)
 
@@ -316,76 +318,65 @@ module Scales =
     let calculateScalesStyle = calculateScales 
     let calculateScales = calculateScales style
     match shape with
-    | OuterScale(sx, sy, shape) ->
-        let (Scaled((osx, osy), inner, _)) as scaled = calculateScales shape
-        let scales = defaultArg sx osx, defaultArg sy osy
-        Scaled(scales, inner, ScaledOuterScale(sx, sy, scaled))
+    | Style(f, shape) ->
+        let scales, shape = calculateScalesStyle (f style) shape
+        scales, ScaledStyle(f, shape)
+
+    | NestX(nx1, nx2, shape) ->
+        let (isx, isy), shape = calculateScales shape
+        (calculateShapeScale [| nx1; nx2 |], isy), ScaledNestX(nx1, nx2, isx, shape)
+
+    | NestY(ny1, ny2, shape) ->
+        let (isx, isy), shape = calculateScales shape
+        (isx, calculateShapeScale [| ny1; ny2 |]), ScaledNestY(ny1, ny2, isy, shape)
 
     | InnerScale(sx, sy, shape) ->
-        let (Scaled((asx, asy), _, shape)) = calculateScales shape
-        let scales = 
-          (match sx with Some sx -> sx | _ -> asx), 
-          (match sy with Some sy -> sy | _ -> asy) 
-        Scaled(scales, scales, shape) |> replaceScales scales
+        let (isx, isy), shape = calculateScales shape
+        let sx = match sx with Some sx -> sx | _ -> isx // TODO: check that 'sx' is compatible with 'isx'
+        let sy = match sy with Some sy -> sy | _ -> isy // TODO: check that 'sy' is compatible with 'isy'
+        (sx, sy), shape
 
     | AutoScale(ax, ay, shape) ->
-        let (Scaled((asx, asy), _, shape)) = calculateScales shape
+        let (isx, isy), shape = calculateScales shape
         let autoScale = function
           | Continuous(CO l, CO h) -> let l, h = adjustRangeUnits (l, h) in Continuous(CO l, CO h)
           | scale -> scale
         let scales = 
-          ( if ax then autoScale asx else asx ),
-          ( if ay then autoScale asy else asy )
-        Scaled(scales, scales, shape) |> replaceScales scales    
+          ( if ax then autoScale isx else isx ),
+          ( if ay then autoScale isy else isy )
+        scales, shape
 
     | Offset(offs, shape) ->
-        let (Scaled(scales, _, shape)) = calculateScales shape
-        Scaled(scales, scales, ScaledOffset(offs, Scaled(scales, scales, shape)))
-
-    | Style(f, shape) ->
-        let (Scaled(scales, _, shape)) = calculateScalesStyle (f style) shape
-        Scaled(scales, scales, ScaledStyle(f, Scaled(scales, scales, shape)))
+        let scales, shape = calculateScales shape
+        scales, ScaledOffset(offs, shape)
 
     | Padding(pads, shape) ->
-        let (Scaled(scales, _, shape)) = calculateScales shape
-        Scaled(scales, scales, ScaledPadding(pads, Scaled(scales, scales, shape)))
+        let (sx, sy), shape = calculateScales shape
+        (sx, sy), ScaledPadding(pads, sx, sy, shape)
 
     | Bubble(x, y, rx, ry) ->
         let makeSingletonScale = function COV(v) -> Continuous(v, v) | CAR(v, _) -> Categorical [| v |]
         let scales = makeSingletonScale x, makeSingletonScale y
-        Scaled(scales, scales, ScaledBubble(x, y, rx, ry))
+        scales, ScaledBubble(x, y, rx, ry)
 
     | Shape.Text(x, y, va, ha, r, t) ->
         let makeSingletonScale = function COV(v) -> Continuous(v, v) | CAR(v, _) -> Categorical [| v |]
         let scales = makeSingletonScale x, makeSingletonScale y
-        Scaled(scales, scales, ScaledText(x, y, va, ha, r, t))    
+        scales, ScaledText(x, y, va, ha, r, t)
 
     | Line line -> 
         let line = Seq.toArray line 
         let scales = calculateShapeScales line
-        Scaled(scales, scales, ScaledLine(line))
+        scales, ScaledLine(line)
 
-(*
-    | Column(x, y) ->
-        let scales = Categorical [| x |], Continuous(CO 0.0<_>, y)
-        Scaled(scales, scales, ScaledColumn(x, y))
-
-    | Bar(x, y) ->
-        let scales = Continuous(CO 0.0<_>, x), Categorical [| y |]
-        Scaled(scales, scales, ScaledBar(x, y))
-
-    | Area area -> 
-        let area = Seq.toArray area
-        let scales = calculateLineOrAreaScales area
-        Scaled(scales, scales, ScaledArea(area))
-*)
     | Shape points -> 
         let points = Seq.toArray points
         let scales = calculateShapeScales points
-        Scaled(scales, scales, ScaledShape(points))
+        scales, ScaledShape(points)
     
     | Axes(showTop, showRight, showBottom, showLeft, shape) ->
-        let (Scaled(origScales & (sx, sy), _, _)) = calculateScales shape 
+        
+        let (origScales & (sx, sy)), _ = calculateScales shape 
         let (lx, hx), (ly, hy) = getExtremes sx, getExtremes sy
         
         let LineStyle clr alpha width shape = 
@@ -415,19 +406,24 @@ module Scales =
               yield Line [lx,hy; lx,ly] |> LineStyle "black" 1.0 2
               for y, l in generateAxisLabels style.FormatAxisYLabel sy do
                 yield Offset((-10., 0.), Text(lx, y, VerticalAlign.Middle, HorizontalAlign.End, 0.0, l)) |> FontStyle "9pt sans-serif"
-            yield shape ] |> calculateScales
-
-        match shape with 
-        | Scaled(_, _, ScaledLayered(shapes)) ->
-            let padding = 
-              (if showTop then 30. else 0.), (if showRight then 50. else 0.),
-              (if showBottom then 30. else 0.), (if showLeft then 50. else 0.) 
-            Scaled(origScales, origScales, 
-              ScaledPadding(padding, 
-                Scaled(origScales, origScales, 
-                  ScaledLayered (Array.map (replaceScales origScales) shapes))))
-        | _ -> failwith "calculateScales: processing layered shape did not return layered shape"
-        
+            yield shape ]
+            
+        let padding = 
+          (if showTop then 30. else 0.), (if showRight then 50. else 0.),
+          (if showBottom then 30. else 0.), (if showLeft then 50. else 0.) 
+        calculateScales (Padding(padding, shape))
+//
+//        match shape with 
+//        | _, ScaledLayered(shapes) ->
+//            let padding = 
+//              (if showTop then 30. else 0.), (if showRight then 50. else 0.),
+//              (if showBottom then 30. else 0.), (if showLeft then 50. else 0.) 
+//            Scaled(origScales, origScales, 
+//              ScaledPadding(padding, 
+//                Scaled(origScales, origScales, 
+//                  ScaledLayered (Array.map (replaceScales origScales) shapes))))
+//        | _ -> failwith "calculateScales: processing layered shape did not return layered shape"
+(*
     | Stack(orient, shapes) ->
         let shapes = shapes |> Array.ofSeq
         let scaled = shapes |> Array.map calculateScales 
@@ -439,23 +435,23 @@ module Scales =
         | Vertical, (_, Continuous _) -> failwith "Vertical stacking of continuous axes is not supported"
         | _ -> ()
         Scaled(scales, scales, ScaledStack(orient, scaled)) |> replaceScales scales 
-
+*)
     | Layered shapes ->
         let shapes = shapes |> Array.ofSeq
         let scaled = shapes |> Array.map calculateScales 
-        let sxs = scaled |> Array.map (fun (Scaled((sx, _), _, _)) -> sx)
-        let sys = scaled |> Array.map (fun (Scaled((_, sy), _, _)) -> sy)
+        let sxs = scaled |> Array.map (fun ((sx, _), _) -> sx)
+        let sys = scaled |> Array.map (fun ((_, sy), _) -> sy)
         let scales = (Array.reduce unionScales sxs, Array.reduce unionScales sys)
-        Scaled(scales, scales, ScaledLayered scaled) |> replaceScales scales 
+        scales, ScaledLayered (Array.map snd scaled)
 
     | Interactive(f, shape) ->
-        let (Scaled(scales, _, shape)) = calculateScales shape
-        Scaled(scales, scales, ScaledInteractive(f, Scaled(scales, scales, shape)))
+        let scales, shape = calculateScales shape
+        scales, ScaledInteractive(f, shape)
 
 // ------------------------------------------------------------------------------------------------
 // Calculate projections
 // ------------------------------------------------------------------------------------------------
-
+(*
 module Projections = 
   open Scales
 
@@ -646,11 +642,11 @@ module Projections =
 
     | Scaled(scales, _, ScaledInteractive(f, shape)) ->
         Projected(projection, scales, ProjectedInteractive(f, calculateProjections shape projection))
-
+*)
 // ------------------------------------------------------------------------------------------------
 // Drawing
 // ------------------------------------------------------------------------------------------------
-
+(*
 module Drawing = 
   open Svg
   open Scales
@@ -717,6 +713,115 @@ module Drawing =
     | ProjectedInteractive(f, shape), _ ->
         drawShape ctx shape
 
+*)
+// ------------------------------------------------------------------------------------------------
+// Drawing
+// ------------------------------------------------------------------------------------------------
+
+module Projections = 
+  let projectOne (tlv:float<_>, thv:float<_>) scale coord = 
+    match scale, coord with
+    | Categorical(vals), (CAR(CA v,f)) ->
+        let size = (thv - tlv) / float vals.Length
+        let i = vals |> Array.findIndex (fun (CA vv) -> v = vv)
+        let i = float i + f
+        tlv + (i * size)
+    | Continuous(CO slv, CO shv), (COV (CO v)) ->
+        (v - slv) / (shv - slv) * (thv - tlv) + tlv
+    | Categorical _, COV _ -> failwithf "Cannot project continuous value (%A) on a categorical scale (%A)." coord scale
+    | Continuous _, CAR _ -> failwithf "Cannot project categorical value (%A) on a continuous scale (%A)." coord scale
+
+
+module Drawing = 
+  open Svg
+  open Scales
+  open Projections
+
+  type DrawingContext = 
+    { Style : Style
+      Definitions : ResizeArray<DomNode> }
+
+  let rec hideFill style = 
+    { style with Fill = Solid(0.0, RGB(0, 0, 0)); Animation = match style.Animation with Some(n,e,f) -> Some(n,e,f >> hideFill) | _ -> None }
+  let rec hideStroke style = 
+    { style with StrokeColor = (0.0, snd style.StrokeColor); Animation = match style.Animation with Some(n,e,f) -> Some(n,e,f >> hideStroke) | _ -> None }
+
+  let rec drawShape ctx ((x1, y1, x2, y2) as area) ((sx, sy) as scales) (shape:ScaledShape<'ux, 'uy>) =     
+
+    let project (vx, vy) =
+      projectOne (x1, x2) sx vx, projectOne (y1, y2) sy vy
+
+    match shape with
+    | ScaledNestX(p1, p2, isx, shape) -> 
+        let x1' = projectOne (x1, x2) sx p1
+        let x2' = projectOne (x1, x2) sx p2        
+        //let x1', x2' = if x2 < x1 then max x1' x2', min x1' x2' else min x1' x2', max x1' x2'
+        drawShape ctx (x1', y1, x2', y2) (isx, sy) shape
+
+    | ScaledNestY(p1, p2, isy, shape) -> 
+        let y1' = projectOne (y1, y2) sy p1
+        let y2' = projectOne (y1, y2) sy p2
+        //let y1', y2' = if y2 < y1 then  min y1' y2', max y1' y2' else max y1' y2', min y1' y2' 
+        drawShape ctx (x1, y1', x2, y2') (sx, isy) shape
+
+    | ScaledOffset((dx, dy), shape) ->
+        drawShape ctx (x1 + dx, y1 + dy, x2 + dx, y2 + dy) scales shape
+
+    | ScaledLayered shapes ->
+        Combine(Array.map (drawShape ctx area scales) shapes)
+
+    | ScaledStyle(f, shape) ->
+        drawShape { ctx with Style = f ctx.Style } area scales shape
+
+    | ScaledShape(points) -> 
+        let path = 
+          [| yield MoveTo(project (points.[0]))
+             for pt in Seq.skip 1 points do yield LineTo(project pt) 
+             yield LineTo(project (points.[0])) |]
+        Path(path, formatStyle ctx.Definitions (hideStroke ctx.Style)) 
+
+    | ScaledPadding((t, r, b, l), isx, isy, shape) ->
+        let calculateNestedRange (v1, v2) ins outs =
+          let rev = false //v1 > v2
+          let swapIfRev (a, b) = if rev then (b, a) else (a, b)
+          match ins with 
+          | Continuous(CO l, CO h) -> 
+              projectOne (v1, v2) outs (COV (CO l)), 
+              projectOne (v1, v2) outs (COV (CO h))
+          | Categorical(vals) ->
+              vals |> Seq.map (fun v -> projectOne (v1, v2) outs (CAR(v, if rev then 1.0 else 0.0))) |> Seq.min,
+              vals |> Seq.map (fun v -> projectOne (v1, v2) outs (CAR(v, if rev then 0.0 else 1.0))) |> Seq.max
+          |> swapIfRev
+          //|> fun rs -> printfn "calculateNestedRange %A %A %A = %A" (v1, v2) ins outs rs; rs
+          
+        let x1', x2' = calculateNestedRange (x1, x2) isx sx
+        let y1', y2' = calculateNestedRange (y1, y2) isy sy
+        let l, r = if x1' < x2' then l, r else -r, -l
+        let t, b = if y1' < y2' then t, b else -b, -t
+        //printfn "PADDING: %A\nAXES: %A\nAREA: %A\nNEW AREA: %A\nAFTER PAD: %A\n\n" (t, r, b, l) (isx, isy)  area (x1', y1', x2', y2') (x1' + l, y1' + t, x2' - r, y2' - b)
+        drawShape ctx (x1' + l, y1' + t, x2' - r, y2' - b) (isx, isy) shape
+
+    | ScaledLine line -> 
+        let path = 
+          [ yield MoveTo(project (Seq.head line)) 
+            for pt in Seq.skip 1 line do yield LineTo (project pt) ]
+          |> Array.ofList
+        Path(path, formatStyle ctx.Definitions (hideFill ctx.Style))
+
+    | ScaledText(x, y, va, ha, r, t) -> 
+        let va = match va with Baseline -> "baseline" | Hanging -> "hanging" | Middle -> "middle"
+        let ha = match ha with Start -> "start" | Center -> "middle" | End -> "end"
+        let xy = project (x, y)
+        Text(xy, t, r, sprintf "alignment-baseline:%s; text-anchor:%s;" va ha + formatStyle ctx.Definitions ctx.Style)
+
+    | ScaledBubble(x, y, rx, ry) -> 
+        Ellipse(project (x, y), (rx, ry), formatStyle ctx.Definitions ctx.Style)
+
+    | ScaledInteractive(f, shape) ->
+        drawShape ctx area scales shape
+
+
+
 // ------------------------------------------------------------------------------------------------
 // Event handling
 // ------------------------------------------------------------------------------------------------
@@ -734,15 +839,31 @@ module Events =
     | TouchEnd
     | MouseLeave
 
-  let projectEvent scales projection event =
+  let projectInvOne (l:float, h:float) s (v:float) = 
+    match s with 
+    | Continuous(CO slv, CO shv) ->
+        COV(CO (slv + (v - l) / (h - l) * (shv - slv)))
+
+    | Categorical(cats) ->
+        let size = (h - l) / float cats.Length
+        let i = floor ((v - l) / size)
+        let f = ((v - l) / size) - i
+        let i = if size < 0. then (float cats.Length) + i else i // Negative when thv < tlv
+        if int i < 0 || int i >= cats.Length then CAR(CA "<outside-of-range>", f)
+        else CAR(cats.[int i], f)
+
+  let projectInv (x1, y1, x2, y2) (sx, sy) (x, y) =
+    projectInvOne (x1, x2) sx x, projectInvOne (y1, y2) sy y
+
+  let projectEvent area scales event =
     match event with
-    | MouseEvent(kind, (COV x, COV y)) -> MouseEvent(kind, projectInv scales (x, y) (invertProj projection))
-    | TouchEvent(kind, (COV x, COV y)) -> TouchEvent(kind, projectInv scales (x, y) (invertProj projection))
+    | MouseEvent(kind, (COV (CO x), COV (CO y))) -> MouseEvent(kind, projectInv area scales (x, y))
+    | TouchEvent(kind, (COV (CO x), COV (CO y))) -> TouchEvent(kind, projectInv area scales (x, y))
     | MouseEvent _
     | TouchEvent _ -> failwith "TODO: projectEvent - not continuous"
     | TouchEnd -> TouchEnd
     | MouseLeave -> MouseLeave
-
+(*
   let inScale s v = 
     match s, v with
     | Continuous(CO l, CO h), COV(CO v) -> v >= min l h && v <= max l h
@@ -756,41 +877,47 @@ module Events =
     | TouchEnd -> true
     | MouseEvent(_, (x, y)) 
     | TouchEvent(_, (x, y)) -> inScale sx x && inScale sy y
-
-  let rec triggerEvent<[<Measure>] 'ux, [<Measure>] 'uy> (shape:ProjectedShape<'ux, 'uy>) (jse:Event) (event:InteractiveEvent<1,1>) = 
-    let (Projected(projection, scales, shape)) = shape
+*)
+  let rec triggerEvent<[<Measure>] 'ux, [<Measure>] 'uy> 
+      ((x1, y1, x2, y2) as area) ((sx, sy) as scales) (shape:ScaledShape<'ux, 'uy>) 
+      (jse:Event) (event:InteractiveEvent<1,1>) = 
     match shape with
-    | ProjectedLine _
-    | ProjectedText _
-    | ProjectedBubble _
-    | ProjectedShape _ -> ()
-    | ProjectedStyle(_, shape)
-    | ProjectedOffset(_, shape) -> triggerEvent shape jse event
-    | ProjectedStack(_, shapes)
-    | ProjectedLayered shapes -> for shape in shapes do triggerEvent shape jse event
-    | ProjectedInteractive(handlers, shape) ->
-        let localEvent = projectEvent scales projection event
-        if inScales scales localEvent then 
-          for handler in handlers do 
-            match localEvent, handler with
-            | MouseEvent(MouseEventKind.Click, pt), EventHandler.Click(f) 
-            | MouseEvent(MouseEventKind.Move, pt), MouseMove(f) 
-            | MouseEvent(MouseEventKind.Up, pt), MouseUp(f) 
-            | MouseEvent(MouseEventKind.Down, pt), MouseDown(f) -> 
-                if jse <> null then jse.preventDefault()
-                f (unbox jse) pt
-            | TouchEvent(TouchEventKind.Move, pt), TouchMove(f) 
-            | TouchEvent(TouchEventKind.Start, pt), TouchStart(f) ->
-                if jse <> null then jse.preventDefault()
-                f (unbox jse) pt
-            | TouchEnd, EventHandler.TouchEnd f -> f (unbox jse) 
-            | MouseLeave, EventHandler.MouseLeave f -> f (unbox jse) 
-            | MouseLeave, _ 
-            | TouchEnd, _
-            | TouchEvent(_, _), _  
-            | MouseEvent(_, _), _  -> ()
+    | ScaledLine _
+    | ScaledText _
+    | ScaledBubble _
+    | ScaledShape _ -> ()
+    | ScaledStyle(_, shape) -> triggerEvent area scales shape jse event
+    | ScaledOffset(_, shape) -> failwith "??? 1" //triggerEvent shape jse event    
+    | ScaledNestX _ -> failwith "??? 2"
+    | ScaledNestY _ -> failwith "??? 3"
+    | ScaledPadding _ -> failwith "??? 4"
+    | ScaledLayered shapes -> for shape in shapes do triggerEvent area scales shape jse event
+    | ScaledInteractive(handlers, shape) ->
+        let localEvent = projectEvent area scales event
+        printfn "LOCAL EVENT: %A" localEvent
+        ()
+        //if inScales scales localEvent then 
+        //  for handler in handlers do 
+        //    match localEvent, handler with
+        //    | MouseEvent(MouseEventKind.Click, pt), EventHandler.Click(f) 
+        //    | MouseEvent(MouseEventKind.Move, pt), MouseMove(f) 
+        //    | MouseEvent(MouseEventKind.Up, pt), MouseUp(f) 
+        //    | MouseEvent(MouseEventKind.Down, pt), MouseDown(f) -> 
+        //        if jse <> null then jse.preventDefault()
+        //        f (unbox jse) pt
+        //    | TouchEvent(TouchEventKind.Move, pt), TouchMove(f) 
+        //    | TouchEvent(TouchEventKind.Start, pt), TouchStart(f) ->
+        //        if jse <> null then jse.preventDefault()
+        //        f (unbox jse) pt
+        //    | TouchEnd, EventHandler.TouchEnd f -> f (unbox jse) 
+        //    | MouseLeave, EventHandler.MouseLeave f -> f (unbox jse) 
+        //    | MouseLeave, _ 
+        //    | TouchEnd, _
+        //    | TouchEvent(_, _), _  
+        //    | MouseEvent(_, _), _  -> ()
+//
+        triggerEvent area scales shape jse event
 
-        triggerEvent shape jse event
 
 // ------------------------------------------------------------------------------------------------
 // Integration
@@ -844,11 +971,13 @@ module Derived =
 
 module Compost = 
   open Scales
-  open Projections
+  open Svg
   open Drawing
   open Events
-  open Svg
 
+(*  open Projections
+
+*)
   let niceNumber num decs =
     let str = string num
     let dot = str.IndexOf('.')
@@ -886,7 +1015,7 @@ module Compost =
       Font = "10pt sans-serif"
       FormatAxisXLabel = defaultFormat
       FormatAxisYLabel = defaultFormat }
-
+(*
   let rec mapShape f (Projected(pr, sc, s)) =
     let s = 
       match s with
@@ -897,8 +1026,66 @@ module Compost =
       | ProjectedOffset(o, s) -> (ProjectedOffset(o, mapShape f s))
       | (ProjectedBubble _ as s) | (ProjectedLine _ as s) | (ProjectedShape _ as s) | (ProjectedText _  as s) -> s 
     Projected(pr, sc, f s)
+*)
+  let getRelativeLocation el x y =
+    let rec getOffset (parent:HTMLElement) (x, y) = 
+      if parent = null then (x, y)
+      else getOffset (unbox parent.offsetParent) (x-parent.offsetLeft, y-parent.offsetTop)
+    let rec getParent (parent:HTMLElement) = 
+      // Safari: Skip over all the elements nested inside <svg> as they are weird
+      // IE: Use parentNode when parentElement is not available (inside <svg>?)
+      if parent.namespaceURI = "http://www.w3.org/2000/svg" && parent.tagName <> "svg" then
+        if parent.parentElement <> null then getParent parent.parentElement
+        else getParent (unbox parent.parentNode)
+      elif parent.offsetParent <> null then parent 
+      elif parent.parentElement <> null then getParent parent.parentElement
+      else getParent (unbox parent.parentNode)
+    getOffset (getParent el) (x, y)
 
   let createSvg revX revY (width, height) viz = 
+    let (sx, sy), shape = calculateScales defstyle viz
+
+    let defs = ResizeArray<_>()
+    let area = (0.0, height, width, 0.0)
+    let svg = drawShape { Definitions = defs; Style = defstyle } area (sx, sy) shape
+
+    let triggerEvent (e:Event) = triggerEvent area (sx, sy) shape e
+
+    let mouseHandler kind el (evt:Event) =
+      let evt = evt :?> MouseEvent
+      let x, y = getRelativeLocation el evt.pageX evt.pageY
+      triggerEvent evt (MouseEvent(kind, (COV(CO x), COV(CO y))))
+
+    let touchHandler kind el (evt:Event) =
+      let evt = evt :?> TouchEvent
+      let touch = evt.touches.[0]
+      let x, y = getRelativeLocation el touch.pageX touch.pageY
+      triggerEvent evt (TouchEvent(kind, (COV(CO x), COV(CO y))))
+
+
+    //let ss = sprintf "%A" shape
+    h?div [] [ 
+      //text ss
+
+      s?svg [
+          "style"=>"overflow:visible"
+          "width"=>string (int width); "height"=> string(int height); 
+          "click" =!> mouseHandler MouseEventKind.Click
+          "mousemove" =!> mouseHandler MouseEventKind.Move
+          "mousedown" =!> mouseHandler MouseEventKind.Down
+          "mouseup" =!> mouseHandler MouseEventKind.Up
+          "mouseleave" =!> fun _ evt -> triggerEvent evt MouseLeave
+          "touchmove" =!> touchHandler TouchEventKind.Move
+          "touchstart" =!> touchHandler TouchEventKind.Start
+          "touchend" =!> fun _ evt -> triggerEvent evt TouchEnd
+        ] [
+          let renderCtx = { Definitions = defs }
+          let body = renderSvg renderCtx svg |> Array.ofSeq
+          yield! defs
+          yield! body
+        ]
+    ]
+  (*
     let scaled = calculateScales defstyle viz
     let master = Scale((if revX then (width, 0.0) else (0.0, width)), (if revY then (0.0, height) else (height, 0.0)))
     let projected = calculateProjections scaled master
@@ -964,4 +1151,4 @@ module Compost =
           yield! defs
           yield! body
         ]
-    ]
+    ]*)
