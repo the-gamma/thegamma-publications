@@ -208,7 +208,7 @@ module Scales =
     | ScaledShape of (Value<'vx> * Value<'vy>)[]
     | ScaledLayered of ScaledShape<'vx, 'vy>[]
     //| ScaledStack of Orientation * ScaledShape<'vx, 'vy>[]
-    | ScaledInteractive of seq<EventHandler<'vx, 'vy>> * ScaledShape<'vx, 'vy>
+    | ScaledInteractive of seq<EventHandler<'vx, 'vy>> * Scale<'vx> * Scale<'vy> * ScaledShape<'vx, 'vy>
     | ScaledPadding of (float * float * float * float) * Scale<'vx> * Scale<'vy> * ScaledShape<'vx, 'vy>
     | ScaledOffset of (float * float) * ScaledShape<'vx, 'vy>
     
@@ -446,7 +446,7 @@ module Scales =
 
     | Interactive(f, shape) ->
         let scales, shape = calculateScales shape
-        scales, ScaledInteractive(f, shape)
+        scales, ScaledInteractive(f, fst scales, snd scales, shape)
 
 // ------------------------------------------------------------------------------------------------
 // Calculate projections
@@ -817,7 +817,7 @@ module Drawing =
     | ScaledBubble(x, y, rx, ry) -> 
         Ellipse(project (x, y), (rx, ry), formatStyle ctx.Definitions ctx.Style)
 
-    | ScaledInteractive(f, shape) ->
+    | ScaledInteractive(f, _, _, shape) ->
         drawShape ctx area scales shape
 
 
@@ -863,7 +863,7 @@ module Events =
     | TouchEvent _ -> failwith "TODO: projectEvent - not continuous"
     | TouchEnd -> TouchEnd
     | MouseLeave -> MouseLeave
-(*
+
   let inScale s v = 
     match s, v with
     | Continuous(CO l, CO h), COV(CO v) -> v >= min l h && v <= max l h
@@ -877,7 +877,7 @@ module Events =
     | TouchEnd -> true
     | MouseEvent(_, (x, y)) 
     | TouchEvent(_, (x, y)) -> inScale sx x && inScale sy y
-*)
+
   let rec triggerEvent<[<Measure>] 'ux, [<Measure>] 'uy> 
       ((x1, y1, x2, y2) as area) ((sx, sy) as scales) (shape:ScaledShape<'ux, 'uy>) 
       (jse:Event) (event:InteractiveEvent<1,1>) = 
@@ -892,30 +892,27 @@ module Events =
     | ScaledNestY _ -> failwith "??? 3"
     | ScaledPadding _ -> failwith "??? 4"
     | ScaledLayered shapes -> for shape in shapes do triggerEvent area scales shape jse event
-    | ScaledInteractive(handlers, shape) ->
+    | ScaledInteractive(handlers, sx, sy, shape) ->
         let localEvent = projectEvent area scales event
-        printfn "LOCAL EVENT: %A" localEvent
-        ()
-        //if inScales scales localEvent then 
-        //  for handler in handlers do 
-        //    match localEvent, handler with
-        //    | MouseEvent(MouseEventKind.Click, pt), EventHandler.Click(f) 
-        //    | MouseEvent(MouseEventKind.Move, pt), MouseMove(f) 
-        //    | MouseEvent(MouseEventKind.Up, pt), MouseUp(f) 
-        //    | MouseEvent(MouseEventKind.Down, pt), MouseDown(f) -> 
-        //        if jse <> null then jse.preventDefault()
-        //        f (unbox jse) pt
-        //    | TouchEvent(TouchEventKind.Move, pt), TouchMove(f) 
-        //    | TouchEvent(TouchEventKind.Start, pt), TouchStart(f) ->
-        //        if jse <> null then jse.preventDefault()
-        //        f (unbox jse) pt
-        //    | TouchEnd, EventHandler.TouchEnd f -> f (unbox jse) 
-        //    | MouseLeave, EventHandler.MouseLeave f -> f (unbox jse) 
-        //    | MouseLeave, _ 
-        //    | TouchEnd, _
-        //    | TouchEvent(_, _), _  
-        //    | MouseEvent(_, _), _  -> ()
-//
+        if inScales scales localEvent then 
+          for handler in handlers do 
+            match localEvent, handler with
+            | MouseEvent(MouseEventKind.Click, pt), EventHandler.Click(f) 
+            | MouseEvent(MouseEventKind.Move, pt), MouseMove(f) 
+            | MouseEvent(MouseEventKind.Up, pt), MouseUp(f) 
+            | MouseEvent(MouseEventKind.Down, pt), MouseDown(f) -> 
+                if jse <> null then jse.preventDefault()
+                f (unbox jse) pt
+            | TouchEvent(TouchEventKind.Move, pt), TouchMove(f) 
+            | TouchEvent(TouchEventKind.Start, pt), TouchStart(f) ->
+                if jse <> null then jse.preventDefault()
+                f (unbox jse) pt
+            | TouchEnd, EventHandler.TouchEnd f -> f (unbox jse) 
+            | MouseLeave, EventHandler.MouseLeave f -> f (unbox jse) 
+            | MouseLeave, _ 
+            | TouchEnd, _
+            | TouchEvent(_, _), _  
+            | MouseEvent(_, _), _  -> ()
         triggerEvent area scales shape jse event
 
 

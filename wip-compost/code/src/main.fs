@@ -261,34 +261,32 @@ let body2 lo hi data =
 
 
 *)
+let colors2 = dict [ for p, clr, _, v in elections -> p, clr ]
+
 type Update = 
-  | Start
-  | Animate
+  | Set of string * int
+  | Enable of bool
 
-let update state evt = 
-  match evt with 
-  | Start -> 0.02
-  | Animate -> state + 0.02
+let update (enabled, state) = function
+  | Set(party, mp) when enabled -> enabled, state |> List.map (fun (k, v) -> if k = party then k, mp else k, v)
+  | Enable(b) -> (b, state)
+  | _ -> enabled, state
 
-let barChart data = 
-  ( //Shape.Axes(false, false, true, true, 
-    Shape.InnerScale(None, Some(Continuous(co 0, co 400)), 
-      Shape.Interactive([
-        MouseDown(fun e (x, y) -> printfn "CLICK: %A" (x,y) )
-      ], 
-        Shape.Layered [ 
-        for p, clr, v in data -> 
-          Derived.FillColor(clr,
-            ( //Shape.Padding((0., 10., 0., 10.), 
-              Derived.Column(ca p, co v)) )
-      ])))
+let render trigger (_, state) = 
+  svg
+    ( //Shape.Axes(false, false, true, true, 
+      Shape.InnerScale(None, Some(Continuous(co 0, co 400)), 
+        Shape.Interactive([
+          MouseDown(fun e _ -> trigger(Enable(true)) )
+          MouseUp(fun e _ -> trigger(Enable(false)) )
+          MouseMove(fun e (CAR(CA x, _), COV(CO y)) -> trigger(Set(x, int y)); printfn "CLICK: %A" (x,y) )
+        ], 
+          Shape.Layered [ 
+          for p, v in state -> 
+            Derived.FillColor(colors2.[p],
+              ( //Shape.Padding((0., 10., 0., 10.), 
+                Derived.Column(ca p, co v)) )
+        ])))
 
-let render trigger state = 
-  if state > 0.0 && state < 1.0 then window.setTimeout((fun () -> trigger Animate), 10) |> ignore
-  let data = [ for p, c, v0, v1 in elections -> p, c, float v0 + float (v1 - v0) * state ]
-  h?div [] [
-    svg (barChart data)
-    h?button [ "click" =!> fun _ _ -> trigger Start ] [ text "Show 2020" ]
-  ]
-
-renderAnim 0.0 render update
+let state = false, [ for p, clr, _, v in elections -> p, v ]
+renderAnim state render update 

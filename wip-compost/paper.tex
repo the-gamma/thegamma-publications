@@ -511,9 +511,91 @@ a few lines of code, we are able to construct charts that, in other systems, req
 libraries. The essential aspect of the language making this possible is the automatic inference
 of scales and their mapping to the available space as well as the \kvd{nest} operation.
 
-\section{Interactive charts}
+\section{Interactive charts: Domain-specific event handling}
+Data visualizations published on the web often also feature interactivity. Standard forms of
+interactivity include animations, hover labels or zooming. More interesting custom forms
+include the ``You draw It'' visualization introduced by the New York Times. % cite
+The chart shows only the first half of the data, such as a timeline, and the reader has to
+guess the second half before clicking a button and seeing the actual data. Standard forms of
+interactivity are supported by high-level libraries. Google Charts supports panning using
+drag \& drop, zooming to a selected chart range and animations. Custom interactivity can be
+implemented using low-level libraries such as D3, but doing so requires directly handling
+JavaScript events.
+
+\end{figure}
+\begin{figure}
+\begin{equation*}
+\begin{array}{rclcl}
+s & = & \kvd{mouseUp}~(\lambda \,x~y \rightarrow e), s  &|& \kvd{mouseDown}~(\lambda \,x~y\rightarrow e), s  \\
+    &|& \kvd{mouseMove}~(\lambda \,x~y \rightarrow e), s &|& (\ldots)
+\end{array}
+\end{equation*}
+\vspace{-0.5em}
+\caption{Additional combinators for mouse-based interaction, extending earlier definition of $s$.}
+\label{fig:mouse}
+\end{figure}
+
+Compost can be used in conjunction with a virtual-dom library to create interactive data
+visualizations based on the Elm architecture. An interactive visualization is described using
+a pair of functions -- the \emph{view} function creates a chart based on the current state and
+the \emph{update} function specifies how the state changes when an event occurs.
+
+To support handling of mouse-based events, Compost adds three additional primitives to the definition
+of shape, shown in Figure~\ref{fig:mouse}. The three new primitives make it possible to handle
+three common mouse events using custom functions $\lambda \;x~y\rightarrow e$, specified in the
+host language. The most interesting aspect is that the functions are given X and Y coordinates
+of the event specified in the domain of the chart. This means that if the user clicks on the
+bar representing the Conservative party in a bar chart, the values might be, for example,
+$\kvd{cat}~\strf{Conservative},\num{0.75}$ for X and $\kvd{cont}~\num{120.5}$ for Y.
+
+To illustrate building of interactive data visualizations using Compost, we look at one aspect of
+the ``You draw It'' visualizations. We want to create a bar chart where the user can use drag \& drop
+to move individual bars. The resulting chart can be seen in Figure~\ref{fig:youdraw}.
+The first step is to define types representing the state and events that can occur:
+%
+\begin{equation*}
+\begin{array}{lll}
+\fkvd{type}~\ident{State} &\narrow{=}& \ident{bool}~*~(\ident{string}~*~\ident{int})~\ident{list}\\[0.5em]
+\fkvd{type}~\ident{Event} &\narrow{=}& \ident{Update}~\fkvd{of}~(\ident{string}~*~\ident{int})\\
+                          &\;\narrow{|}& \ident{Moving}~\fkvd{of}~\ident{bool}
+\end{array}
+\end{equation*}
+
+yadda
+
+\begin{equation*}
+\begin{array}{l}
+\fkvd{let}~\ident{update}~(\fkvd{true},s)~(\ident{Update}(p, v)) =
+  \fkvd{true}, \ident{map}~(\lambda(k, o) \rightarrow k, \fkvd{if}~k = p~\fkvd{then}~v~\fkvd{else}~o)~s\\
+\hspace{1.05em}~\ident{update}~(m,s)~(\ident{Update}(\_, \_)) = m,s\\
+\hspace{1.05em}~\ident{update}~(\_,s)~(\ident{Moving}(m)) = m,s\\
+\end{array}
+\end{equation*}
+
+yadda
+
+\begin{equation*}
+\begin{array}{l}
+\fkvd{let}~\ident{render}~t~(m, s)~=\\
+\quad \kvd{axis}_l~(\kvd{axis}_b~(\kvd{explicitScale}_y~(\kvd{continuous}~\num{0},\num{400}),\\
+\qquad (~\kvd{mouseMove}~(\lambda \,(\kvd{cat}~p,\_)~(\kvd{cont}~v)\rightarrow \ident{trigger}(\ident{Update}(p, v))),\\
+\qquad (~\kvd{mouseUp}~(\lambda \,\_~\_\rightarrow \ident{trigger}(\ident{Moving}(\fkvd{true}))),\\
+\qquad (~\kvd{mouseDown}~(\lambda \,\_~\_\rightarrow \ident{trigger}(\ident{Moving}(\fkvd{false}))),~\kvd{overlay}~[\\
+\qquad \qquad \fkvd{for}~\ident{party}, \ident{mps}~\fkvd{in}~s~\rightarrow~\kvd{padding}~0,10,0,10,~\kvd{fill}~(\ident{color}~\ident{party}),\\
+\qquad \qquad\quad\quad [\,(\kvd{cat}~\ident{party}, \num{0}), (\kvd{cont}~\num{0}), (\kvd{cat}~\ident{party}, \num{0}), (\kvd{cont}~\ident{mp}),\\
+\qquad \qquad\quad\quad \hspace{0.38em}(\kvd{cat}~\ident{party}, \num{0.5}), (\kvd{cont}~\ident{mps}), (\kvd{cat}~\ident{party}, \num{0.5}), (\kvd{cont}~\num{0}) \,])~~])))))\\
+\end{array}
+\end{equation*}
 
 \newpage
+
+\begin{figure}[h]
+  \includegraphics[scale=0.57]{figures/youdraw}
+  \vspace{0.25em}
+  \caption{You draw.}
+  \label{fig:youdraw}
+\end{figure}
+
 
 \section{Implementation structure}
 \label{sec:impl}
