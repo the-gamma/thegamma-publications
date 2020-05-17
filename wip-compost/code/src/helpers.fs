@@ -9,12 +9,12 @@ let render out viz =
   let svg = Compost.createSvg false false (el.clientWidth, el.clientHeight) viz
   svg |> Html.renderTo el
 
-let renderAnim init render update =
-  Html.createVirtualDomApp "out" init render update
+let renderAnim id init render update =
+  Html.createVirtualDomApp id init render update
 
-let svg shape =
-  let el = document.getElementById("out")
-  Compost.createSvg false false (el.clientWidth, el.clientHeight - 50.) shape
+let svg id shape =
+  let el = document.getElementById(id)
+  Compost.createSvg false false (el.clientWidth, el.clientHeight) shape
 
 let series d = Array.ofList [ for x, y in d -> unbox x, unbox y ]
 let rnd = System.Random()

@@ -782,16 +782,13 @@ module Drawing =
 
     | ScaledPadding((t, r, b, l), isx, isy, shape) ->
         let calculateNestedRange (v1, v2) ins outs =
-          let rev = false //v1 > v2
-          let swapIfRev (a, b) = if rev then (b, a) else (a, b)
           match ins with 
           | Continuous(CO l, CO h) -> 
               projectOne (v1, v2) outs (COV (CO l)), 
               projectOne (v1, v2) outs (COV (CO h))
           | Categorical(vals) ->
-              vals |> Seq.map (fun v -> projectOne (v1, v2) outs (CAR(v, if rev then 1.0 else 0.0))) |> Seq.min,
-              vals |> Seq.map (fun v -> projectOne (v1, v2) outs (CAR(v, if rev then 0.0 else 1.0))) |> Seq.max
-          |> swapIfRev
+              vals |> Seq.map (fun v -> projectOne (v1, v2) outs (CAR(v, 0.0))) |> Seq.min,
+              vals |> Seq.map (fun v -> projectOne (v1, v2) outs (CAR(v, 1.0))) |> Seq.max
           //|> fun rs -> printfn "calculateNestedRange %A %A %A = %A" (v1, v2) ins outs rs; rs
           
         let x1', x2' = calculateNestedRange (x1, x2) isx sx
@@ -887,10 +884,35 @@ module Events =
     | ScaledBubble _
     | ScaledShape _ -> ()
     | ScaledStyle(_, shape) -> triggerEvent area scales shape jse event
-    | ScaledOffset(_, shape) -> failwith "??? 1" //triggerEvent shape jse event    
-    | ScaledNestX _ -> failwith "??? 2"
-    | ScaledNestY _ -> failwith "??? 3"
-    | ScaledPadding _ -> failwith "??? 4"
+    | ScaledOffset((dx, dy), shape) ->
+        triggerEvent (x1 + dx, y1 + dy, x2 + dx, y2 + dy) scales shape jse event
+    | ScaledNestX(p1, p2, isx, shape) -> 
+        let x1' = projectOne (x1, x2) sx p1
+        let x2' = projectOne (x1, x2) sx p2        
+        //let x1', x2' = if x2 < x1 then max x1' x2', min x1' x2' else min x1' x2', max x1' x2'
+        triggerEvent (x1', y1, x2', y2) (isx, sy) shape jse event
+
+    | ScaledNestY(p1, p2, isy, shape) -> 
+        let y1' = projectOne (y1, y2) sy p1
+        let y2' = projectOne (y1, y2) sy p2
+        //let y1', y2' = if y2 < y1 then  min y1' y2', max y1' y2' else max y1' y2', min y1' y2' 
+        triggerEvent (x1, y1', x2, y2') (sx, isy) shape jse event
+    | ScaledPadding((t, r, b, l), isx, isy, shape) ->
+        let calculateNestedRange (v1, v2) ins outs =
+          match ins with 
+          | Continuous(CO l, CO h) -> 
+              projectOne (v1, v2) outs (COV (CO l)), 
+              projectOne (v1, v2) outs (COV (CO h))
+          | Categorical(vals) ->
+              vals |> Seq.map (fun v -> projectOne (v1, v2) outs (CAR(v, 0.0))) |> Seq.min,
+              vals |> Seq.map (fun v -> projectOne (v1, v2) outs (CAR(v, 1.0))) |> Seq.max
+          
+        let x1', x2' = calculateNestedRange (x1, x2) isx sx
+        let y1', y2' = calculateNestedRange (y1, y2) isy sy
+        let l, r = if x1' < x2' then l, r else -r, -l
+        let t, b = if y1' < y2' then t, b else -b, -t
+        triggerEvent (x1' + l, y1' + t, x2' - r, y2' - b) (isx, isy) shape jse event
+
     | ScaledLayered shapes -> for shape in shapes do triggerEvent area scales shape jse event
     | ScaledInteractive(handlers, sx, sy, shape) ->
         let localEvent = projectEvent area scales event

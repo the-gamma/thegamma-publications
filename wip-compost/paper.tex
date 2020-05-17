@@ -148,6 +148,7 @@ s & = &\kvd{line}~\gamma, [\,v_{x1}, v_{y1}, \ldots, v_{xn}, v_{yn}\,] & | & \kv
 \end{figure}
 
 \subsection{Basic primitives and combinators}
+\label{sec:basic-primitives}
 
 Now that we know how Compost represents values, we can define the basic elements of its
 domain-specific langauge. A chart is represeted by the shape $s$ defined in Figure~\ref{fig:shape}.
@@ -224,6 +225,7 @@ sometimes preferrable over, for example, drawing a bar using a range from $\num{
 The chart is still missing a title, which we add in Section~\ref{sec:abstractions}.
 
 \subsection{Inferring scales and projections}
+\label{sec:basic-scales}
 
 When composing shapes using the \kvd{overlay} primitive, the user does not need to specify how
 to position the child elements relatively to each other. The Compost library positions the elements
@@ -511,16 +513,31 @@ a few lines of code, we are able to construct charts that, in other systems, req
 libraries. The essential aspect of the language making this possible is the automatic inference
 of scales and their mapping to the available space as well as the \kvd{nest} operation.
 
+
 \section{Interactive charts: Domain-specific event handling}
 Data visualizations published on the web often also feature interactivity. Standard forms of
 interactivity include animations, hover labels or zooming. More interesting custom forms
 include the ``You draw It'' visualization introduced by the New York Times. % cite
 The chart shows only the first half of the data, such as a timeline, and the reader has to
 guess the second half before clicking a button and seeing the actual data. Standard forms of
-interactivity are supported by high-level libraries. Google Charts supports panning using
-drag \& drop, zooming to a selected chart range and animations. Custom interactivity can be
+interactivity are supported by high-level libraries. For example, Google Charts supports panning
+using drag \& drop, zooming to a selected chart range and animations. Custom interactivity can be
 implemented using low-level libraries such as D3, but doing so requires directly handling
 JavaScript events.
+
+\subsection{Domain-specific events}
+Compost can be used in conjunction with a virtual-dom library to create interactive data
+visualizations based on the Elm architecture. An interactive visualization is described using
+a pair of functions -- the \emph{view} function creates a chart based on the current state and
+the \emph{update} function specifies how the state changes when an event occurs.
+
+To support handling of mouse-based events, Compost adds three additional primitives to the definition
+of shape, shown in Figure~\ref{fig:mouse}. The three new primitives make it possible to handle
+three common mouse events using custom functions $\lambda \;x~y\rightarrow e$, specified in the
+host language. The most interesting aspect is that the functions are given X and Y coordinates
+of the event specified in the domain of the chart. This means that if the user clicks on the
+bar representing the Conservative party in a bar chart, the values might be, for example,
+$\kvd{cat}~\strf{Conservative},\num{0.75}$ for X and $\kvd{cont}~\num{120.5}$ for Y.
 
 \end{figure}
 \begin{figure}
@@ -535,19 +552,7 @@ s & = & \kvd{mouseUp}~(\lambda \,x~y \rightarrow e), s  &|& \kvd{mouseDown}~(\la
 \label{fig:mouse}
 \end{figure}
 
-Compost can be used in conjunction with a virtual-dom library to create interactive data
-visualizations based on the Elm architecture. An interactive visualization is described using
-a pair of functions -- the \emph{view} function creates a chart based on the current state and
-the \emph{update} function specifies how the state changes when an event occurs.
-
-To support handling of mouse-based events, Compost adds three additional primitives to the definition
-of shape, shown in Figure~\ref{fig:mouse}. The three new primitives make it possible to handle
-three common mouse events using custom functions $\lambda \;x~y\rightarrow e$, specified in the
-host language. The most interesting aspect is that the functions are given X and Y coordinates
-of the event specified in the domain of the chart. This means that if the user clicks on the
-bar representing the Conservative party in a bar chart, the values might be, for example,
-$\kvd{cat}~\strf{Conservative},\num{0.75}$ for X and $\kvd{cont}~\num{120.5}$ for Y.
-
+\subsection{You draw it data visualizations}
 To illustrate building of interactive data visualizations using Compost, we look at one aspect of
 the ``You draw It'' visualizations. We want to create a bar chart where the user can use drag \& drop
 to move individual bars. The resulting chart can be seen in Figure~\ref{fig:youdraw}.
@@ -561,8 +566,17 @@ The first step is to define types representing the state and events that can occ
 \end{array}
 \end{equation*}
 
-yadda
+\vspace{-0.5em}
+\noindent
+The state is a pair of boolean, indicating whether the user is currently dragging, together with
+a list of key value pairs, storing the number of seats for each political party. Two types of events
+can occur in the visualization. First, the user may start or stop dragging, which is indicated using
+$\ident{Moving}(\fkvd{true})$ and $\ident{Moving}(\fkvd{false})$, respectively. Second, the user
+may change a value for a party, which is captured by the $\ident{Update}$ event.
 
+The next part of the visualization is the \ident{update} function which takes an old state together
+with an event and produces a new state:
+%
 \begin{equation*}
 \begin{array}{l}
 \fkvd{let}~\ident{update}~(\fkvd{true},s)~(\ident{Update}(p, v)) =
@@ -572,34 +586,148 @@ yadda
 \end{array}
 \end{equation*}
 
-yadda
+\vspace{-0.5em}
+\noindent
+The first two cases handle the \ident{Update} event. The event carries two values, $p, v$, which
+represent the party (which bar the user is dragging) and the new value (new number of seats).
+If the user is currently dragging, we replace the value associated with the party $p$ in the
+list $s$ using the \ident{map} function. If the user is not currently dragging, the event is ingored.
+The last case handles the \ident{Moving} event, which simply replaces the first component of the
+state tuple, i.e.~a flag indicating whether a mouse button is down.
 
+
+\begin{figure}[t]
+  \includegraphics[scale=0.57]{figures/youdraw}
+  \vspace{0.25em}
+  \caption{Interactive ``You draw it'' data visualization. The user moves cursor to a bar (left),
+    pushes a mouse button and drags the bar to the position that they think is the correct one (right).}
+  \label{fig:youdraw}
+\end{figure}
+
+Finally, the \ident{render} function takes the current state and builds the data visualization
+using the Compost domain-specific language. In addition, it also takes a parameter \ident{trigger},
+which is a function of type $\ident{Event}\rightarrow\ident{unit}$ that can be used to trigger
+events in handlers, registered using primitives such as \kvd{mouseMove}.
+To build the bar chart in Figure~\ref{fig:youdraw}, we use the same approach as in
+Section~\ref{sec:basic-primitives}. The only addition are the event handlers registered using
+\kvd{mouseMove}, \kvd{mouseUp} and \kvd{mouseDown}:
+%
 \begin{equation*}
 \begin{array}{l}
-\fkvd{let}~\ident{render}~t~(m, s)~=\\
+\fkvd{let}~\ident{render}~\ident{trigger}~(\_, \ident{state})~=\\
 \quad \kvd{axis}_l~(\kvd{axis}_b~(\kvd{explicitScale}_y~(\kvd{continuous}~\num{0},\num{400}),\\
 \qquad (~\kvd{mouseMove}~(\lambda \,(\kvd{cat}~p,\_)~(\kvd{cont}~v)\rightarrow \ident{trigger}(\ident{Update}(p, v))),\\
 \qquad (~\kvd{mouseUp}~(\lambda \,\_~\_\rightarrow \ident{trigger}(\ident{Moving}(\fkvd{true}))),\\
 \qquad (~\kvd{mouseDown}~(\lambda \,\_~\_\rightarrow \ident{trigger}(\ident{Moving}(\fkvd{false}))),~\kvd{overlay}~[\\
-\qquad \qquad \fkvd{for}~\ident{party}, \ident{mps}~\fkvd{in}~s~\rightarrow~\kvd{padding}~0,10,0,10,~\kvd{fill}~(\ident{color}~\ident{party}),\\
+\qquad \qquad \fkvd{for}~\ident{party}, \ident{mps}~\fkvd{in}~\ident{state}~\rightarrow~\kvd{padding}~0,10,0,10,~(\kvd{fill}~(\ident{color}~\ident{party}),\\
 \qquad \qquad\quad\quad [\,(\kvd{cat}~\ident{party}, \num{0}), (\kvd{cont}~\num{0}), (\kvd{cat}~\ident{party}, \num{0}), (\kvd{cont}~\ident{mp}),\\
 \qquad \qquad\quad\quad \hspace{0.38em}(\kvd{cat}~\ident{party}, \num{0.5}), (\kvd{cont}~\ident{mps}), (\kvd{cat}~\ident{party}, \num{0.5}), (\kvd{cont}~\num{0}) \,])~~])))))\\
 \end{array}
 \end{equation*}
 
-\newpage
+\vspace{-0.5em}
+\noindent
+When the user interacts with the visualization created using Compost, the library
+translates the coordinates associated with events from pixels to domain-specific
+values. In case of the above bar chart, when the user moves a mouse, the function registed
+using \kvd{mouseMove} is given a categorical value $\kvd{cat}~p, r$ as the X coordinate and
+a continuous value $\kvd{cont}~v$ as the Y coordinate. It then takes $p$, which is the name
+of the party corresponding to the bar and the value $v$ corresponding to the number of seats
+and triggers the $\ident{Update}(p, v)$ event to update the state. The handlers for
+\kvd{mouseUp} and \kvd{mouseDown} do not use the coordinates. They simply switch the flag
+indicating whether the user is currently dragging or not.
 
-\begin{figure}[h]
-  \includegraphics[scale=0.57]{figures/youdraw}
-  \vspace{0.25em}
-  \caption{You draw.}
-  \label{fig:youdraw}
-\end{figure}
+The pair of functions, \ident{update} and \ident{render}, together with an initial state is
+all that is needed to create an interactive data visualization. Compost calls
+\ident{render} each time the state changes and uses virtual-dom to update the chart
+displayed in the browser. Although creating an interactive visualization is more work than
+creating a static one, the domain-specific nature of Compost is invaluable. We can
+simply take the values $p$ and $v$ produced by a mouse event, use those to update the state
+and then, again, render an updated chart.
 
 
 \section{Implementation structure}
 \label{sec:impl}
 
+The Compost library is open-source and the full source code, implmented in the functional
+language F\#, can be found at \urrl{http://github.com/compostjs}.
+As is often the case with functional domain-specific languages, the implementation is easy once
+we find the right collection of basic primitives. This largely applies to the Compost library
+and so we will not go into the implementation details. However, it is worth giving an
+outline of the implmentation structure.
+
+As mentioned in Section~\ref{sec:basic-scales}, the rendering of shapes proceeds in two stages.
+First, the library infers the scales of a shape. When doing so, it also annotates some shapes
+with additional information that are needed later for rendering. Second, the library projects
+the shape onto an available space and produces the chart, represented as an SVG object.
+
+\subsection{Inferring the scales of a shape}
+
+\begin{equation*}
+\begin{array}{rclcl}
+s &=& \kvd{scaledNest}_x~v_{min},\;v_{max},\;s_x,\;s &|& (\ldots)
+\end{array}
+\end{equation*}
+
+
+\begin{equation*}
+\ident{calculateScales} ~:~ \ident{Shape} \rightarrow \ident{Scale}*\ident{Scale}\rightarrow\ident{Shape}
+\end{equation*}
+
+\begin{equation*}
+\begin{array}{l}
+\ident{calculateScales}~(\kvd{nest}_x~v_{min},\;v_{max},\;s) = \\
+\quad\fkvd{let}~(s_x, s_y),s' = \ident{calculateScales}~s\\
+\quad(\ident{union}~(\ident{singleton}~v_{min})~(\ident{singleton}~v_{max}), s_y),~\kvd{scaledNest}_x~v_{min},\;v_{max},\;s_x,\;s'\\
+\\
+\ident{calculateScales}~(\kvd{overlay}~l) = \\
+\quad\fkvd{let}~\ident{scales},\;l'~=~\ident{unzip}~(\ident{map}~\ident{calculateScales}~l)\\
+\quad\fkvd{let}~s_x,s_y~=~\ident{unzip}~\ident{scales}\\
+\quad(\ident{reduce}~\ident{union}~s_x,~\ident{reduce}~\ident{union}~s_y), \kvd{overlay}~l'
+\end{array}
+\end{equation*}
+
+\subsection{Drawing shapes}
+
+\begin{equation*}
+\ident{project}~:~\ident{float}*\ident{float}\rightarrow \ident{Scale}\rightarrow\ident{Value} \rightarrow \ident{float}
+\end{equation*}
+
+\begin{equation*}
+\ident{drawShape}~:~\ident{Area} \rightarrow \ident{Scale}*\ident{Scale}\rightarrow\ident{Shape}\rightarrow\ident{Svg}
+\end{equation*}
+
+\begin{equation*}
+\begin{array}{l}
+\ident{drawShape}~(x_1, y_1, x_2, y_2)~(s_x, s_y)~(\kvd{scaledNest}_x~v_{min},\;v_{max},\;{is}_x,\;\ident{shape}) = \\
+\quad\fkvd{let}~x_1' = \ident{project}~(x_1, x_2)~s_x~v_{min}\\
+\quad\fkvd{let}~x_2' = \ident{project}~(x_1, x_2)~s_x~v_{max}\\
+\quad\ident{drawShape}~(x_1', y_1, x_2', y_2)~({is}_x, s_y)~\ident{shape}\\
+\\
+\ident{drawShape}~a~s~(\kvd{overlay}~l) = \\
+\quad\ident{append}~(\ident{map}~(\ident{drawShape}~a~s)~l)
+
+\end{array}
+\end{equation*}
+
+
+a
+
+b
+
+c
+
+d
+
+e
+
+f
+
+g
+
+h
+
+i
 \newpage
 
 

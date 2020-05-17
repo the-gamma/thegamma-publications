@@ -272,21 +272,22 @@ let update (enabled, state) = function
   | Enable(b) -> (b, state)
   | _ -> enabled, state
 
-let render trigger (_, state) = 
-  svg
-    ( //Shape.Axes(false, false, true, true, 
-      Shape.InnerScale(None, Some(Continuous(co 0, co 400)), 
-        Shape.Interactive([
-          MouseDown(fun e _ -> trigger(Enable(true)) )
-          MouseUp(fun e _ -> trigger(Enable(false)) )
-          MouseMove(fun e (CAR(CA x, _), COV(CO y)) -> trigger(Set(x, int y)); printfn "CLICK: %A" (x,y) )
-        ], 
-          Shape.Layered [ 
-          for p, v in state -> 
-            Derived.FillColor(colors2.[p],
-              ( //Shape.Padding((0., 10., 0., 10.), 
-                Derived.Column(ca p, co v)) )
-        ])))
+let render id trigger (_, state) = 
+  (Title("Drag the bars to guess UK election results!",
+    ( Shape.Axes(false, false, true, true, 
+        Shape.InnerScale(None, Some(Continuous(co 0, co 400)), Shape.Style((fun sty -> sty ), //{ sty with Cursor = "row-resize" }),
+          Shape.Interactive([
+            MouseDown(fun e _ -> trigger(Enable(true)) )
+            MouseUp(fun e _ -> trigger(Enable(false)) )
+            MouseMove(fun e (CAR(CA x, _), COV(CO y)) -> trigger(Set(x, int y)); printfn "CLICK: %A" (x,y) )
+          ], 
+            Shape.Layered [ 
+            for p, v in state -> 
+              Derived.FillColor(colors2.[p],
+                ( Shape.Padding((0., 10., 0., 10.), 
+                    Derived.Column(ca p, co v)) ))
+          ]))))))) |> svg id
 
 let state = false, [ for p, clr, _, v in elections -> p, v ]
-renderAnim state render update 
+renderAnim "out1" state (render "out1") update 
+renderAnim "out2" state (render "out2") update 
