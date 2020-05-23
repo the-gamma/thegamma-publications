@@ -1,5 +1,6 @@
 \NeedsTeXFormat{LaTeX2e}
 \documentclass{jfp}
+\usepackage{amssymb}
 \usepackage{xcolor}
 
 \title{Composable data visualizations}
@@ -32,8 +33,6 @@
 % and the Functional Programming class file (\texttt{jfp1.cls}).
 % \end{abstract}
 
-
-\bibliographystyle{jfp}
 
 \section{Introduction}
 Let's say we want to create the two charts in Figure~\ref{fig:charts}. The chart on the left is
@@ -253,7 +252,6 @@ s & = & \kvd{roundScale}_{x/y} s      &|& \kvd{nest}_{x/y}~v_{min}, v_{max}, s \
   & | & \kvd{explicitScale}_{x/y}~l, s &|&  (\ldots)
 \end{array}
 \end{equation*}
-\vspace{-0.5em}
 \caption{Additional combinators for controlling and nesting scales, extending earlier definition of $s$.}
 \label{fig:control}
 \end{figure}
@@ -547,8 +545,8 @@ s & = & \kvd{mouseUp}~(\lambda \,x~y \rightarrow e), s  &|& \kvd{mouseDown}~(\la
     &|& \kvd{mouseMove}~(\lambda \,x~y \rightarrow e), s &|& (\ldots)
 \end{array}
 \end{equation*}
-\vspace{-0.5em}
 \caption{Additional combinators for mouse-based interaction, extending earlier definition of $s$.}
+\vspace{0.5em}
 \label{fig:mouse}
 \end{figure}
 
@@ -579,10 +577,10 @@ with an event and produces a new state:
 %
 \begin{equation*}
 \begin{array}{l}
-\fkvd{let}~\ident{update}~(\fkvd{true},s)~(\ident{Update}(p, v)) =
-  \fkvd{true}, \ident{map}~(\lambda(k, o) \rightarrow k, \fkvd{if}~k = p~\fkvd{then}~v~\fkvd{else}~o)~s\\
+\fkvd{let}~\ident{update}~(\_,s)~(\ident{Moving}(m)) = m,s\\
+\hspace{1.05em}~\ident{update}~(\fkvd{true},s)~(\ident{Update}(p, v)) =\\
+\hspace{1.05em}\qquad  \fkvd{true}, \ident{map}~(\lambda(k, o) \rightarrow k, \fkvd{if}~k = p~\fkvd{then}~v~\fkvd{else}~o)~s\\
 \hspace{1.05em}~\ident{update}~(m,s)~(\ident{Update}(\_, \_)) = m,s\\
-\hspace{1.05em}~\ident{update}~(\_,s)~(\ident{Moving}(m)) = m,s\\
 \end{array}
 \end{equation*}
 
@@ -590,15 +588,16 @@ with an event and produces a new state:
 \noindent
 The first two cases handle the \ident{Update} event. The event carries two values, $p, v$, which
 represent the party (which bar the user is dragging) and the new value (new number of seats).
-If the user is currently dragging, we replace the value associated with the party $p$ in the
+If the user is currently dragging, we replace the value associated with the party $p$ in \newpage \noindent the
 list $s$ using the \ident{map} function. If the user is not currently dragging, the event is ingored.
 The last case handles the \ident{Moving} event, which simply replaces the first component of the
 state tuple, i.e.~a flag indicating whether a mouse button is down.
 
 
 \begin{figure}[t]
+  \vspace{0.5em}
   \includegraphics[scale=0.57]{figures/youdraw}
-  \vspace{0.25em}
+  \vspace{1em}
   \caption{Interactive ``You draw it'' data visualization. The user moves cursor to a bar (left),
     pushes a mouse button and drags the bar to the position that they think is the correct one (right).}
   \label{fig:youdraw}
@@ -646,15 +645,15 @@ simply take the values $p$ and $v$ produced by a mouse event, use those to updat
 and then, again, render an updated chart.
 
 
-\section{Implementation structure}
+\section{Implementation structure: Scale inference and projection}
 \label{sec:impl}
 
-The Compost library is open-source and the full source code, implmented in the functional
-language F\#, can be found at \urrl{http://github.com/compostjs}.
+Compost is an open-source library, implmented in the functional language F\#. The full source
+code can be found at \urrl{http://github.com/compostjs}.
 As is often the case with functional domain-specific languages, the implementation is easy once
-we find the right collection of basic primitives. This largely applies to the Compost library
-and so we will not go into the implementation details. However, it is worth giving an
-outline of the implmentation structure.
+we find the right collection of basic primitives and the right structure for the implementation.
+This largely applies to the Compost library and so we will not go into the implementation details.
+It is, however, worth giving an outline of the implmentation structure.
 
 As mentioned in Section~\ref{sec:basic-scales}, the rendering of shapes proceeds in two stages.
 First, the library infers the scales of a shape. When doing so, it also annotates some shapes
@@ -663,17 +662,41 @@ the shape onto an available space and produces the chart, represented as an SVG 
 
 \subsection{Inferring the scales of a shape}
 
+In order to render a shape, we need to know the range of values that should appear on the X and
+Y axes. This is done by inferring a scale for each of the axes from the individual X and Y
+coordinates that specify shape locations. As discussed earlier, a scale can be either categorical
+(displaying only categorical values) or contiuous (displaying only continuous values). When
+inerring scales, we use two helper operations; \ident{union}, discussed earlier, combines two
+scales and \ident{singleton} creates a scale from a single coordinate.
+
+The operation that infers the scales of a shape is \ident{calculateScales}. It takes a shape
+and produces a pair of X and Y scales, together with a transformed shape:
+%
+\begin{equation*}
+  \ident{calculateScales} ~:~ \ident{Shape} \rightarrow (\ident{Scale}*\ident{Scale}) * \ident{Shape}
+\end{equation*}
+
+\vspace{-1em}
+\noindent
+The operation does not need to transform the shape in most cases. The exception is the
+shape $\kvd{nest}_{x/y}~v_{min}, v_{max}, s$. In this case, the returned scale is based solely on the
+values of $v_{min}$ and $v_{max}$. For rendering we need to keep the inferred scales of the nested
+shape $s$. To do so, the operation replaces the $\kvd{nest}_{x/y}$ shape with an auxiliary shape
+$\kvd{scaledNest}_{x/y}$:
+%
 \begin{equation*}
 \begin{array}{rclcl}
-s &=& \kvd{scaledNest}_x~v_{min},\;v_{max},\;s_x,\;s &|& (\ldots)
+s &=& \kvd{scaledNest}_{x/y}~v_{min},\;v_{max},\;s_{x/y},\;s &|& (\ldots)
 \end{array}
 \end{equation*}
 
-
-\begin{equation*}
-\ident{calculateScales} ~:~ \ident{Shape} \rightarrow \ident{Scale}*\ident{Scale}\rightarrow\ident{Shape}
-\end{equation*}
-
+\vspace{-1em}
+\noindent
+There are two kinds of cases handled by \ident{calculateScales}. For primitives, it constructs
+a pair of scales from individual coordinates using \ident{union} and \ident{singleton}. For
+shapes containing a sub-shape, the operation calculates the scales of a sub-shape recursively
+and then adapts those somehow. To illustrate, we consider two interesting cases:
+%
 \begin{equation*}
 \begin{array}{l}
 \ident{calculateScales}~(\kvd{nest}_x~v_{min},\;v_{max},\;s) = \\
@@ -687,63 +710,79 @@ s &=& \kvd{scaledNest}_x~v_{min},\;v_{max},\;s_x,\;s &|& (\ldots)
 \end{array}
 \end{equation*}
 
-\subsection{Drawing shapes}
+\vspace{-0.5em}
+\noindent
+When calculating the scales of the $\kvd{nest}_x$, the function first calculate scales of the
+sub-shape $s$ recursively. The resulting Y scale $s_y$ is returned as the result, while the X
+scale is obtained from the two coordinates $v_{min}$ and $v_{max}$. This is also the case where
+the shape is transformed and the returned $\kvd{scaledNest}_x$ shape stores the inferred X scale
+$s_x$ of the sub-shape $s$. The second example is the $\kvd{overlay}$ case which recursively
+infers scales of all sub-shapes and combines those using the list folding function
+\ident{reduce} with $\ident{union}$ as an argument.
 
+\subsection{Projecting coordinates and drawing}
+The key operation that needs to be performed when drawing a shape is projecting coordinates from
+domain-specific values to the screen coordinates. As we draw a shape, we keep the X and Y scale
+and the space in pixels that it should be drawn on. Initially, the X and Y scales are those
+inferred for the entire shape and the space in pixels is $\num{0}\ldots\ident{width}$ and
+$\num{0}\ldots\ident{height}$ where $\ident{width}\times\ident{height}$ is the size of the target
+SVG element.
+
+The key calculation is done by the \ident{project} function, which takes the space in pixels (as a
+pair of floating-point numbers representing the range), the current scale and a domain-specific value
+and produces a coordinate in pixels:
+%
 \begin{equation*}
 \ident{project}~:~\ident{float}*\ident{float}\rightarrow \ident{Scale}\rightarrow\ident{Value} \rightarrow \ident{float}
 \end{equation*}
 
+\vspace{-1.25em}
+\noindent
+The function is only defined if the value and scale are compatible. If both are continuous, the
+function performs a simple linear transformation. If both are categorical, the available pixel
+space is divided into a equally-sized bins, one for each categorical value on the scale, and the
+value is then projected into the appropriate bin.
+
+The drawing of shapes is done by a function that takes the available area as a quadruple $(x_1, y_1), (x_2, y_2)$
+together with the X and Y scale corresponding to the area and a shape to be drawn. The result is
+a data structure representing a SVG document:
+%
 \begin{equation*}
-\ident{drawShape}~:~\ident{Area} \rightarrow \ident{Scale}*\ident{Scale}\rightarrow\ident{Shape}\rightarrow\ident{Svg}
+\ident{drawShape}~:~(\ident{float}*\ident{float})*(\ident{float}*\ident{float}) \rightarrow \ident{Scale}*\ident{Scale}\rightarrow\ident{Shape}\rightarrow\ident{Svg}
 \end{equation*}
 
+\vspace{-1.25em}
+\noindent
+For primitive shapes, the operation projects the coordinates using \ident{project} and construct
+a corresponding SVG document. For shapes with sub-shapes it calls itself recursively, possibly
+with an adjusted scale or area. The two cases discussed earlier illustrate this:
+%
 \begin{equation*}
 \begin{array}{l}
-\ident{drawShape}~(x_1, y_1, x_2, y_2)~(s_x, s_y)~(\kvd{scaledNest}_x~v_{min},\;v_{max},\;{is}_x,\;\ident{shape}) = \\
+\ident{drawShape}~a~s~(\kvd{overlay}~l) = \\
+\quad\ident{concat}~(\ident{map}~(\ident{drawShape}~a~s)~l)\\
+\\[-0.5em]
+\ident{drawShape}~((x_1, y_1), (x_2, y_2))~(s_x, s_y)~(\kvd{scaledNest}_x~v_{min},\;v_{max},\;{ns}_x,\;\ident{shape}) = \\
 \quad\fkvd{let}~x_1' = \ident{project}~(x_1, x_2)~s_x~v_{min}\\
 \quad\fkvd{let}~x_2' = \ident{project}~(x_1, x_2)~s_x~v_{max}\\
-\quad\ident{drawShape}~(x_1', y_1, x_2', y_2)~({is}_x, s_y)~\ident{shape}\\
-\\
-\ident{drawShape}~a~s~(\kvd{overlay}~l) = \\
-\quad\ident{append}~(\ident{map}~(\ident{drawShape}~a~s)~l)
-
+\quad\ident{drawShape}~((x_1', y_1), (x_2', y_2))~({ns}_x, s_y)~\ident{shape}\\
 \end{array}
 \end{equation*}
 
+\vspace{-0.5em}
+\noindent
+When drawing \kvd{overlay}, the function draws all sub-shapes onto the same
+area using the same scales and then concatenates the returned SVG components the \ident{concat} helper.
+The $\kvd{scaledNest}_x$ case is more illuminating. Here, we first
+use \ident{project} to find the range $x_1', x_2'$ corresponding to the domain-values
+$v_{min},v_{max}$. This defines the area corresponding to the nested scale ${ns}_x$, onto
+which the X coordinates in the sub-shape $\ident{shape}$ should be projected.
+To do this, we recursively call \ident{drawShape}, but use $x_1'$ and $x_2'$ as the X coordinates
+of the target area and ${ns}_x$ as the X scale. The Y area and scales are propagated unchanged.
 
-a
-
-b
-
-c
-
-d
-
-e
-
-f
-
-g
-
-h
-
-i
 \newpage
 
-
-\subsection*{Controlling and nesting scales}
-
-
-\subsection*{Nesting of charts and scales}
-
-~
-~
-\noindent
-[TODO: We really need illustrations for those example charts, but that would be more work!]
-~
-[TODO: Maybe use this chart as a motivation: https://wellcomeopenresearch.org/articles/4-63/v1]
-~
-\section{Random ideas}
+\section{Conclusions}
 \begin{itemize}
 \item We could define a type system to catch categorical/continuous value mismatch in a single %scale.
 \item It would be worth thinking about ordinal values, which are categorical but can be sorted.
@@ -755,105 +794,19 @@ i
  automatic inference of scales on the nested shape) -- this might be just implementation issue,
  but it could be some more basic problem.
 \end{itemize}
+
+\cite{gcharts}
+\cite{seaborn}
+\cite{youdraw}
+\cite{grammar}
+\cite{layered}
+\cite{vega-lite}
+\cite{vega}
+\cite{d3}
+\cite{polaris}
+
+\bibliographystyle{jfp}
+\bibliography{paper}
+
 \end{document}
-
-%
-
-
-% \usepackage{booktabs}
-% \usepackage{subcaption}
-% \usepackage{lineno,hyperref,xcolor}
-% \usepackage{flushend}
-% \usepackage{stmaryrd}
-% \usepackage{amssymb}
-% \usepackage{xypic}
-% \usepackage{semantic}
-% \usepackage{booktabs}
-% \usepackage{enumitem}
-% \usepackage{enumerate}
-% \usepackage{amsmath}
-% \usepackage[T1]{fontenc}
-%
-% \setlist{leftmargin=6mm}
-% \newcounter{thc}
-% \newcounter{dfc}
-%
-% \theoremstyle{plain}
-% \newtheorem{lem}[thc]{Lemma}
-% \newtheorem{theorem}[thc]{Theorem}
-%
-% \theoremstyle{definition}
-% \newtheorem{axiom}[dfc]{Axiom}
-% \newtheorem{definition}[dfc]{Definition}
-%
-% \title{Compost: Library for composable data visualization}
-% %\author{Tomas Petricek}
-% %\affiliation{
-% %  \institution{University of Kent}
-% %  \country{United Kingdom}
-% %}
-% %\email{tomas@tomasp.net}
-%
-% %\begin{CCSXML}
-% %<ccs2012>
-% %<concept>
-% %<concept_id>10011007.10011006.10011008</concept_id>
-% %<concept_desc>Software and its engineering~General programming languages</concept_desc>
-% %<concept_significance>500</concept_significance>
-% %</concept>
-% %<concept>
-% %<concept_id>10003456.10003457.10003521.10003525</concept_id>
-% %<concept_desc>Social and professional topics~History of programming languages</concept_desc>
-% %<concept_significance>300</concept_significance>
-% %</concept>
-% %</ccs2012>
-% %\end{CCSXML}
-% %
-% %\ccsdesc[500]{Software and its engineering~General programming languages}
-% %\ccsdesc[300]{Social and professional topics~History of programming languages}
-%
-% \definecolor{cmtclr}{rgb}{0.0,0.6,0.0}
-% \definecolor{kvdclr}{rgb}{0.0,0.0,0.6}
-% \definecolor{idclr}{rgb}{0.0,0.0,0.0}
-% \definecolor{numclr}{rgb}{0.0,0.4,0.0}
-% \definecolor{strclr}{rgb}{0.4,0.4,0.0}
-% \definecolor{rstrclr}{rgb}{0.5,0.1,0.0}
-% \definecolor{prepclr}{rgb}{0.6,0.0,0.2}
-% \newcommand{\vect}[1]{\langl #1 \rangl}
-% \newcommand{\langl}{\begin{picture}(4.5,7)
-% \put(1.1,2.5){\rotatebox{60}{\line(1,0){5.5}}}
-% \put(1.1,2.5){\rotatebox{300}{\line(1,0){5.5}}}
-% \end{picture}}
-% \newcommand{\rangl}{\begin{picture}(4.5,7)
-% \put(.9,2.5){\rotatebox{120}{\line(1,0){5.5}}}
-% \put(.9,2.5){\rotatebox{240}{\line(1,0){5.5}}}
-% \end{picture}}
-% \newcommand{\ball}[1]{\FPeval{\result}{clip(201+#1)}\textnormal{\ding{\result}}}
-% \newcommand{\lsep}{\;\;|\;\;}
-% \newcommand{\num}[1]{\textcolor{numclr}{#1}}
-% \newcommand{\str}[1]{\textnormal{\textcolor{strclr}{\sffamily "#1"}}}
-% \newcommand{\strf}[1]{\textnormal{\textcolor{strclr}{\sffamily #1}}}
-% \newcommand{\rstr}[1]{\textnormal{\textcolor{rstrclr}{\sffamily "#1"}}}
-% \newcommand{\ident}[1]{\textnormal{\textcolor{idclr}{\sffamily #1}}}
-% \newcommand{\qident}[1]{\textnormal{\sffamily \textquotesingle #1\textquotesingle}}
-% \newcommand{\dom}{\ident{dom}}
-% \newcommand{\kvd}[1]{\textnormal{\textcolor{kvdclr}{\sffamily #1}}}
-%
-% \newcommand{\bndclr}[1]{\textcolor{kvdclr}{#1}}
-% \newcommand{\bkndclr}[1]{\textcolor{prepclr}{#1}}
-% \newcommand{\blblclr}[1]{\textcolor{numclr}{#1}}
-% \newcommand{\bnd}[1]{\textnormal{\textcolor{kvdclr}{\sffamily #1}}}
-% \newcommand{\bknd}[1]{\textnormal{\textcolor{prepclr}{\sffamily #1}}}
-% \newcommand{\blbl}[1]{\textnormal{\textcolor{numclr}{\sffamily #1}}}
-% \newcommand{\narrow}[1]{\hspace{-0.6em}#1\hspace{-0.6em}}
-% \newcommand{\rname}[1]{{\sffamily\small(#1)}}
-% \newcommand{\ername}[1]{\vspace{0.75em}\rname{#1}\hspace{0.5em}}
-% \newcommand{\preview}[1]{\,\textnormal{\guillemotleft} #1\textnormal{\guillemotright}\,}
-%
-% \begin{document}
-% %\begin{abstract}
-% %\end{abstract}
-% \maketitle
-%
-% % ==================================================================================================
 %
