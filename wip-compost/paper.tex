@@ -37,17 +37,17 @@
 \section{Introduction}
 Let's say we want to create the two charts in Figure~\ref{fig:charts}. The chart on the left is
 a bar chart that shows two different values for each bar. The chart on the right consists of two
-line charts that share the X axis and highlight two parts of the timeline with two different colors.
+line charts that share the X axis with parts of the timeline highlighted using two different colors.
 
 There is a plenty of libraries that can draw bar charts and line charts, but adding those extra
-features will only be possible if the author already thought about your exact scenario. For
-example, Google Charts supports the left chart (it is called Dual-X Bar Chart) but there is no
+features will only be possible if the author already thought about your exact scenario.
+Google Charts \cite{gcharts} supports the left chart (it is called Dual-X Bar Chart) but there is no
 way for adding a background, or sharing an axis between charts. The alternative is to use a more
-low-level library such as D3. In D3 you construct the chart piece by piece, but then you have to
+low-level library. In D3 \cite{d3} you construct the chart piece by piece, but you have to
 tediously transform your values to coordinates in pixels yourself. For scientific plots,
-you could use an implementation of Grammar of Graphics such as ggplot2, where a chart is
-a mapping from data to geometric objects (such as points, bars, and lines) and their visual
-properties (X and Y coordinate, shape and color). However, the range of charts that can be
+you could use ggplot2 \cite{ggplot2}, based on the Grammar of Graphics \cite{grammar}.
+A chart is a mapping from data to geometric objects (points, bars, lines) and their visual
+properties (X and Y coordinate, shape, color). However, the range of charts that can be
 created using this systematic approach is still somewhat limited.
 
 What would an elegant functional approach to data visualization look like? A functional programmer
@@ -64,32 +64,32 @@ of domain values such as the exchange rate, rather than pixels.
 \end{figure}
 
 As is often the case with domain-specific languages, finding the right primitives is more of an art
-than science. For this reason, I present my answer -- a library named Compost -- as a functional pearl.
-I hope to convince the reader that Compost is elegant and I illustrate this with a wide range
+than science. For this reason, we present an answer, a library named Compost, as a functional pearl.
+We hope to convince the reader that Compost is elegant and we illustrate this with a wide range
 of examples. Compost has a number of specific desirable properties:
 
 \begin{itemize}
 \item Charts are composed from a small number of primitive building blocks using a small number of
   combinators. In particular, concepts such as bar charts, line charts or charts with aligned
-  axes are expressed in terms of more basic concepts.
+  axes are all expressed in terms of more basic concepts.
 \item The primitives are specified in domain terms. When drawing a line, the value of an Y coordinate
-  is an exchange rate of 1.36 USD/GBP, not 137 pixels from the bottom.
+  is an exchange rate of 1.36 USD/GBP, not 67 pixels from the bottom.
 \item Most common chart types can be easily captured as high level abstractions, but there is an
   elengant way of creating a majority of more interesting custom charts.
-\item The approach can easily be extended to creating web-based charts that involve animations
-  or interaction with the user.
+\item The approach can easily be integrated with the Elm architecture \cite{elm}
+	to creating web-based charts that involve animations or interaction with the user.
 \end{itemize}
 %
 The presentation in this paper focuses on explaining the primitives and combinators of the
-domain-specific language. I outline the structure of an implementation, but omit the details. Filling
+domain-specific language. We outline the structure of an implementation, but omit the details. Filling
 those in requires careful thinking about geometry and projections, but there are no unexpected
 surprises. A complete F\# implementation, including the examples used in this paper, is available
 at: \urrl{http://github.com/compostjs}.
 
 \section{Basic charts: Overlaying chart primitives}
-I will introduce individual features of the Compost library gradually. The first important aspect of
-Compost is that properties of shapes are defined in terms of domain-specific values. I first
-explain what this means and then use domain-specific values to specify the core part of the
+We introduce individual features of the Compost library gradually. The first important aspect of
+Compost is that properties of shapes are defined in terms of domain-specific values. In this
+section, we explain what this means and then use domain-specific values to specify the core part of the
 UK election results bar chart.
 
 \begin{figure}[t]
@@ -102,9 +102,9 @@ UK election results bar chart.
 
 \subsection{Domain-specific values}
 
-In the election results chart in Figure~\ref{fig:charts} (left), the X values are categorical
+In the election results chart in Figure~\ref{fig:charts} (left), the X axis shows categorical
 values representing the political parties such as \strf{Conservative} or \strf{Labour}. The
-Y values are numerical values representing the number of seats won such as $\num{365}$ MPs.
+Y axis shows numerical values representing the number of seats won such as $\num{365}$ MPs.
 When creating data visualizations, those are the values that the user needs to specify. This is
 akin to most high-level charting libraries such as Google Charts, but in contrast with more
 flexible libraries like D3.
@@ -398,7 +398,7 @@ contain two shapes -- one in the upper half, one in the lower half -- and so the
 have equally been, for example, $\num{0},\num{1}, \num{2}$. The outer scale used here is
 synthetic and it is not aligned with other chart elements. An example of a more complex chart
 that follows a similar style, but does not have synthetic outer scale would be pairplot from
-the seaborn Python library. % \cite
+the seaborn Python library \cite{seaborn}.
 
 For completeness, the following code snippet shows how to construct the full currency exchange
 rate chart shown in Figure~\ref{fig:lines} (right), including the blue and red background:
@@ -469,10 +469,10 @@ Figure~\ref{fig:standard} (left) shows a sample scatter plot chart with a title 
 \ident{title} combinator.
 
 A more complex type of chart that can be easily composed using the Compost primitives is the
-pairplot chart from the seaborn Python library. % \cite
+pairplot chart from the seaborn library \cite{seaborn}.
 Pairplot visualizes pairwise relationships between features of a dataset.
 An example using three features (sepal width, petal width, petal length) from the Iris dataset is shown
-in Figure~\ref{fig:standard} (right). % \cite
+in Figure~\ref{fig:standard} (right).
 A pairplot draws a grid of charts, each visualizing the relationship between two numerical features. For distinct
 features, pairplot shows a scatter plot using one fature for X values and the other for Y values.
 At the diagonal (when the fatures are the same), it draws a histogram of the values of the feature.
@@ -515,17 +515,17 @@ of scales and their mapping to the available space as well as the \kvd{nest} ope
 \section{Interactive charts: Domain-specific event handling}
 Data visualizations published on the web often also feature interactivity. Standard forms of
 interactivity include animations, hover labels or zooming. More interesting custom forms
-include the ``You draw It'' visualization introduced by the New York Times. % cite
+include the ``You draw It'' visualization introduced by the New York Times \cite{youdraw}.
 The chart shows only the first half of the data, such as a timeline, and the reader has to
 guess the second half before clicking a button and seeing the actual data. Standard forms of
 interactivity are supported by high-level libraries. For example, Google Charts supports panning
 using drag \& drop, zooming to a selected chart range and animations. Custom interactivity can be
 implemented using low-level libraries such as D3, but doing so requires directly handling
-JavaScript events.
+JavaScript events and modifying the browser DOM.
 
 \subsection{Domain-specific events}
 Compost can be used in conjunction with a virtual-dom library to create interactive data
-visualizations based on the Elm architecture. An interactive visualization is described using
+visualizations based on the Elm architecture \cite{mvu}. An interactive visualization is described using
 a pair of functions -- the \emph{view} function creates a chart based on the current state and
 the \emph{update} function specifies how the state changes when an event occurs.
 
@@ -780,30 +780,36 @@ which the X coordinates in the sub-shape $\ident{shape}$ should be projected.
 To do this, we recursively call \ident{drawShape}, but use $x_1'$ and $x_2'$ as the X coordinates
 of the target area and ${ns}_x$ as the X scale. The Y area and scales are propagated unchanged.
 
-\newpage
-
 \section{Conclusions}
-\begin{itemize}
-\item We could define a type system to catch categorical/continuous value mismatch in a single %scale.
-\item It would be worth thinking about ordinal values, which are categorical but can be sorted.
-\item There might be other kinds of scales - for example, color scale (can have meaning in scatter plot)
- or a scale for secondary markers (like sizes of bubbles in a bubble chart). We could really say that
- every value (including bar chart colors) should be coming from some scale...
-\item Implementing something like \kvd{axis} or \kvd{roundScale} as an actual derived primitive is
- a bit tricky, because it needs to invoke a part of the normal rendering workflow (to run the
- automatic inference of scales on the nested shape) -- this might be just implementation issue,
- but it could be some more basic problem.
-\end{itemize}
+This paper presents a functional perspective on the problem of finding easy to use, but flexible
+abstractions for composing data visualizations. We hope to find a sweet between high-level, but
+inflexible approaches and low-level, but hard to use approaches.
 
-\cite{gcharts}
-\cite{seaborn}
-\cite{youdraw}
-\cite{grammar}
-\cite{layered}
-\cite{vega-lite}
-\cite{vega}
-\cite{d3}
-\cite{polaris}
+Most work in this space is based on Grammar of Graphics \cite{grammar}, designing more or less complex and
+powerful variants \cite{layered,vega-lite,vega,polaris}. In Grammar of Graphics, a chart is a mapping from
+data to a chart elements and their visual attributes. In contrast, in Compost, the mapping is
+specified in the host functional programming language and a chart is merely a resulting data type
+describing the visual elements using domain-specific primitives.
+
+Our approach is very flexible as it lets the user compose primitive visual elements in any
+way they want; it lets them define their own high-level abstractions and it also integrates well
+with reactive programming architectures to support interactive data visualizations.
+
+In this paper, we focus on presenting the core ideas behind Compost. However, much
+remains to be explored, both in terms of finding the best set of primitives and in terms of
+their language integration. First, we only support categorical and continuous values, but
+there are also ordinal values (which cannot be compared, but can be sorted). Second, some of our
+primitives, namely \kvd{axis} and \kvd{roundScale} could be implemented as derived operations, but
+we treat those as built-in for simplicity. Third, we only treat X and Y as scales, but we could
+similarly treat other visual features (colors of bars, size of bubbles) as scales, which would
+allow a more high-level specification of certain charts. Finally, there are also some obvious
+ways in which a type system could prevent errors, for example by checking that categorical and
+continuous values are not mixed on a single scale.
+
+Even in the basic form, the Compost library makes it possible to
+create a wide range of standard, atypical and even interactive charts. Moreover, we hope that
+other functional programmers agree that it does so in a simple, logical and easy-to-understand way.
+In other words, we hope the presented functional library is, indeed, a functional pearl.
 
 \bibliographystyle{jfp}
 \bibliography{paper}
