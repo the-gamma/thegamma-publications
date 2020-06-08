@@ -2,6 +2,7 @@
 \documentclass{jfp}
 \usepackage{amssymb}
 \usepackage{xcolor}
+\usepackage{semantic}
 
 \title{Composable data visualizations}
 \author[Tomas Petricek]{TOMAS PETRICEK\\
@@ -24,6 +25,16 @@
 \newcommand{\fkvd}[1]{\textnormal{\textcolor{fkvdclr}{\sffamily #1}}}
 \newcommand{\narrow}[1]{\hspace{-0.6em}#1\hspace{-0.6em}}
 \newcommand{\urrl}[1]{\textnormal{\textcolor{urlclr}{\url{#1}}}}
+
+\newcommand{\langl}{\begin{picture}(4.5,7)
+\put(1.1,2.5){\rotatebox{60}{\line(1,0){5.5}}}
+\put(1.1,2.5){\rotatebox{300}{\line(1,0){5.5}}}
+\end{picture}}
+\newcommand{\rangl}{\begin{picture}(4.5,7)
+\put(.9,2.5){\rotatebox{120}{\line(1,0){5.5}}}
+\put(.9,2.5){\rotatebox{240}{\line(1,0){5.5}}}
+\end{picture}}
+
 \begin{document}
 \maketitle[f]
 
@@ -59,7 +70,7 @@ of domain values such as the exchange rate, rather than pixels.
   \includegraphics[scale=0.57]{figures/charts}
   \vspace{0.25em}
   \caption{Two charts about the UK politics: Comparison of election results from 2017 and 2019 (left)
-    and GBP-USD exchange rate with highlighted areas before and after the 23 June 2016 Brexit vote.}
+    and GBP/USD exchange rate with highlighted areas before and after the 23 June 2016 Brexit vote.}
   \label{fig:charts}
 \end{figure}
 
@@ -294,12 +305,61 @@ categorical scale with $k$ values, we split the available chart space into $k$ e
 regions and then map a categorical value $\kvd{cat}~c, r$ to the region corresponding to $c$
 according to the ratio $r$.
 
+\subsection{Types and units of measure}
+We introduce the Compost domain-specific language as untyped, but there are some obvious ways in
+which types could make composing charts in Compost safer. First, a type representing a shape could
+specify whether the X and Y axes represent categorical or continous values. This would rule out
+mixing of different values on a single scale and guarantee that the \ident{union} operation,
+sketched in the previous section, is never called in a way leading to an undefined result.
+Second, the type of values mapped to an axis could be further annotated with units of measure
+\cite{units}. Using the F\# notation where $n\langl u\rangl$ is a number $n$ with unit $u$,
+an axis containing a value $\kvd{cont}~\num{317}\langl \ident{mp}\rangl$ would then be incompatible
+with an axis containing a value $\kvd{cont}~\num{1.32}\langl \ident{gbp}/\ident{usd}\rangl$.
+
+The design of the type system for Compost is straightforward, so we only present a brief sketch.
+There are two kinds of types; $\sigma$ is a type of values and $\tau$ is a type of shapes.
+Assuming $u$ denotes a unit of measure, the types are defined as:
+%
+\begin{equation*}
+\begin{array}{rcl}
+\sigma & = & \kvd{Cat}~u \lsep \kvd{Cont}~u
+\end{array}
+\qquad\qquad
+\begin{array}{rcl}
+\tau & = & \kvd{Shape}~\sigma_x, \sigma_y \\
+\end{array}
+\end{equation*}
+
+\vspace{-1em}
+\noindent
+Correspondingly, there are two kinds of judgements; $v\vdash \sigma$ indicates the type of a
+value, while $s\vdash \tau$ indicates the type of a shape. The typing rules for two of the
+basic chart primitives, \kvd{line} and \kvd{overlay} look as follows:
+%
+\begin{equation*}
+\inference
+  {v_{xi} \vdash \sigma_x & v_{yi} \vdash \sigma_y}
+  {\kvd{line}~\gamma, [\,v_{x1}, v_{y1}, \ldots, v_{xn}, v_{yn}\,] \vdash \kvd{Shape}~\sigma_x, \sigma_y}
+\qquad
+\inference
+  {s_i \vdash \kvd{Shape}~\sigma_x, \sigma_y}
+  {\kvd{overlay}~[\,s_1, \ldots, s_n\,] \vdash \kvd{Shape}~\sigma_x, \sigma_y}
+\end{equation*}
+
+\vspace{-0.5em}
+\noindent
+The rule for \kvd{line} ensures that all X and Y values have the same types, $\sigma_x$ and $\sigma_y$,
+respectively and infers $\kvd{Shape}~\sigma_x, \sigma_y$ as the type of the shape. The rule for
+\kvd{overlay} ensures that all composed shapes have the same type, including the type of X and Y scales.
+
+
+
 \section{Advanced charts: Controlling scale composition}
 \label{sec:fancy}
 
 Most charts have one X and one Y axis that are determined by the values the chart shows,
 but there are interesting exceptions. The chart in Figure~\ref{fig:charts} (right)
-has two different Y axes, one for GBP-USD and one for GBP-EUR. In the next two sections, we look at
+has two different Y axes, one for GBP/USD and one for GBP/EUR. In the next two sections, we look at
 three combinators that control the scale inferrence process and what flexibility this enables.
 
 \subsection{Defining nice scale ranges}
@@ -357,7 +417,7 @@ scales of shapes, the scale of $\kvd{nest}_{x/y}~l, s$ will be a categorical or 
 inferred using the values $v_{min}$ and $v_{max}$, regardless of the values that are used inside
 the shape $s$. The chart space between $v_{max}$ and $v_{min}$ will then be used to render the
 nested shape $s$ using its inferred scale. An example of nesting is shown in Figure~\ref{fig:nesting}.
-Here, a chart with a continous scale from $\num{1.1}$ to $\num{1.4}$ (e.g.~GBP-EUR exchange rates)
+Here, a chart with a continous scale from $\num{1.1}$ to $\num{1.4}$ (e.g.~GBP/EUR exchange rates)
 is nested in the left half of another chart, which has a continuous scale from $\num{0}$ to $\num{100}$.
 
 \begin{figure}
@@ -802,9 +862,7 @@ there are also ordinal values (which cannot be compared, but can be sorted). Sec
 primitives, namely \kvd{axis} and \kvd{roundScale} could be implemented as derived operations, but
 we treat those as built-in for simplicity. Third, we only treat X and Y as scales, but we could
 similarly treat other visual features (colors of bars, size of bubbles) as scales, which would
-allow a more high-level specification of certain charts. Finally, there are also some obvious
-ways in which a type system could prevent errors, for example by checking that categorical and
-continuous values are not mixed on a single scale.
+allow a more high-level specification of certain charts.
 
 Even in the basic form, the Compost library makes it possible to
 create a wide range of standard, atypical and even interactive charts. Moreover, we hope that

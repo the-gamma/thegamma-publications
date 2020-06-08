@@ -261,10 +261,12 @@ let body2 lo hi data =
 
 
 *)
+type [<Measure>] MP
+
 let colors2 = dict [ for p, clr, _, v in elections -> p, clr ]
 
 type Update = 
-  | Set of string * int
+  | Set of string * int<MP>
   | Enable of bool
 
 let update (enabled, state) = function
@@ -275,11 +277,11 @@ let update (enabled, state) = function
 let render id trigger (_, state) = 
   (Title("Drag the bars to guess UK election results!",
     ( Shape.Axes(false, false, true, true, 
-        Shape.InnerScale(None, Some(Continuous(co 0, co 400)), Shape.Style((fun sty -> sty ), //{ sty with Cursor = "row-resize" }),
+        Shape.InnerScale(None, Some(Continuous(co 0<MP>, co 400<MP>)), Shape.Style((fun sty -> sty ), //{ sty with Cursor = "row-resize" }),
           Shape.Interactive([
             MouseDown(fun e _ -> trigger(Enable(true)) )
             MouseUp(fun e _ -> trigger(Enable(false)) )
-            MouseMove(fun e (CAR(CA x, _), COV(CO y)) -> trigger(Set(x, int y)); printfn "CLICK: %A" (x,y) )
+            MouseMove(fun e (CAR(CA x, _), COV(CO y)) -> trigger(Set(x, int y * 1<MP>)); printfn "CLICK: %A" (x,y) )
           ], 
             Shape.Layered [ 
             for p, v in state -> 
@@ -288,6 +290,6 @@ let render id trigger (_, state) =
                     Derived.Column(ca p, co v)) ))
           ]))))))) |> svg id
 
-let state = false, [ for p, clr, _, v in elections -> p, v ]
+let state = false, [ for p, clr, _, v in elections -> p, v * 1<MP> ]
 renderAnim "out1" state (render "out1") update 
 renderAnim "out2" state (render "out2") update 
