@@ -16,6 +16,8 @@
 \definecolor{numclr}{rgb}{0.0,0.4,0.0}
 \definecolor{strclr}{rgb}{0.6,0.2,0.0}
 
+\newcommand{\X}{\emph{x}\ }
+\newcommand{\Y}{\emph{y}\ }
 \newcommand{\lsep}{\;\;|\;\;}
 \newcommand{\num}[1]{\textcolor{numclr}{#1}}
 \newcommand{\str}[1]{\textnormal{\textcolor{strclr}{\sffamily "#1"}}}
@@ -48,53 +50,52 @@
 \section{Introduction}
 Let's say we want to create the two charts in Figure~\ref{fig:charts}. The chart on the left is
 a bar chart that shows two different values for each bar. The chart on the right consists of two
-line charts that share the X axis with parts of the timeline highlighted using two different colors.
+line charts that share the \X axis with parts of the timeline highlighted using two different colors.
 
-There is a plenty of libraries that can draw bar charts and line charts, but adding those extra
+Many libraries that can draw bar charts and line charts, but adding those extra
 features will only be possible if the author already thought about your exact scenario.
 Google Charts \cite{gcharts} supports the left chart (it is called Dual-X Bar Chart) but there is no
-way for adding a background, or sharing an axis between charts. The alternative is to use a more
+way to add a background, or sharing an axis between charts. The alternative is to use a more
 low-level library. In D3 \cite{d3} you construct the chart piece by piece, but you have to
 tediously transform your values to coordinates in pixels yourself. For scientific plots,
 you could use ggplot2 \cite{ggplot2}, based on the Grammar of Graphics \cite{grammar}.
 A chart is a mapping from data to geometric objects (points, bars, lines) and their visual
-properties (X and Y coordinate, shape, color). However, the range of charts that can be
+properties (\X and \Y coordinate, shape, color). However, the range of charts that can be
 created using this systematic approach is still somewhat limited.
 
 What would an elegant functional approach to data visualization look like? A functional programmer
-would want a domain-specific language that has a small number of primitives; allow us to define
-high level abstractions such as a bar chart and its basic building blocks are expressed in terms
-of domain values such as the exchange rate, rather than pixels.
+would want a domain-specific language that has a small number of primitives that allow us to define
+high level abstractions such as a bar chart and that uses domain values such as the exchange
+rate, rather than pixels, in its basic building blocks.
 
 \begin{figure}[h]
   \includegraphics[scale=0.57]{figures/charts}
   \vspace{0.25em}
-  \caption{Two charts about the UK politics: Comparison of election results from 2017 and 2019 (left)
+  \caption{Two charts about UK politics: Comparison of election results from 2017 and 2019 (left)
     and GBP/USD exchange rate with highlighted areas before and after the 23 June 2016 Brexit vote.}
   \label{fig:charts}
 \end{figure}
 
 As is often the case with domain-specific languages, finding the right primitives is more of an art
-than science. For this reason, we present an answer, a library named Compost, as a functional pearl.
+than science. For this reason, we present our solution, a library named Compost, as a functional pearl.
 We hope to convince the reader that Compost is elegant and we illustrate this with a wide range
 of examples. Compost has a number of specific desirable properties:
 
 \begin{itemize}
-\item Charts are composed from a small number of primitive building blocks using a small number of
-  combinators. In particular, concepts such as bar charts, line charts or charts with aligned
-  axes are all expressed in terms of more basic concepts.
-\item The primitives are specified in domain terms. When drawing a line, the value of an Y coordinate
+\item Concepts such as bar charts, line charts or charts with aligned
+  axes are all expressed in terms of more primitive building blocks using a small number of combinators.
+\item The primitives are specified in domain terms. When drawing a line, the value of a \\ \Y coordinate
   is an exchange rate of 1.36 USD/GBP, not 67 pixels from the bottom.
-\item Most common chart types can be easily captured as high level abstractions, but there is an
-  elengant way of creating a majority of more interesting custom charts.
+\item Most common chart types can be easily captured as high level abstractions, but there is a
+  way of creating a majority of more interesting custom charts.
 \item The approach can easily be integrated with the Elm architecture \cite{elm}
 	to creating web-based charts that involve animations or interaction with the user.
 \end{itemize}
 %
 The presentation in this paper focuses on explaining the primitives and combinators of the
-domain-specific language. We outline the structure of an implementation, but omit the details. Filling
-those in requires careful thinking about geometry and projections, but there are no unexpected
-surprises. A complete F\# implementation, including the examples used in this paper, is available
+domain-specific language. We outline the structure of an implementation, but omit the details; filling
+those in merely requires careful thinking about geometry and projections. An F\#
+implementation, including all our examples, is available
 at: \urrl{http://github.com/compostjs}.
 
 \section{Basic charts: Overlaying chart primitives}
@@ -104,29 +105,28 @@ section, we explain what this means and then use domain-specific values to speci
 UK election results bar chart.
 
 \begin{figure}[t]
-\includegraphics[scale=1,trim={0cm 6.5cm 6cm 0cm},clip]{figures/values.pdf}
+\includegraphics[scale=1,trim={0cm 6.9cm 6cm 0cm},clip]{figures/values.pdf}
 \caption{On a continuous scale (above), an exact position is determined by a number.
   On a categorical scale (below), an exact position is determined by the category and a
-  numerical ratio from 0 to 1.}
+  number between 0 and 1.}
 \label{fig:scales}
 \end{figure}
 
 \subsection{Domain-specific values}
 
-In the election results chart in Figure~\ref{fig:charts} (left), the X axis shows categorical
+In the election results chart in Figure~\ref{fig:charts} (left), the \X axis shows categorical
 values representing the political parties such as \strf{Conservative} or \strf{Labour}. The
-Y axis shows numerical values representing the number of seats won such as $\num{365}$ MPs.
+\Y axis shows numerical values representing the number of seats won such as $\num{365}$ MPs.
 When creating data visualizations, those are the values that the user needs to specify. This is
 akin to most high-level charting libraries such as Google Charts, but in contrast with more
 flexible libraries like D3.
 
-Our design focuses on two-dimensional charts with X and Y axes. Values mapped to those axes
+Our design focuses on two-dimensional charts with \X and \Y axes. Values mapped to those axes
 can be either categorical (e.g.~political parties, countries) or continuous
 (e.g.~number of votes, exchange rates). The mapping from categorical and continuous values
-to positions on the chart is done automatically. For continuous values, this involves
-applying a linear transformation. For categorical values, the mapping is more difficult.
+to positions on the chart is done automatically. We discuss this in Section~\ref{sec:basic-scales}.
 
-For example, in the UK election results chart, the X axis is categorical. The library automatically
+For example, in the UK election results chart, the \X axis is categorical. The library automatically
 divides the available space between the six categorical values (political parties). The value
 \strf{Green} does not determine an exact position on the axis, but rather a range. To determine
 an exact position, we also need to attach a value between $\num{0}$ and $\num{1}$ to the
@@ -134,14 +134,16 @@ categorical value. This identifies a relative position in the available range.
 
 Figure~\ref{fig:scales} illustrates the two kinds of values using the axes from the UK
 election results chart. In Figure~\ref{fig:shape}, we define a value $v$ as either a continuous value
-$\kvd{cont}~n$ containing any number $n$ or a categorical value $\kvd{cat}~c, r$, consisting
-of a categorical value $c$ (implemented as a string) and a ratio $r$ between $0$ and $1$.
+$\kvd{cont}~n$ containing any number $n$ or a categorical value $\kvd{cat}~c, r$ consisting
+of a categorical value $c$ and a number $r$ between $0$ and $1$. As discussed in
+Section~\ref{sec:basic-types}, continuous and categorical values can also be annotated with
+units of measure to make the values more descriptive.
 %
 \begin{figure}
 \begin{equation*}
 \begin{array}{rcl}
 v & = & \kvd{cat}~c, r \\
-  & | & \kvd{cont}~n\\
+  & | & \kvd{cont}~n\\[1.25em]
   ~
 \end{array}
 \qquad
@@ -160,21 +162,21 @@ s & = &\kvd{line}~\gamma, [\,v_{x1}, v_{y1}, \ldots, v_{xn}, v_{yn}\,] & | & \kv
 \subsection{Basic primitives and combinators}
 \label{sec:basic-primitives}
 
-Now that we know how Compost represents values, we can define the basic elements of its
-domain-specific langauge. A chart is represeted by the shape $s$ defined in Figure~\ref{fig:shape}.
+Now we can define the besic elements of the Compost domain-specific langauge.
+A chart element is represeted by the shape $s$ defined in Figure~\ref{fig:shape}.
 A primitive shape can be a text label, a line connecting a list of points, a filled polygon
 defined by a list of points or a bubble at a given point with a given width and height.
-The position of points is specified by X and Y coordinates, which can be either categorical or
+The position of points is specified by \X and \Y coordinates, which can be either categorical or
 continuous values. For text, line, polygon and bubble, we also include a parameter $\gamma$
-that specifies the element color. The width and height of a bubble is given in pixels.
+that specifies the element color. The width and height of a bubble is given in pixels rather than
+in domain units.
 
 Figure~\ref{fig:shape} also defines three combinators. The most important is $\kvd{overlay}$,
-which overlays all shapes from a given list. When doing this, Compost automatically infers the
-scales of X and Y axes and calculates suitable projections using a method discussed in the next
-section. Finally, $\kvd{padding}$ adds padding around a specified shape and $\kvd{axis}$ adds
+which overlays given shapes. When doing this, Compost infers the range of values on the \X and \Y
+axes and calculates suitable projections using a method discussed in the next
+section. The $\kvd{padding}$ combinator adds padding around a specified shape and $\kvd{axis}$ adds
 an axis showing the inferred scale on the left, right, top or bottom of a given shape.
-Using those primitives, we can construct the simple UK election results bar chart in Figure~\ref{fig:simple} (left).
-We use the \fkvd{let} construct of the host functional language to structure the code:
+Using those primitives, we can construct the simple UK election results bar chart in Figure~\ref{fig:simple} (left):
 %
 \begin{equation*}
 \begin{array}{l}
@@ -189,12 +191,14 @@ We use the \fkvd{let} construct of the host functional language to structure the
 \end{array}
 \end{equation*}
 
+\vspace{-0.25em}
 \noindent
-The chart specification overlays two bars of different colors and then adds axes to the bottom and
-left of the chart. The two bars are filled rectangles defined using four corner points. The Y
-coordinates are specified as continuous values, while the X coordinates are categorical. For
-the Conservative party, two of the points have the Y coordinate set to $\kvd{cont}~\num{0}$ (bottom of the bar)
-and two have the Y coordinate set to $\kvd{cont}~\num{365}$ (top of the bar). The two X coordinates
+We use the \fkvd{let} construct of the host functional language to structure the code. The chart
+specification overlays two bars of different colors and then adds axes to the bottom and left of the chart.
+The two bars are filled rectangles defined using four corner points. The \Y
+coordinates are specified as continuous values, while the \X coordinates are categorical. For
+the Conservative party, two of the points have the \Y coordinate set to $\kvd{cont}~\num{0}$ (bottom of the bar)
+and two have the \Y coordinate set to $\kvd{cont}~\num{365}$ (top of the bar). The two \X coordinates
 are the start and the end of the range allocated for the \strf{Conservative} category,
 i.e.~$\kvd{cat}~\strf{Conservative}, \num{0}$ on the left and $\kvd{cat}~\strf{Conservative}, \num{1}$
 on the right.
@@ -208,9 +212,9 @@ on the right.
 \end{figure}
 
 Extending the snippet to generate a grouped bar chart that shows two results
-for each party as in Figure~\ref{fig:charts} is easy. Given a party $p$, we need to
-generate two rectangles, one with X coordinates $\kvd{cat}~p, 0$ and $\kvd{cat}~p, 0.5$
-and the other with X coordinates $\kvd{cat}~p, 0.5$ and $\kvd{cat}~p, 1$.
+for each party as in Figure~\ref{fig:charts} is not much harder. Given a party $p$, we need to
+generate two rectangles, one with \X coordinates $\kvd{cat}~p, 0$ and $\kvd{cat}~p, 0.5$
+and the other with \X coordinates $\kvd{cat}~p, 0.5$ and $\kvd{cat}~p, 1$.
 In the following snippet, we use a \fkvd{for} comprehension to generate the list. All remaining
 constructs are primitives of the Compost domain-specific language. Assuming \ident{elections} is a
 list of election results containing a five-element tuple consisting of a party name, colors for
@@ -228,21 +232,34 @@ list of election results containing a five-element tuple consisting of a party n
 \end{array}
 \end{equation*}
 
+\vspace{-0.5em}
 \noindent
 Aside from iterating over all available parties and splitting the bar, the example also adds padding
-around the bars. A padding is specified in pixels rather than in terms of domain values. This is
-sometimes preferrable over, for example, drawing a bar using a range from $\num{0.05}$ to $\num{0.5}$.
+around the bars. This is specified in pixels rather than in terms of domain values. A similar
+result could be be achieved by drawing a bar using a range from $\num{0.05}$ to $\num{0.5}$, but
+specifying padding precisely in pixels is sometimes preferable.
 The chart is still missing a title, which we add in Section~\ref{sec:abstractions}.
 
 \subsection{Inferring scales and projections}
 \label{sec:basic-scales}
 
+We follow the terminology of Vega \cite{vega} and use the term \emph{scale} to refer to the mapping of
+values to positions on a screen; a \emph{coordinate} is a value representing a position on a
+scale and the term \emph{axis} is used to refer to the visual representation of a scale.
+
+Scales are an important concept in Compost.
 When composing shapes using the \kvd{overlay} primitive, the user does not need to specify how
 to position the child elements relatively to each other. The Compost library positions the elements
-automatically. This is done in two steps. First, Compost infers the \emph{scales} for X and Y
-axes. A scale represents the range of values that needs to fit in the space available for the chart.
-Second, Compost calculates a \emph{projection}, a mapping from domain-specific values of the scale
-to the available screen space. A scale $l$ is defined in Figure~\ref{fig:scale}.
+automatically. This is done in two steps. During pre-processing, Compost infers the scales for
+\X and \Y axes. A scale represents the range of values that needs to fit in the space available for
+the chart. When rendering a shape, Compost projects domain-specific values to the available screen
+space based on the inferred scale. A scale $l$ is defined in Figure~\ref{fig:scale}.
+%
+A continuous scale is defined by a minimal and maximal value that need to be mapped to the
+available chart space. A categorical scale is defined by a list of individual categorical values.
+Note that we do not need a minimal and maximal ratios of the used categorical values as Compost
+will use an equal space for each category, regardless of where in this space a shape needs to
+appear.
 
 \begin{figure}
 \vspace{-0.5em}
@@ -267,15 +284,9 @@ s & = & \kvd{roundScale}_{x/y} s      &|& \kvd{nest}_{x/y}~v_{min}, v_{max}, s \
 \label{fig:control}
 \end{figure}
 
-A continuous scale is defined by a minimal and maximal value that need to be mapped to the
-available chart space. A categorical scale is defined by a list of individual categorical values.
-Note that we do not need a minimal and maximal ratios of the used categorical values as Compost
-will use an equal space for each category, regardless of where in this space a shape needs to
-appear.
-
-Inferring scales is done by a simple recursive function that walks over the given shape and
-constructs two scales for the X and Y axis, using the X and Y coordinates that appear in the shape.
-Most of the work is done by a simple helper function that takes two scales, $l_1$ and $l_2$,
+Scale inference is done by a simple recursive function that walks over the given shape and
+constructs two scales for the \X and \Y axis, using the \X and \Y coordinates that appear in the shape.
+Most of the work is done by a simple helper function that takes two scales, $l_1$~and $l_2$,
 and produces a new scale that represents the union of the two:
 %
 \begin{equation*}
@@ -298,17 +309,20 @@ ordinal values, which are categorical values with a well-defined ordering.) It i
 that a categorical scale cannot be combined with a continuous scale. In other words, mixing
 categorical and continuous values in a single scale results in an error.
 
-Once Compost computes scales for a given shape and its sub-shapes, it constructs a projection
-that maps domain-specific values to the available chart space. We discuss this in
-Section~\ref{sec:impl}. For a continuous scale, the projection is a linear transformation. For
+The scales inferred during pre-processing are later used when rendering a shape.
+We discuss the implementation in Section~\ref{sec:impl}. The key operation is projection
+which, given a coordinate, a scale and an area on the screen, produces a position on
+the screen. For a continuous scale, the projection is a linear transformation. For
 categorical scale with $k$ values, we split the available chart space into $k$ equally sized
 regions and then map a categorical value $\kvd{cat}~c, r$ to the region corresponding to $c$
 according to the ratio $r$.
 
 \subsection{Types and units of measure}
+\label{sec:basic-types}
+
 We introduce the Compost domain-specific language as untyped, but there are some obvious ways in
-which types could make composing charts in Compost safer. First, a type representing a shape could
-specify whether the X and Y axes represent categorical or continous values. This would rule out
+which types can make composing charts in Compost safer. First, a type representing a shape could
+specify whether the \X and \Y axes represent categorical or continous values. This would rule out
 mixing of different values on a single scale and guarantee that the \ident{union} operation,
 sketched in the previous section, is never called in a way leading to an undefined result.
 Second, the type of values mapped to an axis could be further annotated with units of measure
@@ -316,9 +330,8 @@ Second, the type of values mapped to an axis could be further annotated with uni
 an axis containing a value $\kvd{cont}~\num{317}\langl \ident{mp}\rangl$ would then be incompatible
 with an axis containing a value $\kvd{cont}~\num{1.32}\langl \ident{gbp}/\ident{usd}\rangl$.
 
-The design of the type system for Compost is straightforward, so we only present a brief sketch.
-There are two kinds of types; $\sigma$ is a type of values and $\tau$ is a type of shapes.
-Assuming $u$ denotes a unit of measure, the types are defined as:
+We only outline the type system here. There are two kinds of types; $\sigma$ is a type of values
+and $\tau$ is a type of shapes. Assuming $u$ denotes a unit of measure, the types are defined as:
 %
 \begin{equation*}
 \begin{array}{rcl}
@@ -330,9 +343,9 @@ Assuming $u$ denotes a unit of measure, the types are defined as:
 \end{array}
 \end{equation*}
 
-\vspace{-1em}
+\vspace{-1.25em}
 \noindent
-Correspondingly, there are two kinds of judgements; $v\vdash \sigma$ indicates the type of a
+Correspondingly, there are two kinds of typing judgements; $v\vdash \sigma$ indicates the type of a
 value, while $s\vdash \tau$ indicates the type of a shape. The typing rules for two of the
 basic chart primitives, \kvd{line} and \kvd{overlay} look as follows:
 %
@@ -350,17 +363,15 @@ basic chart primitives, \kvd{line} and \kvd{overlay} look as follows:
 \noindent
 The rule for \kvd{line} ensures that all X and Y values have the same types, $\sigma_x$ and $\sigma_y$,
 respectively and infers $\kvd{Shape}~\sigma_x, \sigma_y$ as the type of the shape. The rule for
-\kvd{overlay} ensures that all composed shapes have the same type, including the type of X and Y scales.
-
-
+\kvd{overlay} ensures that all composed shapes have the same type, including the type of \X and \Y scales.
 
 \section{Advanced charts: Controlling scale composition}
 \label{sec:fancy}
 
-Most charts have one X and one Y axis that are determined by the values the chart shows,
+Most charts have one \X and one \Y scale that are determined by the values the chart shows,
 but there are interesting exceptions. The chart in Figure~\ref{fig:charts} (right)
-has two different Y axes, one for GBP/USD and one for GBP/EUR. In the next two sections, we look at
-three combinators that control the scale inferrence process and what flexibility this enables.
+has two different \Y axes, one for GBP/USD and one for GBP/EUR. In the next two sections, we look at
+three combinators that control the scale inference process and what flexibility this enables.
 
 \subsection{Defining nice scale ranges}
 
@@ -368,14 +379,12 @@ The automatic scale inference often results in scales where the maximum is a non
 This leads to charts that fully utilize the available space, but may not be easy to read.
 The first two primitives, shown in Figure~\ref{fig:control} (left) allow the chart designer
 to adjust the automatically inferred range of scales.
-
-The two combinators for controlling the range of scales are \kvd{roundScale} and \kvd{explicitScale}.
-The oprations can be applied to either the X scale or the Y scale, which is indicated by the
-$x/y$ sub-script. The \kvd{roundScale} primitve takes the inferred X or Y scale of the shape $s$
+The oprations can be applied to either the \X scale or the \Y scale, which is indicated by the
+$x/y$ subscript. The \kvd{roundScale} primitive takes the inferred \X or \Y scale of the shape $s$
 and, if it is a continuous scale, rounds its minimal and maximal values to a ``nice'' number.
 For example, if a continuous scale has minimum $\num{0}$ and maximum $\num{365}$, the resulting
 scale would have a maximum $\num{400}$. For categorical scale, the operation does not have any effect.
-The \kvd{explicitScale} operation is similar, but it replaces the inferred scale with an explicitly
+The \kvd{explicitScale} operation replaces the inferred scale with an explicitly
 provided scale (the type of the inferred scale has to match with the type of the explicitly given
 scale). For example, the chart in Figure~\ref{fig:simple} (right) is constructed using the
 following code (reusing the \ident{labour} and \ident{conservative} variables defined earlier):
@@ -386,7 +395,7 @@ following code (reusing the \ident{labour} and \ident{conservative} variables de
 \qquad \kvd{overlay}~[~\ident{labour}, \ident{conservative}~]~)))\\
 \end{array}
 \end{equation*}
-\vspace{-0.5em}
+\vspace{-0.75em}
 
 \noindent
 Reading the code from the inside out, the snippet first overlays the two coloured bars defined
@@ -401,20 +410,14 @@ could be implemented as derived operations; \kvd{roundScale} would need to infer
 the nested shape and then insert \kvd{explicitScale} with a rounded number; \kvd{axis}
 would also need to infer the scales and then generates labels and lines in suitable locations.
 
-\begin{figure}
-\includegraphics[scale=0.57]{figures/lines}
-\vspace{0.25em}
-\caption{Two charts showing currency exchange rates with a shared X scale and separate Y scales.}
-\label{fig:lines}
-\end{figure}
-
 \subsection{Nested scales}
 
-The most interesting primitive for controlling scale composition defined in Figure~\ref{fig:control}
-is $\kvd{nest}_{x/y}$. The combinator takes two values, $v_{min}, v_{max}$ and a shape $s$ as arguments
-and it nests the scale of the shape $s$ inside the region defined by $v_{min}, v_{max}$. When inferring
-scales of shapes, the scale of $\kvd{nest}_{x/y}~l, s$ will be a categorical or continuous scale
-inferred using the values $v_{min}$ and $v_{max}$, regardless of the values that are used inside
+The most interesting primitive for controlling scale composition
+is $\kvd{nest}_{x/y}$. The behaviour is similar to that of the SVG viewport \cite{svg}.
+It takes two values, $v_{min}, v_{max}$ and a shape $s$ as arguments and
+nests the scale of the shape $s$ inside the region defined by $v_{min}, v_{max}$.
+When inferring scales of shapes, the scale of $\kvd{nest}_{x/y}~l, s$ will be a categorical or continuous scale
+constructed from the values $v_{min}$ and $v_{max}$, regardless of the values that are used inside
 the shape $s$. The chart space between $v_{max}$ and $v_{min}$ will then be used to render the
 nested shape $s$ using its inferred scale. An example of nesting is shown in Figure~\ref{fig:nesting}.
 Here, a chart with a continous scale from $\num{1.1}$ to $\num{1.4}$ (e.g.~GBP/EUR exchange rates)
@@ -426,14 +429,13 @@ is nested in the left half of another chart, which has a continuous scale from $
 \label{fig:nesting}
 \end{figure}
 
-The nesting of scales can be used in a variety of ways. We can, for example, nest a line chart
-inside a bar of a bar chart. In that case, the values for $v_{min}$ and $v_{max}$ would be
-$\kvd{cat}~\strf{ABC}, 0$ and $\kvd{cat}~\strf{ABC}, 1$, which define the start and the end of
-the region allocated to the $\strf{ABC}$ category on a categorical scale. A simpler use case for
-the combinator is showing multiple charts in a single view. For example, the motivating example
+The nesting of scales can be used in a variety of ways. For example, to nest a scatter plot
+showing individual data points inside a bar of a histogram, we would use $\kvd{cat}~\strf{ABC}, 0$
+and $\kvd{cat}~\strf{ABC}, 1$ as the points that define the start and the end of the region. A simpler
+use case for the combinator is showing multiple charts in a single view. For example, the motivating example
 in Figure~\ref{fig:charts} (right) comapres aligned line charts of exchange rates for two
-different currencies. Assuming \ident{gbpusd} and \ident{gbpeur} are lists containing days as X
-values and exchange rates as Y values, we can construct a simple chart with two line charts,
+different currencies. Assuming \ident{gbpusd} and \ident{gbpeur} are lists containing days as \X
+values and exchange rates as \Y values, we can construct a simple chart with two line charts,
 shown in Figure~\ref{fig:lines} (left), using:
 %
 \begin{equation*}
@@ -446,9 +448,9 @@ shown in Figure~\ref{fig:lines} (left), using:
 
 \vspace{-0.5em}
 \noindent
-In this example, the X scale shows the days of the year. This scale is shared by both of the charts.
+In this example, the \X scale shows the days of the year. This scale is shared by both of the charts.
 Indeed, if data was only available for the second half of the month for one of the charts,
-we would want the line to start in the middle of the chart. However, the Y scale needs to be
+we would want the line to start in the middle of the chart. However, the \Y scale needs to be
 separate for each of the charts. To achieve this, we use $\kvd{nest}_y$. The scale of the inner
 shapes is continuous, from the minimal to the maximal exchange rate for a given period. The
 outer scale is determined by the explicitly defined points. For the upper chart, these are
@@ -456,9 +458,15 @@ $\kvd{cont}~\num{0}$ and $\kvd{cont}~\num{50}$; for the lower chart, these are
 $\kvd{cont}~\num{50}$ and $\kvd{cont}~\num{100}$. The continuous values define a scale that only
 contain two shapes -- one in the upper half, one in the lower half -- and so the three numbers could
 have equally been, for example, $\num{0},\num{1}, \num{2}$. The outer scale used here is
-synthetic and it is not aligned with other chart elements. An example of a more complex chart
-that follows a similar style, but does not have synthetic outer scale would be pairplot from
-the seaborn Python library \cite{seaborn}.
+synthetic and it is not aligned with other chart elements. A chart that does not have synthetic
+outer scale is pairplot, discussed in the next section.
+
+\begin{figure}
+\includegraphics[scale=0.57]{figures/lines}
+\vspace{0.25em}
+\caption{Two charts showing currency exchange rates with a shared X scale and separate Y scales.}
+\label{fig:lines}
+\end{figure}
 
 For completeness, the following code snippet shows how to construct the full currency exchange
 rate chart shown in Figure~\ref{fig:lines} (right), including the blue and red background:
@@ -477,26 +485,17 @@ rate chart shown in Figure~\ref{fig:lines} (right), including the blue and red b
 
 \noindent
 Here, we use the \fkvd{let} binding of the host language to define a function that takes
-a the data \ident{rates} together with the minimum and maximum. This is used for drawing
+the data \ident{rates} together with the minimum and maximum. This is used for drawing
 two filled rectangles, covering the first 16 days of the view in blue and the rest in red.
 The shapes combined using \kvd{overlay} are rendered in the order in which they appear and so
 the line shape is last, so that it appears above the background.
 
-\begin{figure}
-  \includegraphics[scale=0.57]{figures/standard}
-  \vspace{0.25em}
-  \caption{Sample charts built using derived abstractions; a scatter plot visualizing the Iris\\
-    dataset with a title (left) and a pairplot comparing two Iris features (right).}
-  \label{fig:standard}
-\end{figure}
-
 \section{Standard charts: Definining new abstractions}
 \label{sec:abstractions}
 
-The Compost library does not introduce a rich collection of standard charts and chart features
-as most charting libraries. However, the functional domain-specific language design makes
-it easy to define high-level chart features based on the low-level primitives of the core language.
-To illustrate this, we give two examples.
+The functional domain-specific language design makes it easy to define high-level chart features
+and chart types, known from standard charting libraries, using the low-level primitives of the
+core language. To illustrate this, we give two examples.
 
 First, one last remaining feature of the two charts in Figure~\ref{fig:charts} is a chart title.
 This can be added to any chart using the following derived combinator:
@@ -515,28 +514,35 @@ This can be added to any chart using the following derived combinator:
 
 \vspace{-0.5em}
 \noindent
-The \ident{title} combinator is a function defined using \fkvd{let} in the host language. It takes
-a title $t$ and a shape $s$. It overlays two shapes. To position the title above the chart, the first
-shape has an outer Y scale $\kvd{continuous}~\num{0},\num{15}$ while the second has an outer Y scale
-$\kvd{continuous}~\num{15},\num{100}$. These are defined using the $\kvd{nest}_y$ primitive. Similarly,
-the outer X scale of both is $\kvd{continuous}~\num{0},\num{100}$, defined using $\kvd{nest}_x$.
+We use \fkvd{let} in the host language to define \ident{title} as a function taking a title $t$ and
+a shape $s$. It overlays two shapes. To position the title above the chart, the~first
+shape has an outer \Y scale $\kvd{continuous}~\num{0},\num{15}$ while the second has an outer \Y scale
+$\kvd{continuous}~\num{15},\num{100}$. Similarly, the outer \X scale of both is $\kvd{continuous}~\num{0},\num{100}$.
+These are defined using $\kvd{nest}_{x/y}$.
+
+\begin{figure}
+  \includegraphics[scale=0.57]{figures/standard}
+  \vspace{0.25em}
+  \caption{Sample charts built using derived abstractions; a scatter plot visualizing the Iris\\
+    dataset with a title (left) and a pairplot comparing two Iris features (right).}
+  \label{fig:standard}
+\end{figure}
 
 The second shape simply wraps the specified chart $s$ to which we are attaching the title. The first
-positions the text title in the middle of the available space. To do so, we explicitly set the X and
-Y scales inside the upper shape to continuous scales from $\num{0}$ to $\num{100}$ and then position
+positions the text title in the middle of the available space. To do so, we explicitly set the \X and
+\Y scales inside the upper shape to continuous scales from $\num{0}$ to $\num{100}$ and then position
 the text label in the middle, at a point $(\kvd{cont}~\num{50}), (\kvd{cont}~\num{50})$.
 Figure~\ref{fig:standard} (left) shows a sample scatter plot chart with a title created using the
 \ident{title} combinator.
 
-A more complex type of chart that can be easily composed using the Compost primitives is the
-pairplot chart from the seaborn library \cite{seaborn}.
-Pairplot visualizes pairwise relationships between features of a dataset.
+A more complex chart that can be composed using the Compost primitives is pairplot from the seaborn
+library \cite{seaborn}. Pairplot visualizes pairwise relationships between features of a dataset.
 An example using three features (sepal width, petal width, petal length) from the Iris dataset is shown
 in Figure~\ref{fig:standard} (right).
 A pairplot draws a grid of charts, each visualizing the relationship between two numerical features. For distinct
-features, pairplot shows a scatter plot using one fature for X values and the other for Y values.
-At the diagonal (when the fatures are the same), it draws a histogram of the values of the feature.
-Additionally, a categorical feature can be used to determine the color of dots in the scatter plots.
+features, pairplot shows a scatter plot using one fature for \X values and the other for \Y values.
+When the fatures are the same (the diagonal), it draws a histogram of the feature values.
+A categorical feature can be used to determine the color of dots in the scatter plots.
 
 To generate a pairplot, we use \kvd{nest} to overlay and align a grid of plots. Each of those
 overlays a number of bubbles or filled shapes and adds left and bottom axis. As before, we use
@@ -561,7 +567,7 @@ $\ident{get}~a~r$ obtains the attribute $a$ of a row $r$. We also assume the dat
 As before, \kvd{nest} is essential for composing individual charts. Here, the points that determine
 the locations of individual charts are categorical values defined by the attributes of the dataset.
 The choice between two possible nested charts is made using the host language \fkvd{if} construct.
-Scatter plots are generated by overlaying bubbles with X and Y coordinates obtained using $\ident{get}~x~r$
+Scatter plots are generated by overlaying bubbles with \X and \Y coordinates obtained using $\ident{get}~x~r$
 and $\ident{get}~y~r$. Histograms are composed from filled shapes. To obtain their locations, we use
 a helper function $\ident{bins}~x~\ident{data}$, which returns a list of bins specified by a tripple
 consisting of a lower and an upper range $x_1, x_2$ and the count $y$.
@@ -573,14 +579,14 @@ of scales and their mapping to the available space as well as the \kvd{nest} ope
 
 
 \section{Interactive charts: Domain-specific event handling}
-Data visualizations published on the web often also feature interactivity. Standard forms of
-interactivity include animations, hover labels or zooming. More interesting custom forms
-include the ``You draw It'' visualization introduced by the New York Times \cite{youdraw}.
+Many data visualizations published on the web feature interactivity. Standard forms of
+interactivity include animations, hover labels or zooming. More interesting custom
+visualizations include ``You Draw It'' introduced by the New York Times \cite{youdraw}.
 The chart shows only the first half of the data, such as a timeline, and the reader has to
 guess the second half before clicking a button and seeing the actual data. Standard forms of
-interactivity are supported by high-level libraries. For example, Google Charts supports panning
-using drag \& drop, zooming to a selected chart range and animations. Custom interactivity can be
-implemented using low-level libraries such as D3, but doing so requires directly handling
+interactivity are often supported by high-level libraries; Google Charts supports panning
+using drag \& drop, zooming to a selected chart range and animations. Custom interactivity is
+typically implemented using low-level libraries such as D3, but doing so requires directly handling
 JavaScript events and modifying the browser DOM.
 
 \subsection{Domain-specific events}
@@ -591,11 +597,11 @@ the \emph{update} function specifies how the state changes when an event occurs.
 
 To support handling of mouse-based events, Compost adds three additional primitives to the definition
 of shape, shown in Figure~\ref{fig:mouse}. The three new primitives make it possible to handle
-three common mouse events using custom functions $\lambda \;x~y\rightarrow e$, specified in the
-host language. The most interesting aspect is that the functions are given X and Y coordinates
-of the event specified in the domain of the chart. This means that if the user clicks on the
+three common mouse events using custom functions $\lambda x~y\rightarrow e$, specified in the
+host language. The most interesting aspect is that the functions are given \X and \Y coordinates
+of the event specified in the domain units of the chart. This means that if the user clicks on the
 bar representing the Conservative party in a bar chart, the values might be, for example,
-$\kvd{cat}~\strf{Conservative},\num{0.75}$ for X and $\kvd{cont}~\num{120.5}$ for Y.
+$\kvd{cat}~\strf{Conservative},\num{0.75}$ for \X and $\kvd{cont}~\num{120.5}$ for \Y.
 
 \end{figure}
 \begin{figure}
@@ -610,60 +616,59 @@ s & = & \kvd{mouseUp}~(\lambda \,x~y \rightarrow e), s  &|& \kvd{mouseDown}~(\la
 \label{fig:mouse}
 \end{figure}
 
-\subsection{You draw it data visualizations}
+\subsection{You Draw It data visualizations}
 To illustrate building of interactive data visualizations using Compost, we look at one aspect of
-the ``You draw It'' visualizations. We want to create a bar chart where the user can use drag \& drop
-to move individual bars. The resulting chart can be seen in Figure~\ref{fig:youdraw}.
-The first step is to define types representing the state and events that can occur:
-%
+``You Draw It''. We want to create a bar chart where the user can use drag \& drop
+to move individual bars. Figure~\ref{fig:youdraw} shows the interactive chart before and after an
+interaction. The first step is to define types representing the state and events that can occur:
+
+\noindent
 \begin{equation*}
 \begin{array}{lll}
-\fkvd{type}~\ident{State} &\narrow{=}& \ident{bool}~*~(\ident{string}~*~\ident{int})~\ident{list}\\[0.5em]
-\fkvd{type}~\ident{Event} &\narrow{=}& \ident{Update}~\fkvd{of}~(\ident{string}~*~\ident{int})\\
-                          &\;\narrow{|}& \ident{Moving}~\fkvd{of}~\ident{bool}
+\fkvd{type}~\ident{State} &\narrow{=}& \ident{bool}~*~(\ident{string}~*~\ident{int})~\ident{list}\\
+\fkvd{type}~\ident{Event} &\narrow{=}& \ident{Update}~\fkvd{of}~(\ident{string}~*~\ident{int}) ~~|~~ \ident{Moving}~\fkvd{of}~\ident{bool}
 \end{array}
 \end{equation*}
 
 \vspace{-0.5em}
 \noindent
-The state is a pair of boolean, indicating whether the user is currently dragging, together with
+The state is a pair of boolean, indicating whether the user is currently dragging, and
 a list of key value pairs, storing the number of seats for each political party. Two types of events
 can occur in the visualization. First, the user may start or stop dragging, which is indicated using
 $\ident{Moving}(\fkvd{true})$ and $\ident{Moving}(\fkvd{false})$, respectively. Second, the user
-may change a value for a party, which is captured by the $\ident{Update}$ event.
+may change a value for a party, which is represented by the $\ident{Update}$ event.
 
-The next part of the visualization is the \ident{update} function which takes an old state together
+The next part of the implementation is the \ident{update} function which takes an old state together
 with an event and produces a new state:
 %
 \begin{equation*}
 \begin{array}{l}
 \fkvd{let}~\ident{update}~(\_,s)~(\ident{Moving}(m)) = m,s\\
-\hspace{1.05em}~\ident{update}~(\fkvd{true},s)~(\ident{Update}(p, v)) =\\
-\hspace{1.05em}\qquad  \fkvd{true}, \ident{map}~(\lambda(k, o) \rightarrow k, \fkvd{if}~k = p~\fkvd{then}~v~\fkvd{else}~o)~s\\
+\hspace{1.05em}~\ident{update}~(\fkvd{true},s)~(\ident{Update}(p, v)) =
+%\hspace{1.05em}\qquad
+  \fkvd{true}, \ident{map}~(\lambda(k, o) \rightarrow k, \fkvd{if}~k = p~\fkvd{then}~v~\fkvd{else}~o)~s\\
 \hspace{1.05em}~\ident{update}~(m,s)~(\ident{Update}(\_, \_)) = m,s\\
 \end{array}
 \end{equation*}
 
 \vspace{-0.5em}
 \noindent
-The first two cases handle the \ident{Update} event. The event carries two values, $p, v$, which
-represent the party (which bar the user is dragging) and the new value (new number of seats).
-If the user is currently dragging, we replace the value associated with the party $p$ in \newpage \noindent the
-list $s$ using the \ident{map} function. If the user is not currently dragging, the event is ingored.
-The last case handles the \ident{Moving} event, which simply replaces the first component of the
+The first case handles the \ident{Moving} event, which replaces the first component of the
 state tuple, i.e.~a flag indicating whether a mouse button is down.
-
+The next two cases handle the \ident{Update} event. The event carries two values, $p, v$, which
+represent the party (which bar the user is dragging) and the new value (new number of seats).
+If the user is currently dragging, we replace the value associated with the party $p$ in \noindent the
+list $s$ using the \ident{map} function. If the user is not currently dragging, the event is ingored.
 
 \begin{figure}[t]
-  \vspace{0.5em}
   \includegraphics[scale=0.57]{figures/youdraw}
   \vspace{1em}
-  \caption{Interactive ``You draw it'' data visualization. The user moves cursor to a bar (left),
+  \caption{Interactive ``You Draw it'' data visualization. The user moves cursor to a bar (left),
     pushes a mouse button and drags the bar to the position that they think is the correct one (right).}
   \label{fig:youdraw}
 \end{figure}
 
-Finally, the \ident{render} function takes the current state and builds the data visualization
+Finally, the \ident{view} function takes the current state and builds the data visualization
 using the Compost domain-specific language. In addition, it also takes a parameter \ident{trigger},
 which is a function of type $\ident{Event}\rightarrow\ident{unit}$ that can be used to trigger
 events in handlers, registered using primitives such as \kvd{mouseMove}.
@@ -673,7 +678,7 @@ Section~\ref{sec:basic-primitives}. The only addition are the event handlers reg
 %
 \begin{equation*}
 \begin{array}{l}
-\fkvd{let}~\ident{render}~\ident{trigger}~(\_, \ident{state})~=\\
+\fkvd{let}~\ident{view}~\ident{trigger}~(\_, \ident{state})~=\\
 \quad \kvd{axis}_l~(\kvd{axis}_b~(\kvd{explicitScale}_y~(\kvd{continuous}~\num{0},\num{400}),\\
 \qquad (~\kvd{mouseMove}~(\lambda \,(\kvd{cat}~p,\_)~(\kvd{cont}~v)\rightarrow \ident{trigger}(\ident{Update}(p, v))),\\
 \qquad (~\kvd{mouseUp}~(\lambda \,\_~\_\rightarrow \ident{trigger}(\ident{Moving}(\fkvd{true}))),\\
@@ -684,66 +689,64 @@ Section~\ref{sec:basic-primitives}. The only addition are the event handlers reg
 \end{array}
 \end{equation*}
 
-\vspace{-0.5em}
-\noindent
 When the user interacts with the visualization created using Compost, the library
 translates the coordinates associated with events from pixels to domain-specific
 values. In case of the above bar chart, when the user moves a mouse, the function registed
-using \kvd{mouseMove} is given a categorical value $\kvd{cat}~p, r$ as the X coordinate and
-a continuous value $\kvd{cont}~v$ as the Y coordinate. It then takes $p$, which is the name
+using \kvd{mouseMove} is given a categorical value $\kvd{cat}~p, r$ as the \X coordinate and
+a continuous value $\kvd{cont}~v$ as the \Y coordinate. It then takes $p$, which is the name
 of the party corresponding to the bar and the value $v$ corresponding to the number of seats
 and triggers the $\ident{Update}(p, v)$ event to update the state. The handlers for
 \kvd{mouseUp} and \kvd{mouseDown} do not use the coordinates. They simply switch the flag
 indicating whether the user is currently dragging or not.
 
-The pair of functions, \ident{update} and \ident{render}, together with an initial state is
+The pair of functions, \ident{update} and \ident{view}, together with an initial state is
 all that is needed to create an interactive data visualization. Compost calls
-\ident{render} each time the state changes and uses virtual-dom to update the chart
+\ident{view} each time the state changes and uses virtual-dom to update the chart
 displayed in the browser. Although creating an interactive visualization is more work than
 creating a static one, the domain-specific nature of Compost is invaluable. We can
 simply take the values $p$ and $v$ produced by a mouse event, use those to update the state
 and then, again, render an updated chart.
 
 
-\section{Implementation structure: Scale inference and projection}
+\section{Implementation structure: Scale inference and rendering}
 \label{sec:impl}
 
 Compost is an open-source library, implmented in the functional language F\#. The full source
 code can be found at \urrl{http://github.com/compostjs}.
-As is often the case with functional domain-specific languages, the implementation is easy once
-we find the right collection of basic primitives and the right structure for the implementation.
+As is often the case with functional domain-specific languages, the implementation is not difficult
+once we find the right collection of basic primitives and the right structure for the implementation.
 This largely applies to the Compost library and so we will not go into the implementation details.
 It is, however, worth giving an outline of the implmentation structure.
 
 As mentioned in Section~\ref{sec:basic-scales}, the rendering of shapes proceeds in two stages.
 First, the library infers the scales of a shape. When doing so, it also annotates some shapes
-with additional information that are needed later for rendering. Second, the library projects
+with additional information that is needed later for rendering. Second, the library projects
 the shape onto an available space and produces the chart, represented as an SVG object.
 
 \subsection{Inferring the scales of a shape}
 
-In order to render a shape, we need to know the range of values that should appear on the X and
-Y axes. This is done by inferring a scale for each of the axes from the individual X and Y
+In order to render a shape, we need to know the range of values that should appear on the \X and
+\Y axes. This is done by inferring a scale for each of the axes from the individual \X and \Y
 coordinates that specify shape locations. As discussed earlier, a scale can be either categorical
 (displaying only categorical values) or contiuous (displaying only continuous values). When
 inerring scales, we use two helper operations; \ident{union}, discussed earlier, combines two
 scales and \ident{singleton} creates a scale from a single coordinate.
 
 The operation that infers the scales of a shape is \ident{calculateScales}. It takes a shape
-and produces a pair of X and Y scales, together with a transformed shape:
+and produces a pair of \X and \Y scales, together with a transformed shape:
 %
 \begin{equation*}
   \ident{calculateScales} ~:~ \ident{Shape} \rightarrow (\ident{Scale}*\ident{Scale}) * \ident{Shape}
 \end{equation*}
 
-\vspace{-1em}
+\vspace{-1.25em}
 \noindent
 The operation does not need to transform the shape in most cases. The exception is the
 shape $\kvd{nest}_{x/y}~v_{min}, v_{max}, s$. In this case, the returned scale is based solely on the
 values of $v_{min}$ and $v_{max}$. For rendering we need to keep the inferred scales of the nested
 shape $s$. To do so, the operation replaces the $\kvd{nest}_{x/y}$ shape with an auxiliary shape
 $\kvd{scaledNest}_{x/y}$:
-%
+
 \begin{equation*}
 \begin{array}{rclcl}
 s &=& \kvd{scaledNest}_{x/y}~v_{min},\;v_{max},\;s_{x/y},\;s &|& (\ldots)
@@ -773,17 +776,17 @@ and then adapts those somehow. To illustrate, we consider two interesting cases:
 \vspace{-0.5em}
 \noindent
 When calculating the scales of the $\kvd{nest}_x$, the function first calculate scales of the
-sub-shape $s$ recursively. The resulting Y scale $s_y$ is returned as the result, while the X
+sub-shape $s$ recursively. The resulting \Y scale $s_y$ is returned as the result, while the \X
 scale is obtained from the two coordinates $v_{min}$ and $v_{max}$. This is also the case where
-the shape is transformed and the returned $\kvd{scaledNest}_x$ shape stores the inferred X scale
+the shape is transformed and the returned $\kvd{scaledNest}_x$ shape stores the inferred \X scale
 $s_x$ of the sub-shape $s$. The second example is the $\kvd{overlay}$ case which recursively
-infers scales of all sub-shapes and combines those using the list folding function
+computes scales of all sub-shapes and combines those using the list folding function
 \ident{reduce} with $\ident{union}$ as an argument.
 
 \subsection{Projecting coordinates and drawing}
 The key operation that needs to be performed when drawing a shape is projecting coordinates from
-domain-specific values to the screen coordinates. As we draw a shape, we keep the X and Y scale
-and the space in pixels that it should be drawn on. Initially, the X and Y scales are those
+domain-specific values to the screen coordinates. As we draw a shape, we keep the \X and \Y scale
+and the space in pixels that it should be drawn on. Initially, the \X and \Y scales are those
 inferred for the entire shape and the space in pixels is $\num{0}\ldots\ident{width}$ and
 $\num{0}\ldots\ident{height}$ where $\ident{width}\times\ident{height}$ is the size of the target
 SVG element.
@@ -798,22 +801,21 @@ and produces a coordinate in pixels:
 
 \vspace{-1.25em}
 \noindent
-The function is only defined if the value and scale are compatible. If both are continuous, the
+The function is only defined if the value and scale are compatible. As discussed in Section~\ref{sec:basic-types},
+this could be guaranteed using a simple type system. If both are continuous, the
 function performs a simple linear transformation. If both are categorical, the available pixel
 space is divided into a equally-sized bins, one for each categorical value on the scale, and the
 value is then projected into the appropriate bin.
 
 The drawing of shapes is done by a function that takes the available area as a quadruple $(x_1, y_1), (x_2, y_2)$
-together with the X and Y scale corresponding to the area and a shape to be drawn. The result is
-a data structure representing a SVG document:
+together with the \X and \Y scale mapped onto the area and a shape to be drawn. The result is
+a data structure representing an SVG document:
 %
 \begin{equation*}
 \ident{drawShape}~:~(\ident{float}*\ident{float})*(\ident{float}*\ident{float}) \rightarrow \ident{Scale}*\ident{Scale}\rightarrow\ident{Shape}\rightarrow\ident{Svg}
 \end{equation*}
 
-\vspace{-1.25em}
-\noindent
-For primitive shapes, the operation projects the coordinates using \ident{project} and construct
+For primitive shapes, the operation projects the coordinates using \ident{project} and constructs
 a corresponding SVG document. For shapes with sub-shapes it calls itself recursively, possibly
 with an adjusted scale or area. The two cases discussed earlier illustrate this:
 %
@@ -832,23 +834,23 @@ with an adjusted scale or area. The two cases discussed earlier illustrate this:
 \vspace{-0.5em}
 \noindent
 When drawing \kvd{overlay}, the function draws all sub-shapes onto the same
-area using the same scales and then concatenates the returned SVG components the \ident{concat} helper.
+area using the same scales and then concatenates the returned SVG components using the \ident{concat} helper.
 The $\kvd{scaledNest}_x$ case is more illuminating. Here, we first
 use \ident{project} to find the range $x_1', x_2'$ corresponding to the domain-values
 $v_{min},v_{max}$. This defines the area corresponding to the nested scale ${ns}_x$, onto
-which the X coordinates in the sub-shape $\ident{shape}$ should be projected.
-To do this, we recursively call \ident{drawShape}, but use $x_1'$ and $x_2'$ as the X coordinates
-of the target area and ${ns}_x$ as the X scale. The Y area and scales are propagated unchanged.
+which the \X coordinates in the sub-shape $\ident{shape}$ should be projected.
+To do this, we recursively call \ident{drawShape}, but use $x_1'$ and $x_2'$ as the \X coordinates
+of the target area and ${ns}_x$ as the \X scale. The \Y area and scales are propagated unchanged.
 
 \section{Conclusions}
-This paper presents a functional perspective on the problem of finding easy to use, but flexible
+This paper presents a functional take on the problem of designing easy to use, but flexible
 abstractions for composing data visualizations. We hope to find a sweet between high-level, but
 inflexible approaches and low-level, but hard to use approaches.
 
 Most work in this space is based on Grammar of Graphics \cite{grammar}, designing more or less complex and
 powerful variants \cite{layered,vega-lite,vega,polaris}. In Grammar of Graphics, a chart is a mapping from
 data to a chart elements and their visual attributes. In contrast, in Compost, the mapping is
-specified in the host functional programming language and a chart is merely a resulting data type
+specified in the host programming language and a chart is merely a resulting data type
 describing the visual elements using domain-specific primitives.
 
 Our approach is very flexible as it lets the user compose primitive visual elements in any
@@ -860,7 +862,7 @@ remains to be explored, both in terms of finding the best set of primitives and 
 their language integration. First, we only support categorical and continuous values, but
 there are also ordinal values (which cannot be compared, but can be sorted). Second, some of our
 primitives, namely \kvd{axis} and \kvd{roundScale} could be implemented as derived operations, but
-we treat those as built-in for simplicity. Third, we only treat X and Y as scales, but we could
+we treat those as built-in for simplicity. Third, we only treat \X and \Y as scales, but we could
 similarly treat other visual features (colors of bars, size of bubbles) as scales, which would
 allow a more high-level specification of certain charts.
 
