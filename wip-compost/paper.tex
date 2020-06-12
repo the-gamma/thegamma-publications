@@ -162,8 +162,8 @@ s & = &\kvd{line}~\gamma, [\,v_{x1}, v_{y1}, \ldots, v_{xn}, v_{yn}\,] & | & \kv
 \subsection{Basic primitives and combinators}
 \label{sec:basic-primitives}
 
-Now we can define the besic elements of the Compost domain-specific langauge.
-A chart element is represeted by the shape $s$ defined in Figure~\ref{fig:shape}.
+Now we can define the basic elements of the Compost domain-specific language.
+A chart element is represented by the shape $s$ defined in Figure~\ref{fig:shape}.
 A primitive shape can be a text label, a line connecting a list of points, a filled polygon
 defined by a list of points or a bubble at a given point with a given width and height.
 The position of points is specified by \X and \Y coordinates, which can be either categorical or
@@ -322,7 +322,7 @@ according to the ratio $r$.
 
 We introduce the Compost domain-specific language as untyped, but there are some obvious ways in
 which types can make composing charts in Compost safer. First, a type representing a shape could
-specify whether the \X and \Y axes represent categorical or continous values. This would rule out
+specify whether the \X and \Y axes represent categorical or continuous values. This would rule out
 mixing of different values on a single scale and guarantee that the \ident{union} operation,
 sketched in the previous section, is never called in a way leading to an undefined result.
 Second, the type of values mapped to an axis could be further annotated with units of measure
@@ -376,10 +376,10 @@ three combinators that control the scale inference process and what flexibility 
 \subsection{Defining nice scale ranges}
 
 The automatic scale inference often results in scales where the maximum is a non-round number.
-This leads to charts that fully utilize the available space, but may not be easy to read.
+This leads to charts that fully utilise the available space, but may not be easy to read.
 The first two primitives, shown in Figure~\ref{fig:control} (left) allow the chart designer
 to adjust the automatically inferred range of scales.
-The oprations can be applied to either the \X scale or the \Y scale, which is indicated by the
+The operations can be applied to either the \X scale or the \Y scale, which is indicated by the
 $x/y$ subscript. The \kvd{roundScale} primitive takes the inferred \X or \Y scale of the shape $s$
 and, if it is a continuous scale, rounds its minimal and maximal values to a ``nice'' number.
 For example, if a continuous scale has minimum $\num{0}$ and maximum $\num{365}$, the resulting
@@ -420,7 +420,7 @@ When inferring scales of shapes, the scale of $\kvd{nest}_{x/y}~l, s$ will be a 
 constructed from the values $v_{min}$ and $v_{max}$, regardless of the values that are used inside
 the shape $s$. The chart space between $v_{max}$ and $v_{min}$ will then be used to render the
 nested shape $s$ using its inferred scale. An example of nesting is shown in Figure~\ref{fig:nesting}.
-Here, a chart with a continous scale from $\num{1.1}$ to $\num{1.4}$ (e.g.~GBP/EUR exchange rates)
+Here, a chart with a continuous scale from $\num{1.1}$ to $\num{1.4}$ (e.g.~GBP/EUR exchange rates)
 is nested in the left half of another chart, which has a continuous scale from $\num{0}$ to $\num{100}$.
 
 \begin{figure}
@@ -433,7 +433,7 @@ The nesting of scales can be used in a variety of ways. For example, to nest a s
 showing individual data points inside a bar of a histogram, we would use $\kvd{cat}~\strf{ABC}, 0$
 and $\kvd{cat}~\strf{ABC}, 1$ as the points that define the start and the end of the region. A simpler
 use case for the combinator is showing multiple charts in a single view. For example, the motivating example
-in Figure~\ref{fig:charts} (right) comapres aligned line charts of exchange rates for two
+in Figure~\ref{fig:charts} (right) compares aligned line charts of exchange rates for two
 different currencies. Assuming \ident{gbpusd} and \ident{gbpeur} are lists containing days as \X
 values and exchange rates as \Y values, we can construct a simple chart with two line charts,
 shown in Figure~\ref{fig:lines} (left), using:
@@ -490,7 +490,7 @@ two filled rectangles, covering the first 16 days of the view in blue and the re
 The shapes combined using \kvd{overlay} are rendered in the order in which they appear and so
 the line shape is last, so that it appears above the background.
 
-\section{Standard charts: Definining new abstractions}
+\section{Standard charts: Defining new abstractions}
 \label{sec:abstractions}
 
 The functional domain-specific language design makes it easy to define high-level chart features
@@ -540,8 +540,8 @@ library \cite{seaborn}. Pairplot visualizes pairwise relationships between featu
 An example using three features (sepal width, petal width, petal length) from the Iris dataset is shown
 in Figure~\ref{fig:standard} (right).
 A pairplot draws a grid of charts, each visualizing the relationship between two numerical features. For distinct
-features, pairplot shows a scatter plot using one fature for \X values and the other for \Y values.
-When the fatures are the same (the diagonal), it draws a histogram of the feature values.
+features, pairplot shows a scatter plot using one feature for \X values and the other for \Y values.
+When the features are the same (the diagonal), it draws a histogram of the feature values.
 A categorical feature can be used to determine the color of dots in the scatter plots.
 
 To generate a pairplot, we use \kvd{nest} to overlay and align a grid of plots. Each of those
@@ -569,7 +569,7 @@ the locations of individual charts are categorical values defined by the attribu
 The choice between two possible nested charts is made using the host language \fkvd{if} construct.
 Scatter plots are generated by overlaying bubbles with \X and \Y coordinates obtained using $\ident{get}~x~r$
 and $\ident{get}~y~r$. Histograms are composed from filled shapes. To obtain their locations, we use
-a helper function $\ident{bins}~x~\ident{data}$, which returns a list of bins specified by a tripple
+a helper function $\ident{bins}~x~\ident{data}$, which returns a list of bins specified by a triple
 consisting of a lower and an upper range $x_1, x_2$ and the count $y$.
 
 The example shows that the Compost is simple yet expressive. With just
@@ -658,7 +658,7 @@ state tuple, i.e.~a flag indicating whether a mouse button is down.
 The next two cases handle the \ident{Update} event. The event carries two values, $p, v$, which
 represent the party (which bar the user is dragging) and the new value (new number of seats).
 If the user is currently dragging, we replace the value associated with the party $p$ in \noindent the
-list $s$ using the \ident{map} function. If the user is not currently dragging, the event is ingored.
+list $s$ using the \ident{map} function. If the user is not currently dragging, the event is ignored.
 
 \begin{figure}[t]
   \includegraphics[scale=0.57]{figures/youdraw}
@@ -691,7 +691,7 @@ Section~\ref{sec:basic-primitives}. The only addition are the event handlers reg
 
 When the user interacts with the visualization created using Compost, the library
 translates the coordinates associated with events from pixels to domain-specific
-values. In case of the above bar chart, when the user moves a mouse, the function registed
+values. In case of the above bar chart, when the user moves a mouse, the function registered
 using \kvd{mouseMove} is given a categorical value $\kvd{cat}~p, r$ as the \X coordinate and
 a continuous value $\kvd{cont}~v$ as the \Y coordinate. It then takes $p$, which is the name
 of the party corresponding to the bar and the value $v$ corresponding to the number of seats
@@ -711,12 +711,12 @@ and then, again, render an updated chart.
 \section{Implementation structure: Scale inference and rendering}
 \label{sec:impl}
 
-Compost is an open-source library, implmented in the functional language F\#. The full source
+Compost is an open-source library, implemented in the functional language F\#. The full source
 code can be found at \urrl{http://github.com/compostjs}.
 As is often the case with functional domain-specific languages, the implementation is not difficult
 once we find the right collection of basic primitives and the right structure for the implementation.
 This largely applies to the Compost library and so we will not go into the implementation details.
-It is, however, worth giving an outline of the implmentation structure.
+It is, however, worth giving an outline of the implementation structure.
 
 As mentioned in Section~\ref{sec:basic-scales}, the rendering of shapes proceeds in two stages.
 First, the library infers the scales of a shape. When doing so, it also annotates some shapes
@@ -728,8 +728,8 @@ the shape onto an available space and produces the chart, represented as an SVG 
 In order to render a shape, we need to know the range of values that should appear on the \X and
 \Y axes. This is done by inferring a scale for each of the axes from the individual \X and \Y
 coordinates that specify shape locations. As discussed earlier, a scale can be either categorical
-(displaying only categorical values) or contiuous (displaying only continuous values). When
-inerring scales, we use two helper operations; \ident{union}, discussed earlier, combines two
+(displaying only categorical values) or continuous (displaying only continuous values). When
+inferring scales, we use two helper operations; \ident{union}, discussed earlier, combines two
 scales and \ident{singleton} creates a scale from a single coordinate.
 
 The operation that infers the scales of a shape is \ident{calculateScales}. It takes a shape
