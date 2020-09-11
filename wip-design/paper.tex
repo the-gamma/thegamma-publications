@@ -1,333 +1,336 @@
-\documentclass{sigchi}
-\usepackage{xspace}
-\usepackage{fancyvrb}
-\usepackage{inconsolata}
-\usepackage{xcolor}
-\usepackage{tikz}
-\newcommand*{\priority}[1]{\begin{tikzpicture}[scale=0.12]%
-    \draw (0,0) circle (1);
-    \fill[fill opacity=1,fill=black] (0,0) -- (90:1) arc (90:90-#1*3.6:1) -- cycle;
-    \end{tikzpicture}}
-\newcommand*{\priorityc}[1]{
-\resizebox{0.8em}{0.8em}{
-  {\protect\tikz{ \protect
-    \draw[line width=1mm, black] (0,0) circle (1); \fill[fill opacity=1,fill=black] (0,0) -- (90:1) arc (90:90-#1*3.6:1) -- cycle;
-    } }}}
+\documentclass[manuscript,review,anonymous]{acmart}
+\usepackage{hyperref}
 
-\definecolor{kvdclr}{rgb}{0.3,0.0,0.8}
-\DefineVerbatimEnvironment{thegamma}{Verbatim}{fontfamily=zi4,numbers=left,xleftmargin=6mm,fontsize=\small,commandchars=\\\{\}}
-%\newcommand{\kvd}[1]{\textcolor{kvdclr}{#1}}
-\newcommand{\kvd}[1]{\textbf{#1}}
-\newcommand{\ikvd}[1]{{\fontfamily{zi4}\selectfont\small #1}}
-\newcommand{\tg}{The Gamma\xspace}
+% NOTE: Good things
+%  - what is iterative prompting? "Like auto-complete but less limited" - hmm, maybe
+%  - sell more main idea: can do much with very limited set of commands / via auto-complete
+%  - paper is convincing in that this works for SQL-like queries (maybe not general purpose, but this is good)
+%  - journalism is a good focus / but needs to deemphasize this a bit because of the study
+%  - #1 Limited language for data exploration (what is included / excluded / essential / could be added)
+%  - #2 Iterative prompting - what's new? people can get to all programs via '.' and up/down/enter.
 
-% Use this section to set the ACM copyright statement (e.g. for
-% preprints).  Consult the conference website for the camera-ready
-% copyright statement.
+% NOTE: Random
+%  - How choices were made?
+%  - Terminology: data analysis / data exploration / data visualization - what is the goal of the system? (fair enough)
+%    (it's not about writing charts - just about getting the right data - we have limited charting functionality,
+%     one could integrate with Vega, or do future work based on iterative prompting)
+%  - Technical details - you can only create valid programs!! (it's contextual)
+%  - Minor: what was "demo" at the start of a session
+%  - Table 1 vs. Table 2 numbers of participants
+%  - What data quality is needed to make this work?
+%  - "Magic Escalator of Knowledge" - remove bs?
+%  - Clarify how we support 3D cubes (no unified API); mention "done by intern in X weeks"
 
-% Copyright
-\CopyrightYear{2020}
-%\setcopyright{acmcopyright}
-\setcopyright{acmlicensed}
-%\setcopyright{rightsretained}
-%\setcopyright{usgov}
-%\setcopyright{usgovmixed}
-%\setcopyright{cagov}
-%\setcopyright{cagovmixed}
-% DOI
-\doi{https://doi.org/10.1145/3313831.XXXXXXX}
-% ISBN
-\isbn{978-1-4503-6708-0/20/04}
-%Conference
-\conferenceinfo{UIST'20,}{October  20--23, 2020, Minneapolis, MN, USA}
-%Price
-\acmPrice{\$15.00}
+% TODO Study improvements
+% - The questionaire needs a bit more introduction when you present  the study.
+% - When looking at the data for the questionaire, it seems somewhat inconclusive
+%    as all the values lie around 2.5.  I think this warrants a bit more discussion.
+% - Connected to this, I would recommend to highlight the successes of the study a bit more in the
+%     discussion and  presentation of the results. You actually got non-programmers to do
+%     sophisticated queries! That you didn't get support for all RQs is perhaps more a result of being quite  ambitious!
 
-% Use this command to override the default ACM copyright statement
-% (e.g. for preprints).  Consult the conference website for the
-% camera-ready copyright statement.
+% TODO
+%   - SAY SOMEWHERE: choose function *and* specify arguments via auto-complete
+%   - ADD: table of all available operations? (shorten introduction)
 
-%% HOW TO OVERRIDE THE DEFAULT COPYRIGHT STRIP --
-%% Please note you need to make sure the copy for your specific
-%% license is used here!
-% \toappear{
-% Permission to make digital or hard copies of all or part of this work
-% for personal or classroom use is granted without fee provided that
-% copies are not made or distributed for profit or commercial advantage
-% and that copies bear this notice and the full citation on the first
-% page. Copyrights for components of this work owned by others than ACM
-% must be honored. Abstracting with credit is permitted. To copy
-% otherwise, or republish, to post on servers or to redistribute to
-% lists, requires prior specific permission and/or a fee. Request
-% permissions from \href{mailto:Permissions@acm.org}{Permissions@acm.org}. \\
-% \emph{UIST '20},  October 20--23, 2020, Minneapolis, MN, USA \\
-% ACM xxx-x-xxxx-xxxx-x/xx/xx\ldots \$15.00 \\
-% DOI: \url{http://dx.doi.org/xx.xxxx/xxxxxxx.xxxxxxx}
-% }
+% NOTE: Contribution
+%  - What is the exact goal? (so that it can be compared with R, Python, Vega-Lite, Tableau)
+%  - How the design goals were generated? (not by talking to journalists)
+%  - "notebooks are messy" - not arguing we can fix that
 
-% Arabic page numbers for submission.  Remove this line to eliminate
-% page numbers for the camera ready copy
-% \pagenumbering{arabic}
+% NOTE: Motivation
+% - what if you could write the whole program using auto-complete?
 
-% Load basic packages
-\usepackage{balance}       % to better equalize the last page
-\usepackage{graphics}      % for EPS, load graphicx instead
-\usepackage[T1]{fontenc}   % for umlauts and other diaeresis
-\usepackage{txfonts}
-\usepackage{mathptmx}
-\usepackage[pdflang={en-US},pdftex]{hyperref}
-\usepackage{color}
-\usepackage{booktabs}
-\usepackage{textcomp}
 
-% Some optional stuff you might like/need.
-\usepackage{microtype}        % Improved Tracking and Kerning
-% \usepackage[all]{hypcap}    % Fixes bug in hyperref caption linking
-\usepackage{ccicons}          % Cite your images correctly!
-% \usepackage[utf8]{inputenc} % for a UTF8 editor only
 
-% If you want to use todo notes, marginpars etc. during creation of
-% your draft document, you have to enable the "chi_draft" option for
-% the document class. To do this, change the very first line to:
-% "\documentclass[chi_draft]{sigchi}". You can then place todo notes
-% by using the "\todo{...}"  command. Make sure to disable the draft
-% option again before submitting your final document.
-\usepackage{todonotes}
+% extend autocomplete into a full-blown interactive programming mechanism
+% and show that it is viable for small programming tasks like data exploration
+%
+% --- remove some of the motivation (makes ppl ask bad questions)
 
-% Paper metadata (use plain text, for PDF inclusion and later
-% re-using, if desired).  Use \emtpyauthor when submitting for review
-% so you remain anonymous.
-\def\plaintitle{The Gamma: Data Exploration through Iterative Prompting}
-\def\plainauthor{First Author, Second Author, Third Author,
-  Fourth Author, Fifth Author, Sixth Author}
-\def\emptyauthor{}
-\def\plainkeywords{Data exploration; End-user programming; Data journalism; Programming languages; Type providers}
-\def\plaingeneralterms{Documentation, Standardization}
 
-% llt: Define a global style for URLs, rather that the default one
-\makeatletter
-\def\url@leostyle{%
-  \@ifundefined{selectfont}{
-    \def\UrlFont{\sf}
-  }{
-    \def\UrlFont{\small\bf\ttfamily}
-  }}
-\makeatother
-\urlstyle{leo}
 
-% To make various LaTeX processors do the right thing with page size.
-\def\pprw{8.5in}
-\def\pprh{11in}
-\special{papersize=\pprw,\pprh}
-\setlength{\paperwidth}{\pprw}
-\setlength{\paperheight}{\pprh}
-\setlength{\pdfpagewidth}{\pprw}
-\setlength{\pdfpageheight}{\pprh}
+%
+% Iterative prompting - should we call it expression completion
+% (is it more general result, or is it a new thing?)
+% -> emphasize the why this is called differently paragraph
+%
+% Explain type providers a bit more (we say what it does, but not much about what
+% it is - give dynamic typing in a static language)
+%
+% The 'then' operation was mysterious - can we add one line explanation to the operations?
+% (yes we can and we should totally do that)
 
-% Make sure hyperref comes last of your loaded packages, to give it a
-% fighting chance of not being over-written, since its job is to
-% redefine many LaTeX commands.
-\definecolor{linkColor}{RGB}{6,125,233}
-\hypersetup{%
-  pdftitle={\plaintitle},
-% Use \plainauthor for final version.
-%  pdfauthor={\plainauthor},
-  pdfauthor={\emptyauthor},
-  pdfkeywords={\plainkeywords},
-  pdfdisplaydoctitle=true, % For Accessibility
-  bookmarksnumbered,
-  pdfstartview={FitH},
-  colorlinks,
-  citecolor=black,
-  filecolor=black,
-  linkcolor=black,
-  urlcolor=linkColor,
-  breaklinks=true,
-  hypertexnames=false
-}
 
-% create a shortcut to typeset table headings
-% \newcommand\tabhead[1]{\small\textbf{#1}}
 
-% End of preamble. Here it comes the document.
+
+
+
+
+
+
+
+
+
+
+
+
+
+% \usepackage{xspace}
+% \usepackage{fancyvrb}
+% \usepackage{inconsolata}
+% \usepackage{xcolor}
+% \usepackage{tikz}
+% \newcommand*{\priority}[1]{\begin{tikzpicture}[scale=0.12]%
+%     \draw (0,0) circle (1);
+%     \fill[fill opacity=1,fill=black] (0,0) -- (90:1) arc (90:90-#1*3.6:1) -- cycle;
+%     \end{tikzpicture}}
+% \newcommand*{\priorityc}[1]{
+% \resizebox{0.8em}{0.8em}{
+%   {\protect\tikz{ \protect
+%     \draw[line width=1mm, black] (0,0) circle (1); \fill[fill opacity=1,fill=black] (0,0) -- (90:1) arc (90:90-#1*3.6:1) -- cycle;
+%     } }}}
+%
+% \definecolor{kvdclr}{rgb}{0.3,0.0,0.8}
+% \DefineVerbatimEnvironment{thegamma}{Verbatim}{fontfamily=zi4,numbers=left,xleftmargin=6mm,fontsize=\small,commandchars=\\\{\}}
+% %\newcommand{\kvd}[1]{\textcolor{kvdclr}{#1}}
+% \newcommand{\kvd}[1]{\textbf{#1}}
+% \newcommand{\ikvd}[1]{{\fontfamily{zi4}\selectfont\small #1}}
+% \newcommand{\tg}{The Gamma\xspace}
+% \usepackage{balance}       % to better equalize the last page
+% \usepackage{graphics}      % for EPS, load graphicx instead
+% \usepackage[T1]{fontenc}   % for umlauts and other diaeresis
+% \usepackage{txfonts}
+% \usepackage{mathptmx}
+% \usepackage[pdflang={en-US},pdftex]{hyperref}
+% \usepackage{color}
+% \usepackage{booktabs}
+% \usepackage{textcomp}
+
+\setcopyright{acmwhatever}
+\copyrightyear{2020}
+\acmYear{2020}
+%\acmDOI{10.1145/1122445.1122456}
+\acmConference[Woodstock '18]{Woodstock '18: ACM Symposium on Neural
+  Gaze Detection}{June 03--05, 2018}{Woodstock, NY}
+\acmBooktitle{Woodstock '18: ACM Symposium on Neural Gaze Detection,
+  June 03--05, 2018, Woodstock, NY}
+\acmPrice{15.00}
+%\acmISBN{978-1-4503-XXXX-X/18/06}
+
 \begin{document}
+\title{The Gamma: Data Exploration through Iterative Prompting}
 
-\title{\plaintitle}
-
-\numberofauthors{1}
-\author{%
-  \alignauthor{Leave Authors Anonymous\\
-    \affaddr{for Submission}\\
-    \affaddr{City, Country}\\
-    \email{e-mail address}}
+\author{Tomas Petricek}
+\email{t.petricek@kent.ac.uk}
+\affiliation{%
+  \institution{University of Kent}
+  \city{Canterbury, UK}
 }
+%\renewcommand{\shortauthors}{Trovato and Tobin, et al.}
+
+\begin{abstract}
+  Governments, non-profit organizations and citizen initiatives publish increasing amounts of
+  data, but extracting insights from such data and presenting them to the public is hard.
+  First, data comes in a variety of formats that each requires a different tool. Second, many
+  data exploration tools do not reveal how a result was obtained, making it difficult to reproduce
+  the results and check how they were obtained.
+  %
+  We contribute The Gamma, a novel data exploration environment for non-experts. The Gamma is based
+  on a single interaction principle and using it results in transparent and reproducible scripts.
+  This allows transfer of knowledge from one data source to another and
+  learning from previously created data analyses. We evaluate the usability and learnability of
+  The Gamma through a user study on non-technical employees of a research institute.
+  %
+  We argue that our approach allows journalists and the public to benefit from the rise
+  of open data, by making data exploration easier, more transparent and more reproducible.
+
+\end{abstract}
+
+\begin{CCSXML}
+<ccs2012>
+   <concept>
+       <concept_id>10003120.10003121.10003124</concept_id>
+       <concept_desc>Human-centered computing~Interaction paradigms</concept_desc>
+       <concept_significance>500</concept_significance>
+       </concept>
+   <concept>
+       <concept_id>10011007.10011006.10011050.10011017</concept_id>
+       <concept_desc>Software and its engineering~Domain specific languages</concept_desc>
+       <concept_significance>300</concept_significance>
+       </concept>
+   <concept>
+       <concept_id>10011007.10011006.10011066.10011069</concept_id>
+       <concept_desc>Software and its engineering~Integrated and visual development environments</concept_desc>
+       <concept_significance>500</concept_significance>
+       </concept>
+ </ccs2012>
+\end{CCSXML}
+
+\ccsdesc[500]{Human-centered computing~Interaction paradigms}
+\ccsdesc[500]{Software and its engineering~Integrated and visual development environments}
+\ccsdesc[300]{Software and its engineering~Domain specific languages}
+\keywords{data exploration; end-user programming; data journalism; programming languages; type providers}
 
 \maketitle
 
-\begin{abstract}
-Governments, non-profit organizations and citizen initiatives publish increasing amounts of
-data, but extracting insights from such data and presenting them to the public is hard.
-First, data comes in a variety of formats that each requires a different tool. Second, many
-data exploration tools do not reveal how a result was obtained, making it difficult to reproduce
-the results and check how they were obtained.
-%
-We contribute The Gamma, a novel data exploration environment for non-experts. The Gamma is based
-on a single interaction principle and using it results in transparent and reproducible scripts.
-This allows transfer of knowledge from one data source to another and
-learning from previously created data analyses. We evaluate the usability and learnability of
-The Gamma through a user study on non-technical employees of a research institute.
-%
-We argue that the our approach allows journalists and the public to benefit from the rise
-of open data, by making data exploration easier, more transparent and more reproducible.
-\end{abstract}
-
-
-% ACM Classfication
-%
-% \begin{CCSXML}
-% <ccs2012>
-% <concept>
-% <concept_id>10003120.10003121</concept_id>
-% <concept_desc>Human-centered computing~Human computer interaction (HCI)</concept_desc>
-% <concept_significance>500</concept_significance>
-% </concept>
-% <concept>
-% <concept_id>10003120.10003121.10003125.10011752</concept_id>
-% <concept_desc>Human-centered computing~Haptic devices</concept_desc>
-% <concept_significance>300</concept_significance>
-% </concept>
-% <concept>
-% <concept_id>10003120.10003121.10003122.10003334</concept_id>
-% <concept_desc>Human-centered computing~User studies</concept_desc>
-% <concept_significance>100</concept_significance>
-% </concept>
-% </ccs2012>
-% \end{CCSXML}
-%
-% \ccsdesc[500]{Human-centered computing~Human computer interaction (HCI)}
-% \ccsdesc[300]{Human-centered computing~Haptic devices}
-% \ccsdesc[100]{Human-centered computing~User studies}
-
-% Author Keywords
-\keywords{\plainkeywords}
-
-% Print the classficiation codes
-% \printccsdesc
-% Please use the 2012 Classifiers and see this link to embed them in the text: \url{https://dl.acm.org/ccs/ccs_flat.cfm}
-
 \begin{figure}
-\includegraphics[width=1\columnwidth]{figures/thegamma-annot}
-\caption{Teams with the greatest number of gold medals from Rio 2016
-Olympics with a reproducible The Gamma script (1), an auto-complete prompt offering ways
-of sorting the data (2) and instant preview (3).}
+\includegraphics[width=.54\columnwidth]{figures/thegamma-annot}
+\caption{Obtaining teams with the greatest number of gold medals from Rio 2016
+Olympics with a reproducible The Gamma script (1), contextual iterative prompting mechainsm
+offering ways of sorting the data (2) and an instant preview of results (3).}
 \label{fig:thegamma}
-\vspace{-0.5em}
 \end{figure}
-
 
 \section{Introduction}
 Data science has more capabilities to help us understand the world than ever before, yet at the
 same time post-truth politics and increasing public distrust in statistics makes data-driven insights
-increasingly less relevant in public discourse~\cite{howstatslost}. This should perhaps not be a surpirse.
-Journalists can access increasing amounts of data, but producing engaging and transparent data-driven
-reports that are easy to interpret is expensive and requires expert programming skills \cite{ddj}.
+increasingly less relevant in public discourse~\cite{howstatslost}. To reverse this trend, we
+need tools that let non-experts, including journalists and other information-literate citizens,
+produce transparent, engaging data analyses that are easy to interpret without requiring expert
+programming skill~\cite{ddj}. The design of such data exploration tool poses a unique mix of chellenges.
+First, the tool needs to have a very low barrier to entry. Second, it needs to support a wide
+range of data sources in a uniform way. Third, the resulting data analyses need to assist
+readers in learning how to reproduce the work and verify the claims it makes.
 
-The design of a data exploration tool for journalists poses a unique mix of challenges. First, the
-tool needs to be easy to learn for end-users working under tight deadlines. Second, it needs to
-support a wide range of data sources in a way where the expertise gained when working with one data
-source is relevant for other data sources. Third, the resulting data-driven insights need to be
-transparent, allowing the readers to verify the claims and learn how to reproduce the work.
-
-We present The Gamma, a text-based data exploration environment for non-experts. The Gamma
-is based on a single interaction principle, which provides uniform
+We contribut The Gamma, a text-based data exploration environment for non-experts. The Gamma
+is based on a single, easy to understand interaction principle and provides a uniform
 access to a range of data sources including data tables, graph databases and data cubes.
-An anlysis created in The Gamma is a transparent script that can be followed to reproduce the
+The resulting analysis is a transparent script that can be followed to reproduce the
 result from scratch. This allows learning from existing analyses and encourages readers
-to engage with the results. Our key contributions are:
+to engage with data.
+
+\subsubsection*{Iterative prompting}
+The key idea in The Gamma, which we term the \emph{iterative prompting} principle, is that all
+valid data exploration scripts can be constructed by repeatedly choosing from a list
+of offered options. This way, non-programmers can write entire scripts through auto-complete,
+without learning a programming language, but they still produce transparent and reproducible
+source code. In other words, iterative prompting turns auto-complete from a programmer assistance
+tool into a non-expert programming mechanism. A crucial feature is that iterative prompting
+only offer operations that are valid in a given context and that it offer all such operations;
+it is both correct and complete.
+
+\subsubsection*{Date exploration}
+The Gamma focuses on data exploration of the kind illustrated in Figure~\ref{fig:thegamma}.
+The user accesses data available in a structured format. They make several experiments to find an
+interesting way of looking at the data, e.g.~by applying different aggregations or filters. They
+may choose to view the results as a table or a basic chart before publishing their analysis. The
+Gamma makes such simple programming with data simple enough for non-experts. Scraping and cleaning
+of messy data or building rich data visualizations is outside of the scope of this paper, but
+exposing those using the iterative prompting approach is an interesting future challenge.
+
+\subsubsection*{Contributions}
+The Gamma is available (non-anonymously) at \href{http://thegamma.net}{\textcolor{blue}{thegamma.net}},
+both as a JavaScript library and a hosted data exploration service. In this paper, we describe and
+evaluate the design principles behind the project:
 
 \begin{itemize}
-\item We identify the design requirements for a data exploration tool for journalists
-  (Section~\ref{sec:motivation}) and follow those to build a novel programming environment
-  The Gamma (Section~\ref{sec:overview}).
+\item We introduce the iterative prompting principle in The Gamma (Section~\ref{sec:overview})
+  and show that it can be used for querying of distinct data sources including data tables, graph
+  databases and data cubes (Section~\ref{sec:implementation}).
 
-\item We introduce \emph{iterative prompting} (Section~\ref{sec:design}),
-  an interaction design principle that can be used to complete a variety of programming
-  tasks in a uniform way that allows transfer of knowledge between different tasks.
+\item We show that iterative prompting is a complete and correct program construction method and
+  consider how it lowers the barrier to entry and allows learning through examples, without
+  expert guidance (Section~\ref{sec:design}).
 
-\item We show how to use the iterative prompting principle for querying of distinct data
-  sources including data tables, graph databases and data cubes (Section~\ref{sec:implementation}).
-
-\item We discuss a number of case studies (Section~\ref{sec:cases}) and
-  conduct a user study to evaluate the usability of The Gamma and the extent to which users can,
-  (i) learn from examples and (ii)~transfer knowledge between tasks (Section~\ref{sec:study}).
+\item We evaluate the system through a number of case studies (Section~\ref{sec:cases})
+  and a user study (Section~\ref{sec:study}). Our study shows that non-programmers can use The Gamma
+  to construct non-trivial data queries and ascertains the extent to which users can,
+  (i) learn from examples and (ii)~transfer knowledge between tasks.
 \end{itemize}
 
-The Gamma is available as open-source at \href{http://thegamma.net}{\small\bf\ttfamily thegamma.net}.
 
 \section{Related work}
 
-The Gamma brings together recent programming language innovations for working with data
-\cite{inforich}, work on making programming accessible to non-programmers \cite{enduser,smallmatter}
-and work on tools for journalists such as Idyll \cite{idyll}. Related work includes a range of
-visual and programmatic tools used by data scientists, work that aims to simplify programming
-or explore alternative paradigms and various predictive tools that assist users in completing
-programming or data exploration tasks.
+The key contribution of our work is that it develops a new, fundamentally different, way of using the
+established auto-completion mechanism. Unlike most past work dating back to Kaiser~\cite{assistants},
+we do not view it as a programmer assistance tool, but as an interaction mechanism through which
+non-experts can create entire programs. We build on recent research on information-rich
+programming \cite{inforich} and aim to make those advances available to non-programmers
+\cite{enduser,smallmatter}, in the context of data exploration as done, most notably, by
+journalists \cite{ddj}. Our work features a novel combination of characteristics in that
+the iterative prompting we develop (i) is centered around editing and understanding of program code,
+(ii) its conceptual complexity is reduced to a single basic kind of interaction, yet (iii) it is
+correct and complete in that it can be used to construct all meaningful programs.
 
-\subsection{Data science tools}
-Data exploration is typically done using spreadsheets, comprehensive visual tools or
-via code using notebooks. Notebooks such as Jupyter \cite{jupyter} are also popular with technically
-skilled journalists as they allow combining code with commentary and visual outputs. However,
-notebooks can lead to messy hard to reproduce code \cite{messes,wrattler}.
+\subsubsection*{Code completion for data science}
 
-Visual data analytics tools \cite{control,vizdom} such as Tableau \cite{tableau} do not require
-programming skills, but require mastering a range of different interactions. They also make it
-hard to see what data transformations have been done. Several systems for data exploration,
-e.g.~Potter's Wheel and Wrangler \cite{potter,wrangler}, and visualization, e.g.~Lyra \cite{lyra},
-provide a GUI, but record a transparent script that can be seen and modified by the user.
+A key component in The Gamma is the use of auto-complete for offering possible operations.
+Our work follows type providers \cite{inforich,fsdata}, which integrate external data into a
+static type system of F\#, allowing the use of auto-completion; for querying data tables, we utilize
+the theory developed by Petricek \cite{dotdriven}. The key difference in our work is that The Gamma
+can be used without a programming language expertise.
 
-\subsection{Easier programming tools}
-We aim to design a programming environment that is easy to use and learn. Many approaches to this
+Most similar to our approach are tools that recommend scripts when users begin interacting
+with data. Those based on machine learning code completion for domain-specific languages \cite{predictive,proactive}
+differ in that they do not guarantee completeness, i.e.~the user cannot create all possible
+scripts. Approaches based on natural language can effectively support data exploration
+or visualization \cite{eviza,codemend}, but hide the structure of the underlying language and
+require more than just selecting options. Conversational agents \cite{iris} improve on such work
+in that they can provide more guidance. Code completion based on machine learning or statistical
+methods \cite{mlcomplete,statcomplete} also exists for general-purpose programming languages used
+by data scientists such as Python \cite{pythia}, providing assistance to expert programmers.
+Finally, DS.js \cite{dsjs} is interesting in that it enables querying of data on the
+web; it uses JavaScript with rich contextual code completion.
+
+\subsubsection*{Notebooks and business intelligence tools}
+
+Notebooks such as Jupyter \cite{jupyter}, which allow combining source code with commentary and
+visual outputs, are widely used by data scientists, but require expert programming skills.
+The Gamma targets non-experts, but could be easily integrated with a multi-language notebook system
+such as Wrattler \cite{wrattler}.
+
+Spreadsheets and business intelligence tools \cite{tableau,powerbi} do
+not involve programming, but require mastering a complex GUI. This is also the case
+for other visual data analytics tools \cite{control,vizdom}. In contrast, The Gamma is
+based on a single kind of interaction. Several visual systems \cite{potter,wrangler,lyra} record
+interactions with the GUI as a script that can be seen and modified by the user.
+Unlike in The Gamma, the source code does not guide the user in learning how to use the system.
+
+\subsubsection*{Easier programming tools}
+We aim to build an easy to use and learn programming system. Many approaches to this
 goal have been tried. Victor \cite{learnable,principle} introduced design principles that
 inspired many to build live programming systems \cite{review,liveroad,lighttable} that give
-immediate feedaback to help programmers understand how code relates to output and
+immediate feedback to help programmers understand how code relates to output and
 exploratory systems \cite{variolite,exploratory} that assist with completing open-ended tasks.
-
+A system combining textual language with visualization also exists for graph querying \cite{guess}.
 To avoid difficulties with editing code as text, some systems use structured editors~\cite{structure-based,livenut,lamdu}.
 In Subtext \cite{subtext,directprog} the language itself is co-designed with the editor to make
-the interactions with code more natural. Finally, programming can be made easier by designing
-high-level declarative abstractions. Tea does so for statistical analyses \cite{tea} and
-Satyanarayan et al. \cite{interactionviz,vegalite} does so for interactive data visualizations.
+the interactions with code more natural. The Gamma is live in that our editor gives an instant
+preview of the results.
 
-The Gamma is live in that it gives an instant preview of the results. It is text-based,
-although it is syntactically simple. The code written in The Gamma is high-level and so work
-on declarative abstractions is a valuable inspiration.
+Many systems simplify programming by designing high-level declarative abstractions,
+e.g.~for interactive news articles \cite{idyll}, statistical analyses \cite{tea}
+or interactive data visualization \cite{interactionviz,vegalite}. The Gamma uses
+high-level abstractions for data querying, but designing high-level iterative prompting
+abstractions for other tasks remains future work.
 
-\subsection{Code completion and assistants}
-A key component in The Gamma design is the use of auto-complete for offering possible
-operations. Code completion has been pioneerd by Kaiser~\cite{assistants}, but our work is more
-directly inspired by the work on type providers \cite{inforich,fsdata,dotdriven}, which utilize
-code completion to integrate external data into a statically typed programming language.
-
-When using type providers, completions are offered as the user types code. However, completion
-tools can also recmmend scripts when users begin interacting with data \cite{predictive,proactive}.
-Alternatively, they can also be guided by natural language as for example Eviza~\cite{eviza},
-which uses natural language for data exploration. CodeMend~\cite{codemend} uses natural language
-for more general code edits, but uses data visualization as a case study.
-Finally, data entry interfaces based on completion such as Dasher \cite{dasher} utilize an
-interaction principle similar to our iterative prompting.
-
-\subsection{Programming without writing code}
-
-A number of tools for data exploration use alternative approaches to programming where
+\subsubsection*{Programming without writing code}
+There are two main approaches to programming where
 the user does not write code. In programming by example \cite{byexample}, the user gives
-examples of desired results. In data science, this approach has been used for example for
-specifying data transformations in spreadsheets and data extraction \cite{spreadsheetpbe,flashextract}.
-
+examples of desired results. This has been used, e.g.~for specifying data transformations
+in spreadsheets and data extraction \cite{spreadsheetpbe,flashextract}.
 In direct manipulation \cite{direct}, a program is specified by directly interacting with the
 output. This has been used in the visual domain \cite{sketchnsketch}, but also for data querying
 \cite{dynamicq,vlang}. The VQE language~\cite{visage} also considers how to allow code reuse and
 modification in this context. Direct manipulation can also support data exploration by letting
 users partially edit queries,~e.g. by changing quantifiers as in DataPlay~\cite{dataplay}.
+
+\subsubsection*{Guestures and data entry}
+Although our focus is on program construction, our work can be positioned in the
+broader context of input methods. Akin to Dasher \cite{dasher}, our system provides a way of
+navigating through a complete space of options, while on-screen feedforward \cite{octopocus} allows
+efficient selection in guesture-based interfaces. Those provide compelling alternatives to
+auto-completion menus, although the efficiency of input methods is not an issue in programming.
+
+\section{Overview}
+
+design motivated by exploratory question - what if we could program with autocomplete
+no talking to journalists hence shorter paper
+
+maybe talk about "design space"
+
+\newpage
 
 % ==================================================================================================
 
@@ -420,7 +423,7 @@ on GitHub \cite{ftnotebooks}, but re-running the analysis is difficult, even for
 \section{Overview}
 \label{sec:overview}
 
-\tg is a text-based programming environment that allows non-experts create simple data exploration
+\tg is a text-based programming environment that allows non-experts to create simple data exploration
 scripts using a single interaction principle -- choosing an item from an auto-complete list.
 It supports a range of data sources including tabular data, graph data and data cubes.
 
@@ -521,6 +524,9 @@ First, using the tool should result in transparent and reproducible data analyse
 understood and modified by non-experts. Second, the tool should minimze the number of concepts
 that the user needs to understand and, subsequently, allow them to learn through exploration
 and from examples. In this section, we discuss how our design aims to satisfy those requirements.
+
+\subsection{Correct and complete}
+any program can be created by autocomplete, all programs created by autocomplete are correct
 
 \subsection{Lowering the Barrier to Entry}
 Data exploration tasks, such as querying tables, have a certain irreducible complexity.
@@ -669,7 +675,7 @@ worldbank.byCountry.'United States'
   .'Climate Change'.'CO2 emissions (kt)'
 \end{thegamma}
 
-As illustrated in Figure~\ref{fig:cubetp}, the provider allows uses to select a data series
+As illustrated in Figure~\ref{fig:cubetp}, the provider allows users to select a data series
 from the data cube. By choosing \ikvd{byCountry.\textquotesingle United States\textquotesingle},
 we restrict the cube to a two-dimensional plane. We then choose an indicator category
 \ikvd{\textquotesingle Climate Change\textquotesingle} and a specific indicator
@@ -692,7 +698,7 @@ currently requires implementing a new type provider.
 \subsection{Tabular Data Type Provider}
 
 Our second type provider allows users to construct queries to explore data in tabular formats
-such as CSV files. It is based on the theory developed Petricek~\cite{dotdriven}. Unlike the
+such as CSV files. It is based on the theory developed Petricek~\cite{dotdriven}. Unlike the  % grammar!
 data cube provider, the provider for tabular data does not just allow selecting a subset of the
 data, but it can be used to construct SQL-like query. Consider the example from Figure~\ref{fig:thegamma}:
 
@@ -841,7 +847,7 @@ we conduct a user study. We recruit participants among the operations and busine
 non-profit research organization and investigate three research questions.
 
 \paragraph{RQ1: Can non-programmers explore data with The Gamma?}
-We give participants one of four simeple data exploration tasks and see if they can complete the
+We give participants one of four simple data exploration tasks and see if they can complete the
 task using The Gamma and, possibly, how much assistance they need.
 
 \paragraph{RQ2: Can knowledge transfer between data sources?}
@@ -850,7 +856,7 @@ use an unfamiliar data source. In two of the tasks, participants are shown one d
 then asked to work with a different one.
 
 \paragraph{RQ3: Can users learn from just code samples?}
-Our second hypothesis is that users can learn through precolation, i.e.~by looking at the source
+Our second hypothesis is that users can learn through percolation, i.e.~by looking at the source
 code of published analyses. In one of our tasks, participants are given a code sample, but only a
 minimal explanation of The Gamma environment.
 
@@ -1182,7 +1188,7 @@ experimentation.
 
 % REFERENCES FORMAT
 % References must be the same font size as other body text.
-\bibliographystyle{SIGCHI-Reference-Format}
+\bibliographystyle{ACM-Reference-Format}
 \bibliography{paper}
 
 
