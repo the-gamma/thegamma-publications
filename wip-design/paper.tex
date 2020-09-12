@@ -1,4 +1,6 @@
 \documentclass[manuscript,review,anonymous]{acmart}
+\usepackage{caption}
+\usepackage{subcaption}
 \usepackage{hyperref}
 
 % NOTE: Good things
@@ -77,9 +79,9 @@
 
 
 % \usepackage{xspace}
-% \usepackage{fancyvrb}
+\usepackage{fancyvrb}
 % \usepackage{inconsolata}
-% \usepackage{xcolor}
+\usepackage{xcolor}
 % \usepackage{tikz}
 % \newcommand*{\priority}[1]{\begin{tikzpicture}[scale=0.12]%
 %     \draw (0,0) circle (1);
@@ -91,12 +93,11 @@
 %     \draw[line width=1mm, black] (0,0) circle (1); \fill[fill opacity=1,fill=black] (0,0) -- (90:1) arc (90:90-#1*3.6:1) -- cycle;
 %     } }}}
 %
-% \definecolor{kvdclr}{rgb}{0.3,0.0,0.8}
-% \DefineVerbatimEnvironment{thegamma}{Verbatim}{fontfamily=zi4,numbers=left,xleftmargin=6mm,fontsize=\small,commandchars=\\\{\}}
+\definecolor{kvdclr}{rgb}{0.3,0.0,0.8}
+\DefineVerbatimEnvironment{thegamma}{Verbatim}{fontfamily=zi4,numbers=left,xleftmargin=6mm,fontsize=\small,commandchars=\\\{\}}
 % %\newcommand{\kvd}[1]{\textcolor{kvdclr}{#1}}
-% \newcommand{\kvd}[1]{\textbf{#1}}
-% \newcommand{\ikvd}[1]{{\fontfamily{zi4}\selectfont\small #1}}
-% \newcommand{\tg}{The Gamma\xspace}
+\newcommand{\kvd}[1]{\textbf{#1}}
+\newcommand{\ikvd}[1]{{\fontfamily{zi4}\selectfont\small #1}}
 % \usepackage{balance}       % to better equalize the last page
 % \usepackage{graphics}      % for EPS, load graphicx instead
 % \usepackage[T1]{fontenc}   % for umlauts and other diaeresis
@@ -200,7 +201,7 @@ The resulting analysis is a transparent script that can be followed to reproduce
 result from scratch. This allows learning from existing analyses and encourages readers
 to engage with data.
 
-\subsubsection*{Iterative prompting}
+\subsubsection*{Iterative Prompting}
 The key idea in The Gamma, which we term the \emph{iterative prompting} principle, is that all
 valid data exploration scripts can be constructed by repeatedly choosing from a list
 of offered options. This way, non-programmers can write entire scripts through auto-complete,
@@ -210,7 +211,7 @@ tool into a non-expert programming mechanism. A crucial feature is that iterativ
 only offer operations that are valid in a given context and that it offer all such operations;
 it is both correct and complete.
 
-\subsubsection*{Date exploration}
+\subsubsection*{Data Exploration}
 The Gamma focuses on data exploration of the kind illustrated in Figure~\ref{fig:thegamma}.
 The user accesses data available in a structured format. They make several experiments to find an
 interesting way of looking at the data, e.g.~by applying different aggregations or filters. They
@@ -220,7 +221,7 @@ of messy data or building rich data visualizations is outside of the scope of th
 exposing those using the iterative prompting approach is an interesting future challenge.
 
 \subsubsection*{Contributions}
-The Gamma is available (non-anonymously) at \href{http://thegamma.net}{\textcolor{blue}{thegamma.net}},
+The Gamma is available (non-anonymously) at \url{http://thegamma.net},
 both as a JavaScript library and a hosted data exploration service. In this paper, we describe and
 evaluate the design principles behind the project:
 
@@ -240,7 +241,7 @@ evaluate the design principles behind the project:
 \end{itemize}
 
 
-\section{Related work}
+\section{Related Work}
 
 The key contribution of our work is that it develops a new, fundamentally different, way of using the
 established auto-completion mechanism. Unlike most past work dating back to Kaiser~\cite{assistants},
@@ -253,7 +254,7 @@ the iterative prompting we develop (i) is centered around editing and understand
 (ii) its conceptual complexity is reduced to a single basic kind of interaction, yet (iii) it is
 correct and complete in that it can be used to construct all meaningful programs.
 
-\subsubsection*{Code completion for data science}
+\subsubsection*{Code Completion for Data Science}
 
 A key component in The Gamma is the use of auto-complete for offering possible operations.
 Our work follows type providers \cite{inforich,fsdata}, which integrate external data into a
@@ -273,7 +274,7 @@ by data scientists such as Python \cite{pythia}, providing assistance to expert 
 Finally, DS.js \cite{dsjs} is interesting in that it enables querying of data on the
 web; it uses JavaScript with rich contextual code completion.
 
-\subsubsection*{Notebooks and business intelligence tools}
+\subsubsection*{Notebooks and Business Intelligence Tools}
 
 Notebooks such as Jupyter \cite{jupyter}, which allow combining source code with commentary and
 visual outputs, are widely used by data scientists, but require expert programming skills.
@@ -287,7 +288,7 @@ based on a single kind of interaction. Several visual systems \cite{potter,wrang
 interactions with the GUI as a script that can be seen and modified by the user.
 Unlike in The Gamma, the source code does not guide the user in learning how to use the system.
 
-\subsubsection*{Easier programming tools}
+\subsubsection*{Easier Programming Tools}
 We aim to build an easy to use and learn programming system. Many approaches to this
 goal have been tried. Victor \cite{learnable,principle} introduced design principles that
 inspired many to build live programming systems \cite{review,liveroad,lighttable} that give
@@ -305,7 +306,7 @@ or interactive data visualization \cite{interactionviz,vegalite}. The Gamma uses
 high-level abstractions for data querying, but designing high-level iterative prompting
 abstractions for other tasks remains future work.
 
-\subsubsection*{Programming without writing code}
+\subsubsection*{Programming without Writing Code}
 There are two main approaches to programming where
 the user does not write code. In programming by example \cite{byexample}, the user gives
 examples of desired results. This has been used, e.g.~for specifying data transformations
@@ -316,22 +317,262 @@ output. This has been used in the visual domain \cite{sketchnsketch}, but also f
 modification in this context. Direct manipulation can also support data exploration by letting
 users partially edit queries,~e.g. by changing quantifiers as in DataPlay~\cite{dataplay}.
 
-\subsubsection*{Guestures and data entry}
+\subsubsection*{Guestures and Data Entry}
 Although our focus is on program construction, our work can be positioned in the
 broader context of input methods. Akin to Dasher \cite{dasher}, our system provides a way of
 navigating through a complete space of options, while on-screen feedforward \cite{octopocus} allows
 efficient selection in guesture-based interfaces. Those provide compelling alternatives to
 auto-completion menus, although the efficiency of input methods is not an issue in programming.
 
+
+\begin{figure}[b]
+\includegraphics[width=1\columnwidth]{figures/thegamma-walk}
+\caption{Constructing a script that charts the top 5 members of the House of Lords for Kent, based
+on their travel costs.}
+\label{fig:walkthrough}
+\end{figure}
+
 \section{Overview}
+\label{sec:overview}
 
-design motivated by exploratory question - what if we could program with autocomplete
-no talking to journalists hence shorter paper
+The review of related work suggests that there is an unexplored point in the design space of tools
+for data exploration. Although various efforts make text-based programming easier, e.g. by providing
+high-level declarative abstractions, most systems that target non-experts shy away from code, by using
+either programming by example, natural language or graphical user interface. As spelled out in
+Section~\ref{sec:design}, text-based programming has notable benefits for public-facing data analyses
+such as learnability and transparency. Our work is thus motivated primarily by the question whether we
+can make text-based programming easy enough for non-experts? The study presented in Section~\ref{sec:study}
+shows that this is, indeed, possible at least for typical data querying tasks.
+The Gamma consists of a programming language, a web-based coding environment and a number of type providers
+that enable access to various kinds of data sources. It allows non-experts to create programs using the
+\emph{iterative prompting} interaction principle -- by repeately selecting an item from an auto-complete list.
+We start with a walkthrough of the system (Section~\ref{sec:overview-walk}), before looking at details of
+The Gamma language (Section~\ref{sec:overview-lang}) and individual type providers (Section~\ref{sec:overview-tps}).
 
-maybe talk about "design space"
+\subsection{Querying Travel Expenses}
+\label{sec:overview-walk}
+
+To introduce The Gamma, we walk through a simple problem that a local journalist might want to solve.
+The UK government publishes travel expense claims by members of the House of Lords. We want to find
+out which of the members representing the Kent county spend the most on travel.
+The following shows a subset of the data:\footnote{Full data set has been obtained from
+\url{https://www.parliament.uk/mps-lords-and-offices/members-allowances/house-of-lords/holallowances/} }
+
+\begin{thegamma}
+\textbf{Name, County, Days Attended, Days Away, Travel Costs}
+Lord Adonis, London, 8, 0, 504
+Baroness Afshar, Yorkshire, 2, 0, 0
+Lord Alderdice, Oxfordshire, 3, 0, 114
+Lord Alli, London, 5, 0, 0
+\end{thegamma}
+% Baroness Amos, London, 3, 0, 0
+
+\noindent
+The data is available as a CSV file. After the analyst imports the file through a web interface,
+the environment is initialized with code that refers to the imported data as \ikvd{expenses}
+and she starts exploring the data using the type provider for tabular data (Section~\ref{sec:overview-tps}),
+following the steps illustrated in Figure~\ref{fig:walkthrough}:
+
+\begin{enumerate}
+\item The analyst types `.' (dot) to trigger auto-completion on \ikvd{expenses}. The type provider
+  offers a list of operations that the analyst might want to perform such as grouping,
+  filtering and sorting.
+
+\item To find the House of Lords with the largest spending, the analyst chooses the
+  \ikvd{sort data} operation. Next, she is offered a list of possible arguments based on the
+  schema of the tabular data and chooses the desired one.
+
+\item The Gamma evaluates the source code on-the-fly and shows a preview
+  of results. After choosing the sorting key, the analyst sees a table with House of Lords members
+  from more remote counties of the UK.
+
+\item To finish specifying the (possibly compound) sorting key, the analyst chooses \ikvd{then}
+  and is offered the same list of querying operations as in the first step. To obtain House
+  members from Kent, she chooses \ikvd{filter data}. To navigate through the offered list more
+  efficiently, she types first two characters of the name.
+
+\item After selecting \ikvd{County is} to specify the desired type of condition, the analyst types
+  `.' and is offered a list of options based on the values of the \ikvd{County} column in the
+  source data set. She types \ikvd{Ke} and selects \ikvd{Kent}.
+
+\item The analyst chooses \ikvd{then} and is,
+  again, offered the list of querying operation. She uses \ikvd{paging} to get top 5 records,
+  which requires typing \ikvd{5} as the argument. She then uses the \ikvd{get series} operation
+  to obtain a data series associating travel expenses with a name, which is automatically
+  visualized using a bar chart.
+\end{enumerate}
+
+\noindent
+The constructed code is not unlike an SQL query, except that the whole script is constructed using
+iterative prompting, by repeatedly selecting one of the offered members. Those represent both
+operations, such as \ikvd{sort by} and arguments, such as \ikvd{Kent}. The only exception
+is when the analyst needs to type the number \ikvd{5} to specify the number of items to take.
+
+\subsection{The Gamma Programming Environment}
+\label{sec:overview-lang}
+
+The Gamma consists of a text-based programming language with a web-based coding environment,
+based on the Monaco editor\footnote{For more information, see \url{https://microsoft.github.io/monaco-editor/}},
+and type providers that provide access to data tables, graph databases and data cubes.
+
+\subsubsection*{The Gamma Language}
+A program in The Gamma is a sequence of commands. A command can be either a variable declaration
+or an expression that evaluates to a value such as a data table or a chart.
+An expression is a reference to a data source followed by a chain of member accesses.
+A member can be either an ordinary member such as \ikvd{paging} or an operation which takes a
+list of parameters enclosed in parentheses as in \ikvd{take(5)}. When the member name contains
+non-alphanumerical characters it is  written in quotes such as \ikvd{\textquotesingle sort by\textquotesingle}.
+
+The Gamma uses a type system to infer what members are available at a given point in a chain.
+Each expression has a type with a list of members that, in turn, have their own types.
+The types are not built-in, but are generated by type providers for individual data sources.
+The programming environment for The Gamma is based on a text editor. When the user types `.'
+the editor triggers auto-completion and retrives a list of available members based on the type
+information. The programming environment evaluates scripts on-the-fly and shows a preview as
+illustrated in Figure~\ref{fig:thegamma}.
+
+\subsubsection*{Making Complex Things Possible}
+As illustrated by the \ikvd{take(5)} operation, there is a handful of situations where The
+Gamma does not yet fully support the iterative prompting principle. The language supports
+a small number of other features that can be used by more advanced users through text editing:
+
+\vspace{0.3em}
+\begin{thegamma}
+\kvd{let} topTravel = expenses.'sort data'.'by Travel Costs descending'.then
+  .paging.take(5).'get series'.'with key Name'.'and value Travel Costs'
+charts.column(topTravel).setColors(["red","blue","green"])
+  .setTitle("House of Lords members by travel expenses")
+\end{thegamma}
+\vspace{0.3em}
+
+\noindent
+First, The Gamma allows operations with parameters such as \ikvd{take(5)} or \ikvd{setTitle("...")}.
+This is currently needed when writing a query that skips or takes first N elements from a table.
+The remaining features are not needed for basic data exploration. The \ikvd{let} construct can be
+used to define (immutable) variables and The Gamma also supports lists written as \ikvd{[1,2,3]}.
+Advanced language features are currently used when building custom charts, but we expect that a
+charting library compatible with iterative prompting would alleviate the need for most of those.
+
+
+\subsection{Providers}
+\label{sec:overview-tps}
+
+all the important logic
+
+define DSLs
+
+\subsubsection*{Data Cube Type Provider}
+Our first type provider allows users explore data form a data cube. For example, the World
+Bank\footnote{\url{https://data.worldbank.org/}} collects a range of indicators about many
+countries in the world each year. The data set is a three-dimensional cube with dimensions
+corresponding to countries, indicators and years. The following example, also shown in
+Figure~\ref{fig:sidebyside}, uses the provider to access CO2 emission data for United States:
+
+\begin{thegamma}
+worldbank.byCountry.'United States'
+  .'Climate Change'.'CO2 emissions (kt)'
+\end{thegamma}
+
+As illustrated in Figure~\ref{fig:cubetp}, the provider allows users to select a data series
+from the data cube. By choosing \ikvd{byCountry.\textquotesingle United States\textquotesingle},
+we restrict the cube to a two-dimensional plane. We then choose an indicator category
+\ikvd{\textquotesingle Climate Change\textquotesingle} and a specific indicator
+\ikvd{\textquotesingle CO2 emissions (kt)\textquotesingle}, obtaining a time series with
+years as keys and emission data as values. The World Bank provider also supports filtering
+by year and indicator.
+
+Another type provider available in The Gamma that is based on the data cube structure allows
+the user to explore UK government expenditure:
+
+\begin{thegamma}
+expenditure.byService.Defence.inTermsOf.GDP
+\end{thegamma}
+
+The dimensions of the cube are government services, years and value type (adjusted, nominal,
+per GDP). Here, we select the \ikvd{Defence} service and \ikvd{GDP} value type. Our implementation
+does not yet use a standardized data cube storage and so adding another data cube source
+currently requires implementing a new type provider.
+
+\subsubsection*{Tabular Data Type Provider}
+
+Our second type provider allows users to construct queries to explore data in tabular formats
+such as CSV files. It is based on the theory developed Petricek~\cite{dotdriven}. Unlike the  % grammar!
+data cube provider, the provider for tabular data does not just allow selecting a subset of the
+data, but it can be used to construct SQL-like query. Consider the example from Figure~\ref{fig:thegamma}:
+
+\begin{thegamma}
+olympics.'filter data'.'Games is'.'Rio (2016)'.then
+  .'group data'.'by Team'.'sum Gold'.'sum Silver'.then
+  .'sort data'.'by Gold descending'
+\end{thegamma}
+
+The example works with a CSV file that records individual medals awarded in Olympic games.
+The chain constructs a query that selects rows corresponding to the Rio 2016 Olympics and then
+calculates total number of gold and silver medals for each team (country) before sorting the data.
+
+When using the provider, the user specifies a sequence of operations. Members such as
+\ikvd{\textquotesingle filter data\textquotesingle} or \ikvd{\textquotesingle group data\textquotesingle}
+determine the operation type. Those are followed by operation parameters. For example, when grouping
+data, we first select the key and then add a number of aggregations to calculate over the group.
+Unlike SQL, the provider only allows users to choose from pre-defined aggregations such as
+calculating the sum, average or the number of distinct values. As illustrated in
+Section~\ref{sec:cases}, this still allows us to construct a wide range of practical queries.
+
+
+\begin{figure}
+\centering
+\begin{subfigure}[b]{0.5\textwidth}
+  \centering
+  \includegraphics[scale=0.25]{figures/cubetp}
+  \vspace{0.5em}
+  \caption{The World Bank provider allows users to first choose
+    a country or a year and then an indicator.}
+  \label{fig:cubetp}
+\end{subfigure}
+\hfill
+\begin{subfigure}[b]{0.45\textwidth}
+  \centering
+  \includegraphics[scale=0.28]{figures/graphtp}
+  \caption{The user specifies a path through the data, possibly with
+    placeholders to select multiple nodes.}
+  \label{fig:graphtp}
+\end{subfigure}
+\vspace{-0.5em}
+\caption{Design of type providers for exploring data cubes and graph databases.}
+\label{fig:three graphs}
+\end{figure}
+
+
+\subsubsection*{Graph Database Type Provider}
+Our third type provider allows users explore data from graph databases. A graph database
+consists of nodes representing entities and relationships between them. In the context of
+data journalism, graph databases have been used for example in The Panama Papers reporting \cite{panama}.
+
+The following example explores a database of Doctor Who characters and episodes. It retrieves
+all enemies of the Doctor that appear in the Day of the Moon episode:
+
+\begin{thegamma}
+drwho.Character.Doctor
+  .'ENEMY OF'.'[any]'
+  .'APPEARED IN'.'Day of the Moon'
+\end{thegamma}
+
+We start from the \ikvd{Doctor} node and then follow two relationships. We use
+\ikvd{\textquotesingle ENEMY OF\textquotesingle.\textquotesingle [any]\textquotesingle}
+to follow links to all enemies of the Doctor and then specify
+\ikvd{\textquotesingle APPEARED IN\textquotesingle.\textquotesingle Day of the Moon\textquotesingle}
+to only select only such enemies that appear in a specific episode. The resulting query
+is illustrated in Figure~\ref{fig:graphtp}.
+
+The provider works with any graph database and generates members automatically, based on the
+data in the database. In the above example, \ikvd{ENEMY OF} and \ikvd{APPEARED IN} are labels
+of relations and \ikvd{Doctor} and \ikvd{Day of the Moon} are labels of nodes. The
+\ikvd{[any]} member defines a placeholder that can be filled with any node with the specified
+relationships. The results returned by the provider is a table of properties of all nodes
+along the specified path. As discussed in the next section, such table can be further queried
+using the tabular data type provider.
 
 \newpage
-
 % ==================================================================================================
 
 \section{Motivation}
@@ -420,99 +661,7 @@ on GitHub \cite{ftnotebooks}, but re-running the analysis is difficult, even for
 
 % ==================================================================================================
 
-\section{Overview}
-\label{sec:overview}
 
-\tg is a text-based programming environment that allows non-experts to create simple data exploration
-scripts using a single interaction principle -- choosing an item from an auto-complete list.
-It supports a range of data sources including tabular data, graph data and data cubes.
-
-\subsection{Querying Travel Expenses}
-To introduce \tg, we walk through a simple problem that a local journalist might want to solve.
-The UK government publishes travel expense claims by members of the House of Lords. A journalist
-wants to find out which of the members representing the Kent county spend the most on travel.
-The following shows a subset of the data:\footnote{ \url{https://www.parliament.uk/mps-lords-and-offices/members-allowances/house-of-lords/holallowances/} }
-
-\begin{thegamma}
-\textbf{Name, County, Days Attended, Days Away, Travel Costs}
-Lord Adonis, London, 8, 0, 504
-Baroness Afshar, Yorkshire, 2, 0, 0
-Lord Alderdice, Oxfordshire, 3, 0, 114
-Lord Alli, London, 5, 0, 0
-Baroness Amos, London, 3, 0, 0
-\end{thegamma}
-
-After the analyst imports the CSV file (through a web interface), the environment is initialized
-with code that refers to the imported variable \ikvd{expenses}. The analyst then types `.' (dot):
-
-\begin{thegamma}
-expenses.
-\end{thegamma}
-\vspace{-0.4em}\qquad\includegraphics[width=0.5\columnwidth]{figures/lords1}
-
-The type provider for tabular data allows analysts to construct simple queries. It first offers
-a list of operations that the analyst might want to perform such as grouping, filtering and sorting.
-To find members of the House of Lords from Kent, the analyst chooses \ikvd{filter data},
-types `.' and then chooses \ikvd{County is} from the offered list, types `.' and starts
-typing Kent:
-
-\begin{thegamma}
-expenses
-  .'filter data'.'County is'.Ke
-\end{thegamma}
-\vspace{-0.4em}\qquad\includegraphics[width=0.5\columnwidth]{figures/lords2}
-
-The completion list is generated from the values in the \ikvd{County} column of the dataset.
-After selecting \ikvd{Kent}, the live preview is updated to only show records according to the
-specified filter:
-
-\includegraphics[width=1\columnwidth]{figures/lords3}
-
-To finish specifying filtering conditions, the analyst chooses \ikvd{then} and is offered the
-same list of querying operations as in the first step. To sort House of Lords members by their
-travel costs, she now chooses \ikvd{sort data} and types `.' (dot):
-
-\begin{thegamma}
-expenses
-  .'filter data'.'County is'.Kent.then
-  .'sort data'.
-\end{thegamma}
-\qquad\includegraphics[width=0.5\columnwidth]{figures/lords4}
-
-The auto-complete offers a list of columns that can be used for sorting, each with ascending
-(default) and descending order option. After choosing one or more sort keys, the analyst selects
-the \ikvd{then} member and is, again, offered the list of querying operations. They use
-\ikvd{paging} to get top 5 records and \ikvd{get series} to obtain a data series with just
-the House of Lords member name and their travel expenses.
-
-\begin{thegamma}
-expenses
-  .'filter data'.'County is'.Kent.then
-  .'sort data'.'by Travel Costs descending'.then
-  .paging.take(5)
-  .'get series'.'with key Name'.'and value Travel Costs'
-\end{thegamma}
-
-When the code evaluates to a data series with a categorical (textual) key and a numerical value,
-\tg switches from displaying the result as a table to a column chart:
-
-\includegraphics[width=1\columnwidth]{figures/lords5}
-\vspace{-1.5em}
-
-\subsection{Querying via Iterative Prompting}
-In the example, the journalists constructs a query that filters and sorts a data table. This is
-not unlike writing a query in the SQL language. However, the whole query is constructed through
-a single interaction mechanism that we refer to as \emph{iterative prompting}. The user triggers
-the interaction by typing `.' at the end of the query constructed so far. She is then offered a
-list of available operations in the current context. This may include a choice of top-level
-operations (e.g.~at the start and then again after choosing \ikvd{then}) or possible
-parameters for an operation (such as possible sorting keys and directions after choosing
-\ikvd{sort data}). The user then merely needs to choose one of the available options, rather than
-learning the syntax and semantics of SQL in order to know what constructs can be used in the
-given context.
-We discuss the important aspects of The Gamma design in the next section and then discuss the
-integration of specific data sources in detail, revisiting the type provider for querying
-data tables.
 
 % ==================================================================================================
 
@@ -594,31 +743,6 @@ iterative prompting mechanism. The Gamma represents code as text and allows the 
 freely, so not all interactions leave a trace. For example, deleting the most recently selected
 option and choosing a different one is not apparent from the result.
 
-\subsection{Making Complex Things Possible}
-Although the focus on The Gamma is simple data exploration and almost all the use cases we
-envision can be achieved using the iterative prompting interaction principle, there remain a
-few cases where more flexibility is needed. We aim to \emph{make simple things easy and
-complex things possible}. The language thus supports a small number of additional constructs that
-can only be used through text editing. The following example illustrates three additional
-constructs:
-
-\begin{thegamma}
-\kvd{let} topTravel =
-  expenses
-    .'sort data'.'by Travel Costs descending'.then
-    .paging.take(5).'get series'
-    .'with key Name'.'and value Travel Costs'
-
-charts.column(topTravel)
-  .setTitle("House of Lords members by travel expenses")
-  .setColors(["red","blue","green"])
-\end{thegamma}
-
-First, The Gamma allows operations with parameters such as \ikvd{take(3)} or \ikvd{setTitle("...")}.
-This is currently needed when writing a query that skips or takes first N elements from a table.
-The remaining features are not needed for basic data exploration, but allow other scenarios, such
-as manual creation of charts. The \ikvd{let} construct can be used to define (immutable) variables
-and The Gamma also supports lists written as \ikvd{[1,2,3]}.
 
 % ==================================================================================================
 
@@ -629,135 +753,6 @@ of China and United States.}
 \label{fig:sidebyside}
 \end{figure}
 
-\section{Implementation}
-\label{sec:implementation}
-The Gamma consists of a programming language with a web-based coding environment and a number
-of type providers that provide access to various kinds of data sources. The system is implemented
-in F\# and compiled to JavaScript using Fable.
-
-\subsection{The Gamma Language}
-In The Gamma, a program is a sequence of commands. A command can be either a variable declaration
-or an expression that evaluates to a value such as a data table or a chart.
-An expression is a reference to a data source followed by a chain of member accesses.
-A member can be either an ordinary member or an operation which takes a list of parameters
-enclosed in parentheses. When the member name contains non-alphanumerical characters such as
-whitespcae, it needs to be written in quotes. Our implementation supports a few other features,
-but those are not used in this paper.
-
-The Gamma uses a type system to infer what members are available at a given point in a chain.
-A type is an object with a list of members that, in turn, have their own types.
-The types are not built-in, but are generated by a type providers for individual data sources.
-The types are generated lazily and are only computed when a member appears in code.
-
-The web-based coding environment uses the Monaco\footnote{\url{https://microsoft.github.io/monaco-editor/}}
-editor and implemts auto-completion feature that is triggered when the user types `.' and relies
-on information from the type system. The can display the value of a current command inline
-as in Figure~\ref{fig:thegamma}, or values of all commands on the side as in Figure~\ref{fig:sidebyside}.
-In the latter case, it can also combine one or more data series into a single chart.
-
-\begin{figure}
-\centering
-\includegraphics[scale=0.28]{figures/cubetp}
-\caption{Exploring data cubes. The World Bank provider allows users to first choose
-  a country or a year and then an indicator.}
-\label{fig:cubetp}
-\end{figure}
-
-\subsection{Data Cube Type Provider}
-Our first type provider allows users explore data form a data cube. For example, the World
-Bank\footnote{\url{https://data.worldbank.org/}} collects a range of indicators about many
-countries in the world each year. The data set is a three-dimensional cube with dimensions
-corresponding to countries, indicators and years. The following example, also shown in
-Figure~\ref{fig:sidebyside}, uses the provider to access CO2 emission data for United States:
-
-\begin{thegamma}
-worldbank.byCountry.'United States'
-  .'Climate Change'.'CO2 emissions (kt)'
-\end{thegamma}
-
-As illustrated in Figure~\ref{fig:cubetp}, the provider allows users to select a data series
-from the data cube. By choosing \ikvd{byCountry.\textquotesingle United States\textquotesingle},
-we restrict the cube to a two-dimensional plane. We then choose an indicator category
-\ikvd{\textquotesingle Climate Change\textquotesingle} and a specific indicator
-\ikvd{\textquotesingle CO2 emissions (kt)\textquotesingle}, obtaining a time series with
-years as keys and emission data as values. The World Bank provider also supports filtering
-by year and indicator.
-
-Another type provider available in The Gamma that is based on the data cube structure allows
-the user to explore UK government expenditure:
-
-\begin{thegamma}
-expenditure.byService.Defence.inTermsOf.GDP
-\end{thegamma}
-
-The dimensions of the cube are government services, years and value type (adjusted, nominal,
-per GDP). Here, we select the \ikvd{Defence} service and \ikvd{GDP} value type. Our implementation
-does not yet use a standardized data cube storage and so adding another data cube source
-currently requires implementing a new type provider.
-
-\subsection{Tabular Data Type Provider}
-
-Our second type provider allows users to construct queries to explore data in tabular formats
-such as CSV files. It is based on the theory developed Petricek~\cite{dotdriven}. Unlike the  % grammar!
-data cube provider, the provider for tabular data does not just allow selecting a subset of the
-data, but it can be used to construct SQL-like query. Consider the example from Figure~\ref{fig:thegamma}:
-
-\begin{thegamma}
-olympics.'filter data'.'Games is'.'Rio (2016)'.then
-  .'group data'.'by Team'.'sum Gold'.'sum Silver'.then
-  .'sort data'.'by Gold descending'
-\end{thegamma}
-
-The example works with a CSV file that records individual medals awarded in Olympic games.
-The chain constructs a query that selects rows corresponding to the Rio 2016 Olympics and then
-calculates total number of gold and silver medals for each team (country) before sorting the data.
-
-When using the provider, the user specifies a sequence of operations. Members such as
-\ikvd{\textquotesingle filter data\textquotesingle} or \ikvd{\textquotesingle group data\textquotesingle}
-determine the operation type. Those are followed by operation parameters. For example, when grouping
-data, we first select the key and then add a number of aggregations to calculate over the group.
-Unlike SQL, the provider only allows users to choose from pre-defined aggregations such as
-calculating the sum, average or the number of distinct values. As illustrated in
-Section~\ref{sec:cases}, this still allows us to construct a wide range of practical queries.
-
-
-\begin{figure}
-\centering
-\includegraphics[scale=0.28]{figures/graphtp}
-\vspace{0.5em}
-\caption{Exploring graph databases. The user specifies a path through the data, possibly with
-  placeholders to select multiple nodes.}
-\label{fig:graphtp}
-\end{figure}
-
-\subsection{Graph Database Type Provider}
-Our third type provider allows users explore data from graph databases. A graph database
-consists of nodes representing entities and relationships between them. In the context of
-data journalism, graph databases have been used for example in The Panama Papers reporting \cite{panama}.
-
-The following example explores a database of Doctor Who characters and episodes. It retrieves
-all enemies of the Doctor that appear in the Day of the Moon episode:
-
-\begin{thegamma}
-drwho.Character.Doctor
-  .'ENEMY OF'.'[any]'
-  .'APPEARED IN'.'Day of the Moon'
-\end{thegamma}
-
-We start from the \ikvd{Doctor} node and then follow two relationships. We use
-\ikvd{\textquotesingle ENEMY OF\textquotesingle.\textquotesingle [any]\textquotesingle}
-to follow links to all enemies of the Doctor and then specify
-\ikvd{\textquotesingle APPEARED IN\textquotesingle.\textquotesingle Day of the Moon\textquotesingle}
-to only select only such enemies that appear in a specific episode. The resulting query
-is illustrated in Figure~\ref{fig:graphtp}.
-
-The provider works with any graph database and generates members automatically, based on the
-data in the database. In the above example, \ikvd{ENEMY OF} and \ikvd{APPEARED IN} are labels
-of relations and \ikvd{Doctor} and \ikvd{Day of the Moon} are labels of nodes. The
-\ikvd{[any]} member defines a placeholder that can be filled with any node with the specified
-relationships. The results returned by the provider is a table of properties of all nodes
-along the specified path. As discussed in the next section, such table can be further queried
-using the tabular data type provider.
 
 % ==================================================================================================
 
