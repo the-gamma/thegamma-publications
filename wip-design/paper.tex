@@ -164,7 +164,7 @@ First, the tool needs to have a very low barrier to entry. Second, it needs to s
 range of data sources in a uniform way. Third, the resulting data analyses need to assist
 readers in learning how to reproduce the work and verify the claims it makes.
 
-We contribut The Gamma, a text-based data exploration environment for non-experts. The Gamma
+We contribute The Gamma, a text-based data exploration environment for non-experts. The Gamma
 is based on a single, easy to understand interaction principle and provides a uniform
 access to a range of data sources including data tables, graph databases and data cubes.
 The resulting analysis is a transparent script that can be followed to reproduce the
@@ -235,7 +235,7 @@ the theory developed by Petricek \cite{dotdriven}. The key difference in our wor
 can be used without a programming language expertise.
 
 Most similar to our approach are tools that recommend scripts when users begin interacting
-with data. Those based on machine learning code completion for domain-specific languages \cite{predictive,proactive}
+with data. Those based on machine learning code completion for domain specific languages \cite{predictive,proactive}
 differ in that they do not guarantee completeness, i.e.~the user cannot create all possible
 scripts. Approaches based on natural language can effectively support data exploration
 or visualization \cite{eviza,codemend}, but hide the structure of the underlying language and
@@ -432,7 +432,7 @@ charting library compatible with iterative prompting would alleviate the need fo
 \label{sec:overview-tps}
 
 The Gamma can be extended to support any kind of data source by implementing a \emph{type provider}.
-Conceptually, a type provider defines a domain-specific language for exploring data of a particular
+Conceptually, a type provider defines a domain specific language for exploring data of a particular
 kind. Techincally, it generates object types with members (such as \ikvd{sort by} or \ikvd{Count is})
 that are accessed via iterative prompting. We describe type provider for exploring data cubes
 (inspired by an example from Syme et al. \cite{inforich}), tabular data (based on theory developed
@@ -593,7 +593,7 @@ Data exploration has a certain irreducible essential complexity. To make it acce
 cannot dedicate much time to learning a tool prior to using it, this complexity needs to be
 carefully stratified. The Gamma uses a two-level structure. At the first level, the user needs
 to learn iterative prompting to be able to start exploring data. At the second level, users will
-need to learn domain-specific languages defined by individual type providers.
+need to learn domain specific languages defined by individual type providers.
 
 \subsubsection*{Iterative Prompting Principle}
 Iterative prompting is a suitable first level principle, because it is easy to trigger.
@@ -762,33 +762,33 @@ at each step of the construction.
 
 Our goal was to develop an easy-to-learn tool that non-programmers can use
 for producing transparent data analyses. To evaluate the extent to which The Gamma achieves this,
-we conduct a user study. We recruit participants among the operations and business team of a
+we conducted a user study. We recruited participants among the operations and business team of a
 non-profit research organization and investigate three research questions.
 
-\vspace{0.5em}\noindent\emph{RQ1: Can non-programmers explore data with The Gamma?}
-We give participants one of four simple data exploration tasks and see if they can complete the
-task using The Gamma and, possibly, how much assistance they need.
+\vspace{0.5em}\noindent\emph{RQ1: Can non-programmers use The Gamma?}\hspace{0.3em}
+Our first hypothesis is that non-programmers will be able to use The Gamma to explore data. To test
+this, we gave participants one of four simple data exploration tasks and assess whether they were
+able to complete the task, as well as how much assistance, if any, they needed.
 
-\vspace{0.5em}\noindent\emph{RQ2: Can knowledge transfer between data sources?}
-Our first hypothesis is that users familiar with the iterative prompting principle will be able to
-use an unfamiliar data source. In two of the tasks, participants are shown one data source and
-then asked to work with a different one.
+\vspace{0.5em}\noindent\emph{RQ2: Can knowledge transfer between data sources?}\hspace{0.3em}
+Our second hypothesis is that users familiar with the iterative prompting principle will be able to
+use an unfamiliar data source. We designed two of the four tasks to test this. Participants were
+shown a demo using one data source and then asked to complete a task using a different one.
 
-\vspace{0.5em}\noindent\emph{RQ3: Can users learn from just code samples?}
-Our second hypothesis is that users can learn through percolation, i.e.~by looking at the source
-code of published analyses. In one of our tasks, participants are given a code sample, but only a
-minimal explanation of The Gamma environment.
+\vspace{0.5em}\noindent\emph{RQ3: Can users learn from just code samples?}\hspace{0.3em}
+Our third hypothesis is that users can learn through percolation, i.e.~by looking at the source
+code of published analyses. In one of our tasks, participants were given a minimal explanation
+of The Gamma (showing how to initiate the iterative prompting process) together with
+an extensive code sample.
 
-\subsection{Study design}
-We perform between-subjects study to evaluate the first experience of using The Gamma.
-We recruit 13 participants (5 male, 8 female) from a business team
+\subsection{Study Design}
+We performed a between-subjects study to evaluate the first experience of using The Gamma.
+We recruited 13 participants (5 male, 8 female) from a business team
 of a research lab working in non-technical roles (project management,
 partnerships, communications) including one former journalist. Only one participant (\#12)
-had prior programming experience.
-
-We split participants into 4 groups. We first gave a brief 5 minute overview of The
-Gamma and then asked participants to complete a task.
- The four tasks were:
+had prior programming experience. We split participants into 4 groups. We gave participants a
+brief overview of The Gamma (with content depending on the task) and then asked participants
+to complete a task. The four tasks were:
 
 \begin{itemize}
 \item \emph{Expenditure.} Participants were given a demo using \emph{worldbank}.
@@ -797,20 +797,21 @@ Gamma and then asked participants to complete a task.
 \item \emph{Lords.} Participants were given a demo using \emph{worldbank}.
   They were asked to use the \emph{lords} data source (a table with House of Lords
   members expenses) to find a members representing London with the highest travel costs.
-\item \emph{Worldbank.} Participants were given a minimal explanation of The Gamma environment and
+\item \emph{Worldbank.} Participants were given a minimal demo of iterative prompting and
   a code sample using \emph{worldbank}. They were asked to solve a different task using
   the \emph{worldbank} data source.
 \item \emph{Olympics.} Participnts were given a demo using \emph{olympics}.
-  They were asked to solve a more complex problem using the same data source.
+  They were asked to solve a more complex problem, involving grouping and aggregation,
+  using the same data source.
 \end{itemize}
 
-Finally, we conducted a short semi-structured
-group interview and later sent participants a follow-up questionnaire.
-
-We let participants work independently, but offered guidance if they got stuck for longer period of
-time. Tasks \emph{expenditure} and \emph{lords} aim to answer the questions RQ1 and RQ2; the task
+\noindent
+We let participants work independently, but offered guidance if they got stuck.
+Tasks \emph{expenditure} and \emph{lords} aim to answer the questions RQ1 and RQ2; the task
 \emph{worldbank} aims to answer RQ1 and RQ3. In \emph{olympics}, we test RQ1 using a more complex
-data source and we ask further questions to explore their understanding of the data source.
+data source and we ask further questions to explore the understanding of the data source. Following the
+experiment, we conducted a short semi-structured group interview and later sent participants a follow-up
+questionnaire.
 
 \begin{figure}
   \begin{subfigure}[b]{0.49\textwidth}
@@ -836,8 +837,8 @@ data source and we ask further questions to explore their understanding of the d
       \small \#13 & \small olympics & \small table & \priority{75}  & {\small Two operations hints}\\
       \bottomrule
     \end{tabular}
-    \caption{Work completed by individual participants. The marks denote:
-      \priorityc{75} = required some guidance, \priorityc{50} = partially completed.}
+    \caption{Work completed by individual participants; \priorityc{100} = completed,
+      \priorityc{75} = required some guidance, \priorityc{50} = partially completed}
     \label{tab:tasks}
   \end{subfigure}
   \hfill
@@ -848,59 +849,50 @@ data source and we ask further questions to explore their understanding of the d
         {\small \textit{Questionnaire item}} & {\small \textit{Avg}} & {\small \textit{Sdv}} \\
       \midrule
       \small Considering your experience and possible use of The Gamma in the context of data journalism:\\
-      \small \quad I found the system easy to use. & \small 3.89 & \small 0.87\\
-      \small \quad Journalists will be able to use it to analyse data. & \small 3.33 & \small 1.05\\
-      \small \quad Readers will be able to examine the analyses. & \small 3.56 & \small 0.68\\
+      \small \quad I found the system easy to use. & \small 4.00 & \small 0.89\\
+      \small \quad Journalists will be able to use it to analyse data. & \small 3.45 & \small 1.04\\
+      \small \quad Readers will be able to examine the analyses. & \small 3.73 & \small 0.79\\
       \small Thinking about the usability of the system:\\
-      \small \quad Resulting programs are easy to understand. & \small 3.67 & \small 0.82\\
-      \small \quad Text editor for creating them was easy to use. & \small 3.67 & \small 0.94\\
-      \small \quad Finding items in the auto-complete was easy. & \small 3.44 & \small 1.42\\
+      \small \quad Resulting programs are easy to understand. & \small 3.73 & \small 0.79\\
+      \small \quad Text editor for creating them was easy to use. & \small 3.73 & \small 0.90\\
+      \small \quad Finding items in the auto-complete was easy. & \small 3.45 & \small 1.37\\
       \small I would know how to explore a new data source\\
-      \small \quad If given a comprehensive video tutorial. & \small 4.00 & \small 1.24\\
-      \small \quad If given a number of code samples. & \small 3.22 & \small 1.13\\
-      \small \quad Without any further guidance. & \small 2.44 & \small 1.17 \vspace{0.1em}\\
+      \small \quad If given a comprehensive video tutorial. & \small 4.00 & \small 1.26\\
+      \small \quad If given a number of code samples. & \small 3.36 & \small 1.12\\
+      \small \quad Without any further guidance. & \small 2.45 & \small 1.13 \vspace{0.1em}\\
       \bottomrule
     \end{tabular}
     \caption{Follow-up questionnaire responses using
-      a 5-point Likert scale (1 = strongly disagree, 5 = strongly agree) over 9 subjects.}
+      a 5-point Likert scale (1 = strongly disagree, 5 = strongly agree) over 11 subjects.}
     \label{tab:quest}
   \end{subfigure}
-  \caption{Summary of the work completed by individual participants and responses in a follow-up questionnaire}
+  \vspace{-0.5em}
+  \caption{Summary of the work completed by individual participants and responses to the follow-up questionnaire.}
   \label{tab:tabs}
+  \vspace{-0.25em}
 \end{figure}
 
-\subsection{Results}
-Table~\ref{tab:tasks} summarizes the work done by the study participants.
+\subsection{Study Results}
+Figure~\ref{tab:tabs} shows the results of the study. Most notably, all participants were able to
+complete, at least partially, a non-trivial data exploration task and only half of them required
+further guidance. Table~\ref{tab:tasks} summarizes the work done by the study participants.
 For each participant, we record the task, the kind of data source used in the task and the
 level of completion. For participants who needed assistance, the notes section details the help
-given. We analyse the hints in the next section. Table~\ref{tab:quest} shows the results of the
-follow-up questionnaire.
+given. We discuss possible design improvements based on the experience in Section~\ref{sec:study-obs}.
 
-x
+The follow-up questionnaire was sent to all participants a week after the experiment. It was
+completed all but two participants (\#8 and \#12). We asked general questions about the usability
+of the system together with questions about learning designed to answer RQ2 and RQ3. A summary
+of the answers is shown in Table~\ref{tab:quest}.
 
-y
-
-z
-
-a
-
-b
-
-c
-
-d
-
-\paragraph{RQ1: Can non-programmers explore data with The Gamma?}
-Three results allow us to answer RQ1 in the affirmative. First, 7 out of 9
-participants agree or strongly agree that they ``found the system easy to use''. Second,
-participants spent between 10 and 25 minutes (average 17 minutes) working with The Gamma and
-all 12 out of 13 participants completed the task; 6 participants required some assistance,
-but 3 of those faced one issue (discussed later) that could be covered in the introductory
-presentation. Third, a number of participants shared positive comments in the semi-structured
-interview.
-
+\subsection*{RQ1: Can non-programmers explore data with The Gamma?}
+Three facts allow us to answer RQ1 in the affirmative. First, 9 out of 11 participants agree or
+strongly agree that they ``found the system easy to use''. Second, participants spent 10--25 minutes
+(average 17 minutes) working with The Gamma and 12 out of 13 completed the task; 6 required assistance,
+but 3 of those faced one issue (discussed later) that could be addressed in the introduction.
+Third, a number of participants shared positive comments in the interviews.
 Participant \#3 found the system simple, but also points out an issue about data provenance,
-which we discuss later:
+which we revisit later:
 
 \begin{quote}
 \emph{``This is actually pretty simple to use. You think about the logic of what you're actually
@@ -908,6 +900,7 @@ which we discuss later:
   would tell you how to trust it.''}
 \end{quote}
 
+\noindent
 Similarly, participant \#2, notes that The Gamma alleviated their unease about code:
 
 \begin{quote}
@@ -915,6 +908,7 @@ Similarly, participant \#2, notes that The Gamma alleviated their unease about c
   It's not like you're giving me large screen full of code, which is reassurring.''}
 \end{quote}
 
+\noindent
 Finally, participant \#5 suggested the system could be used as an educational tool for teaching
 critical thinking with data. They answer a follow-up question about what training materials would
 the students need as follows:
@@ -924,31 +918,32 @@ the students need as follows:
   source, this is what's in there.''}
 \end{quote}
 
-\paragraph{RQ2: Can knowledge transfer between data sources?}
+\subsection*{RQ2: Can knowledge transfer between data sources?}
 Our study does not conclusively answer RQ2. There is some evidence in favor of a positive answer.
 In the practical part, two of the tasks (\emph{expenditure} and \emph{lords}) used a different data
-source in the introductory presentation than the one that the participants were asked to use.
+source in the introductory presentation than the one that the participants were asked to explore.
 Participants were able to complete those tasks, although \emph{lords} has been more challenging
 as it involves a more complex data source. In the interview, participant \#2 also gives a positive
 answer:
 
 \begin{quote}
 \emph{``I found it quite easy to translate what you showed us in the demo to the new dataset.
-   I though it was quite easy to just get how that works.''}
+   I thought it was quite easy to just get how that works.''}
 \end{quote}
 
+\noindent
 Negative evidence is offered by the follow-up questionnaire. When asked
-whether they would know how to approach a task using a new data source, 5 out of 9 participants
-diagree or strongly disagree that they would know how to approach it without any further guidance.
-Participants did not believe that knowledge can easily transfer to another
-data source.
+whether they would know how to approach a task using a new data source, 6 out of 11 participants
+disagree or strongly disagree that they would know how to approach it without any further guidance.
+The nature of RQ2 makes it a more challenging question to study and so finding a conclusive answer
+arguably requires further research.
 
-\paragraph{RQ3: Can users learn from just code samples?}
+\subsection*{RQ3: Can users learn from just code samples?}
 A positive answer to RQ3 is supported by the \emph{worldbank} task results, the follow-up questionnaire
 and interview comments. In the task, participants were given only a
 minimal demo of the iterative prompting principle together with print-out of 2 code samples.
 All three were able to complete a related task using the same data source. In the follow-up
-questionnaire, only 2 out of 9 participants disagree or strongly disagree that
+questionnaire, only 2 out of 11 participants disagree or strongly disagree that
 they would know how to approach a task using an unfamiliar data source when given ``a number
 of code samples''.
 
@@ -959,63 +954,61 @@ participant \#13 (former journalist) answered:
 
 \begin{quote}
   \emph{``I think providing one video of one example is good and maybe a couple of little examples
-  of code wher people can see the kind of things you can do.''}
+  of code where people can see the kind of things you can do.''}
 \end{quote}
 
+\noindent
 This is aligned with our design goal. Once the user understands the iterative prompting principle
 (which can be done through a video tutorial), they can learn how to use any specific data source
 just from code samples.
 
-\subsection{Further observations}
+\subsection{Further Observations}
+\label{sec:study-obs}
 In this section, we briefly discuss a number of observations about The Gamma design that
-emerged from the study, some of which suggest ways of improving the system.
+emerged from the experiments and follow-up interviews, some of which suggest ways of improving the system.
 
-\paragraph{Making complex things possible may hurt}
-As discussed earlier, The Gamma language supports operations such as \ikvd{take(5)}. Most type
+\subsubsection*{Making Complex Things Possible May Hurt}
+The Gamma supports operations such as \ikvd{take(5)}. Most type
 providers never generate those, but the provider for working with tabular data is an exception.
 When filtering data, the provider allows specifying a condition on numerical attributes such as
 \ikvd{olympics.\textquotesingle filter data\textquotesingle.\textquotesingle Year is greater than\textquotesingle(2004)}.
 
 Three participants (\#11, \#12, \#13) struggled to complete a task, because they
-initially attempted to use those operations. However, those violate the iterative prompting
+initially attempted to use those operations. They violate the iterative prompting
 principle as one cannot type `.' after \ikvd{\textquotesingle Year is greater than\textquotesingle}.
-This suggests that we should avoid operations in type providers for data access, even if it
-limits the expressive power of the type provider.
+This suggests that we should either avoid such operations, or hide them under an ``advanced operations''
+tab as a caution to novice users.
 
-\paragraph{Benefits and drawbacks of text}
-The Gamma is based on text to aid transparency. Text hints that there is no hidden state and
+\subsubsection*{Benefits and Drawbacks of Text}
+The Gamma is based on text to aid transparency. Text implies that there is no hidden state and
 the reader sees the full code. The study suggests that using a text editor has both
 benefits and drawbacks compared to alternatives such as structured editors~\cite{structure-based,livenut,lamdu}.
 Most participants had no difficulty navigating around source code, making edits or deleting code
 fragments, which is arguably harder in an unfamiliar structured editor.
 
-We observed two issues in the study. Participant \#2 struggled with correct indentation, starting a second command
-with more indentation than needed and participant \#6 had a syntax error in an unrelated command,
-which prevents charts from rendering. Some participants used the text editor effectively,
+On the one hand, we observed two issues in the study. Participant \#2 struggled with correct indentation, starting
+a second command with more indentation than needed and participant \#6 had a syntax error in an unrelated command,
+which prevents charts from rendering. On the other hand, some participants used the text editor effectively,
 e.g.~participant \#5, who used copy-and-paste to fetch the same data series for multiple countries.
 
 
-\paragraph{How users understand the `then' member}
-When interviewing participants who worked with a tabular data source, we
-asked about their understanding of the \ikvd{then} member. This is a regular member generated by the
-type provider (i.e.~not a keyword), but it has a special meaning. Consider
-the following example which calculates the average travel expenses and total number of
-representatives per county using the UK House of Lords expenses data:
+\subsubsection*{Understanding the `then' Member}
+We asked participants who worked with tabular data about their understanding of the \ikvd{then} member.
+This is a regular member (not a keyword), but it has a special meaning in the domain specific language.
+Consider the calculation of average travel costs and number of representatives per county in the House of Lords:
 
 \begin{thegamma}
-expneses.'group data'.'by County'
-  .'average Travel Costs'.'count distinct Name'.then
+expneses.'group data'.'by County'.'average Travel Costs'.'count distinct Name'.then
 \end{thegamma}
 
-The \ikvd{then} member is used to complete a part of a query where the user can continue
-adding items to build a list. Here, we select two aggregations to be calculated for each
+\noindent
+The \ikvd{then} member is used to complete a part of a query where the user repeatedly
+add items to build a list. Here, we select two aggregations to be calculated for each
 county before choosing \ikvd{then} and applying other operations such as sorting.
-
-Two participants (\#12 and \#13) initially thought that \ikvd{then} is used to split a command
+Two participants (\#12 and \#13) thought that \ikvd{then} is used to split a command
 over multiple lines, but rejected the idea after experimenting and noting that they can insert
 line breaks elsewhere. One correctly concluded that it ``allows us to chain together the
-operations'' of the query. Participant \#13 needed a hint about using the
-\ikvd{then} member and later reflected:
+operations'' of the query. Following a hint, participant \#13 reflected:
 
 \begin{quote}
   \emph{``When you explained about the `dot then' that was a really useful thing to know.
@@ -1023,16 +1016,64 @@ operations'' of the query. Participant \#13 needed a hint about using the
   it would [have been easier].''}
 \end{quote}
 
+\noindent
 This comment summarizes an important fact. Although iterative prompting allows the users to start
 exploring new data sources, the domain specific languages used by more complex data sources have
 their own design principles that users need to understand to use the data source effectively.
 
-\subsection{Study conclusions}
-The motivation behind The Gamma is to make simple programmatic data exploration accessible to
-journalists and other non-experts. Main-stream programming languages have the benefit of
-reproducibility and transparency, but are difficult to use. Our study shows that non-experts
-are able to solve basic data exploration tasks using The Gamma. When asked whether The Gamma
-is something that journalists could learn how to use, participant \#13 (a former journalist) answered:
+% ==================================================================================================
+
+\section{Discussion}
+We examine an unexplored point in the design space of tools for data exploration. The Gamma is a
+text-based programming environment, but targets non-programmers such as data journalists. We
+conclude with a more general discussion of evaluation of the system and the possible applicability
+of The Gamma in data journalism.
+
+\subsection{Evaluating Exploratory Research}
+The research presented in this paper is qualitative and exploratory in nature. In particular,
+we do not make any quantitative claims about the usability of The Gamma and its learning curve.
+Our investigation focused on the core iterative prompting principle, but some our case studies
+also required using features such as operations with parameters.
+
+Although The Gamma is open-source, it has not been deployed in production in a newsroom so far.
+This would lead to valuable insights, but it requires finding a suitable fortuitous opportunity.
+Finally, we also do not compare the usability of The Gamma with other popular systems
+such as Tableau \cite{tableau}. It would be possible to set tasks that can be completed
+in both systems, but the systems have very different aims making such comparison problematic.
+
+\subsection{Evaluating Complex Systems}
+Data exploration environments are complex systems that do not yield to simple controlled
+experimentation. Olsen~\cite{evaluating} proposes criteria for judging whether a system advances
+the state of the art. A number of those apply to The Gamma:
+
+\begin{itemize}
+\item \emph{Importance.} Data journalism can make factual claims backed by data more commonplace
+and enable wider audience to engage with such claims. As such, we contribute towards
+solving an important societal issue.
+
+\item \emph{Expressive leverage.} Iterative prompting stratifies the complexity of data exploration
+such that different data sources are accessed through the same unified iterative prompting
+interaction principle.
+
+\item \emph{Empowering new participants.} As demonstrated by our user study, The Gamma allows
+non-experts, including those not comfortable with code, to perform basic programmatic
+data exploration tasks.
+
+\item \emph{Generality.} The Gamma can be used to query data from a wide range of data
+sources including tabular data, data cubes and graph databases. The range of possible tasks is
+illustrated by case studies presented earlier.
+\end{itemize}
+
+\subsection{Applications to Data Journalism}
+Although The Gamma targets a broad audience of non-programmers, some of our work has been
+particularly motivated by the use of data in journalism. The Gamma is aligned with recent challenges
+faced by journalists in that it can help build trust through transparency as well as provide
+meaningful ways of reader engagement.
+
+Our study shows that non-experts with background similar
+to journalists are able to solve basic data exploration tasks using The Gamma. When asked whether
+The Gamma is something that journalists could learn how to use, a former journalist who
+participated in our study (\#13) answered:
 
 \begin{quote}
 \emph{``Yeah, I think so. There's a lot of effort going into data journalism that
@@ -1040,104 +1081,50 @@ is something that journalists could learn how to use, participant \#13 (a former
   Something like this would really simplify things.''}
 \end{quote}
 
-The Gamma is based on the iterative prompting principle which lowers the barrier to entry, but
-it is worth noting that it does not fully eliminate complexity involved in data querying.
-Instead, it provides a way of structuring the complexity. Iterative prompting makes it easy to
-get started, but complex data sources will inevitably require additional learning. The Gamma
-makes this easier by allowing users to learn from published code samples.
+\noindent
+The answer suggests that iterative prompting, does indeed, lower the barrier to entry. Although it
+does not fully eliminate complexity involved in data querying, it provides a way of stratifying
+it. Iterative prompting makes it easy to get started with data exploration, addressing the initial
+``nervousness about code''. By making the source code of data anlyses visible, The Gamma then
+enables further learning through percolation.
 
-% ==================================================================================================
-
-\section{Discussion}
-We design a programming environment that can make programmatic data exploration accessible
-to journalists. This is aligned with recent developments in journalism, which aims to build
-trust through transparency and greater reproducibility as well as provide meaningful ways of
-engagement.
-
-\subsection{Evaluating The Gamma}
-Data exploration environments are complex systems that do not yield to simple controlled
-experimentation. We evaluate The Gamma using criteria inspired by Olsen~\cite{evaluating}.
-
-\begin{itemize}
-\item \emph{Importance.} Open journalism has the potential to make factual claims backed by
-data more commonplace and enable wider audience engage with such claims. As such, we contribute
-towards solving an important societal issue.
-
-\item \emph{Expressive leverage.} The Gamma reduces the number of concepts that the user needs
-to master to just the \emph{iterative prompting} principle, although complex data sources may
-add more concepts through their domain specific languages.
-
-\item \emph{Empowering new participants.} As demonstrated by our user study, The Gamma allows
-non-experts, including those not comfortable with code, to perform basic programmatic
-data exploration tasks.
-
-\item \emph{Generality.} Finally, our case studies show that The Gamma can be used to solve
-a wide range of data manipulation tasks involving many data sources including tabular data,
-data cubes and graph databases.
-\end{itemize}
-
-\subsection{Remaining design issues}
+\subsection{Further Design Issues}
 There remain a number of aspects of data exploration in the context of journalism that
 The Gamma does not address. Two of those, data provenance and data availability were also
 observed by the participants in our study.
 
-\paragraph{Data provenance}
-Data sources such as \ikvd{olympics} or \ikvd{worldbank} are defined when initializing The Gamma
-programming environment, but the system does not currently show where such data comes from.
-For some data sources, the source is e.g.~a CSV file published by the government. In this case,
-we can easily show the source. However, other type providers may pre-process data. Displaying
+\subsubsection*{Data provenance}
+Data sources such as \ikvd{olympics} or \ikvd{worldbank} are defined when initializing The Gamma,
+but the system does not currently show where such data comes from.
+For some tabular data sources, the source is a CSV file published, e.g.~by the government. In this case,
+we can easily show the source URL. However, other type providers may pre-process data. Displaying
 data source in such cases would require more sophisticated provenance tracking \cite{provenance}.
 
-\paragraph{Data availability}
+\subsubsection*{Data availability}
 In the current version, The Gamma does not have a way of informing the user what data sources
 are available. In other words, the user needs to know the first identifier, such as \ikvd{olympics},
 to get started. We could address this by choosing a data source as the first step of iterative
 prompting and perhaps typing \ikvd{.olympics}. However, a more fundamental issue is finding
 the data source in the first place. This could be partly addressed by a type provider for a
 currated online database such as Enigma Public\footnote{\url{https://docs.enigma.com/public}}.
-Providing access to open government data repositories such as \href{http://data.gov.uk}{\small\bf\ttfamily data.gov.uk}
-is more appealing, but very challenging due to their unstructured nature.
-
-\subsection{Evaluation limitations}
-The evaluation conducted in this paper is qualitative and exploratory in nature. In particular,
-we do not make any quantitative claims about the usability of The Gamma and its learning curve.
-Our study also focused on the core iterative prompting interaction, but our case studies often
-required using other features such as operations with parameters.
-
-Although The Gamma is open-source, it has not been deployed in production in a newsroom so far.
-This would lead to valuable insights, but it requires finding a suitable fortuitous opportunity.
-Finally, we also do not compare the usability of The Gamma with the usability of other popular
-systems such as Tableau \cite{tableau}. It would be possible to set tasks that can be completed
-in both systems, but the systems have very different aims making such comparison problematic.
+Providing access to open government data repositories such as \url{http://data.gov} and
+\url{http://data.gov.uk} is more appealing, but challenging due to their unstructured nature.
 
 \section{Conclusions}
-[TODO: THIS IS A SHORT PAPER.... no design probe]
+Exploring data in a programming environment that makes the full source code available increases
+transparency, reproducibility and empowers users to ask critical questions about the data anlysis.
+But can we make those features accessible to non-programmers? In this paper, we presented The Gamma,
+a simple data exploration environment for non-programmers that answers this question in the
+affirmative.
 
-We present The Gamma, a simple data exploration environment. The Gamma is motivated by the needs
-of journalists working with data, who need to produce transparent and easy-to-understand reports
-backed by data that are transparent and engaging, all the while facing tight deadlines.
+The Gamma is based on a single interaction principle, \emph{iterative prompting}. It can be used to
+complete a range of data exploration tasks using tabular data, data cubes and graph databases.
+The design lowers the barrier to entry for programmatic data exploration and makes it easy to learn
+the system independently through examples and by experimentation. We implemented The Gamma, make it
+available as open source and conducted a user study, which lets us conclude that
+The Gamma can be used by non-programmers to construct non-trivial data exploration scripts.
 
-The Gamma is based on a single interaction principle, \emph{iterative prompting}, can be used to
-complete a wide range of data exploration tasks using a variety of data sources including tabular
-data, data cubes and graph databases. The design lowers the barrier to entry for programmatic
-data exploration and it makes it easy to learn the system independently from examples and by
-experimentation.
-
-% \section{Acknowledgments}
-% Yo
-
-% BALANCE COLUMNS
-\balance{}
-
-% REFERENCES FORMAT
-% References must be the same font size as other body text.
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{paper}
 
-
 \end{document}
-
-%%% Local Variables:
-%%% mode: latex
-%%% TeX-master: t
-%%% End:
