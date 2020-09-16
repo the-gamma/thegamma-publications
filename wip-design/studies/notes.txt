@@ -96,19 +96,19 @@ USABILITY ISSUES
 
 TODO: How many people actually finish the tasks?
 
-1 KK - expenditure - finished partly (one data source, not the other)
-2 AG - expenditure - finished (and did some more exploration)
-3 HM - expenditure - finished (and did some more exploration)
-4 KR - expenditure - finished with minor hint (do not use by Year)
-5 BM - expenditure - finished (and did some more exploration)
-6 AW - worldbank - figured it out (with minor syntax hint about '.c')
-7 SL - worldbank - figured it out fine
+~1 KK - expenditure - finished partly (one data source, not the other)
+~2 AG - expenditure - finished (and did some more exploration)
+~3 HM - expenditure - finished (and did some more exploration)
+~4 KR - expenditure - finished with minor hint (do not use by Year)
+~5 BM - expenditure - finished (and did some more exploration)
+~6 AW - worldbank - figured it out (with minor syntax hint about '.c')
+~7 SL - worldbank - figured it out fine
 8 MB - worldbank - figured it out (maybe needed minor hint?)
-9 AR - lords - figured it out (after some struggling)
-10 KP - lords - figured it out (quickly)
-11 GK - lords - figured it out with some help (not filter using method)
+~9 AR - lords - figured it out (after some struggling)
+~10 KP - lords - figured it out (quickly)
+~11 GK - lords - figured it out with some help (not filter using method)
 12 PF - olympics - finished with minor hint (methods)
-13 RN - olympics - finished with minor hint (methods)
+~13 RN - olympics - finished with minor hint (methods)
 
 
 

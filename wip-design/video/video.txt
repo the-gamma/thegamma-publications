@@ -1,0 +1,29 @@
+Exploring data in a programming environment that keeps the
+full source code increases transparency, reproducibility
+and empowers users to ask critical questions.
+
+But can we make those features accessible to non-programmers?
+
+The Gamma is a simple text based data exploration environment
+that allows non-experts to explore data from a wide range of
+data sources using iterative prompting, a single easy to learn
+interaction principle.
+
+Using iterative prompting, data analysts can construct
+complete scripts exploring data by repeatedly selecting one
+of the offered options from an auto-compete list.
+
+Iterative prompting turns the auto-complete mechanism from
+a programmer assistance tool into an end-user programming
+mechanism. It can be used to access a wide range of data sources
+in a uniform way. This includes querying tabular data, retrieving
+data from data cubes and exploring the structure of graph databases.
+
+Iterative prompting lowers the barrier to programmatic data
+exploration. In a study evaluating the first experience of using
+The Gamma, 12 out of 13 non-programmers completed a non-trivial
+data exploration task, half of them without any assistance.
+
+To quote a participant from our study, 
+"For somebody who does not do coding or programming, this
+does not feel that daunting."
