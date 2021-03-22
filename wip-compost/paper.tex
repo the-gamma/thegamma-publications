@@ -3,6 +3,36 @@
 \usepackage{amssymb}
 \usepackage{xcolor}
 \usepackage{semantic}
+\usepackage{comment}
+
+\begin{comment}
+Dear editors,
+I'm grateful to the reviewers for their thorough assessment of the paper. I was very happy to read that the reviewer #2 perfectly captured my hope for the paper ("I must confess that at first Compost seemed too simplistic---but upon reflection I realize that is rather the point"), but the reviewers 1 and 3 made a number of excellent points that deserved clarification. I made a number of changes in response to the reviews.
+
+MAJOR CHANGES
+The following two major additions should clarify the paper w.r.t. many of the points made by reviewer 1 about the language design and its expressive power and limitations, as well as to answer points made by other reviewers (Haskell Chart, pie charts):
+
+* I added a new section 2.3 (Choosing the level of language abstraction) which provides more background on the design of the DSL and contrasts it with Haskell Chart library and the Pan language. This should address the concerns of reviewer 1 and explain that, e.g. supporting combinators like "above s1 s2" was not the intention of the design.
+
+* I added a new section 7 (Limitations and further work) that documents some of the things that are currently not supported. This discusses issues such as Pie charts (mentioned by reviewers 1 and 3), logarithmic and contracted axes (reviewer 3) and also visual aspects (reviewer 3). The section explains what is "not yet implemented" vs. what is "not supported by design".
+
+MINOR CHANGES
+The following are the notable minor changes that directly address the more specific reviewer comments:
+
+* Reviewer 1 asked for clarification re "nest" - the explanation has been extended to be more clear
+* Reviewer 2 pointed out a number of typos - all have been fixed (Thank you!)
+* Reviewer 2 asked about figure placement - I tried to improve this (but sometimes unsuccessfuly as I also want to keep long code snippets on one page)
+* Reviewer 3 asked about tight links with F# and Elm - I extended the discussion of implementation at the end of Section 1
+* Reviewer 3 asked for clarification of syntactic categories in Figure 3 - this is now done.
+* Reviewer 3 asked about syntax of host language vs. DSL - this is now explained at the start of Section 2.2
+* Reviewer 3 asked about units of measure - I believe this is covered in Section 2.5 (in the context of types)
+* Reviewer 3 asked for clarification re interaction - I added new paragraph in Section 5 and also made changes throughout to answer other specific questions raised
+
+\end{comment}
+
+
+
+
 
 \title{Composable data visualizations}
 \author[Tomas Petricek]{TOMAS PETRICEK\\
@@ -26,7 +56,7 @@
 \newcommand{\kvd}[1]{\textnormal{\textcolor{kvdclr}{\sffamily #1}}}
 \newcommand{\fkvd}[1]{\textnormal{\textcolor{fkvdclr}{\sffamily #1}}}
 \newcommand{\narrow}[1]{\hspace{-0.6em}#1\hspace{-0.6em}}
-\newcommand{\urrl}[1]{\textnormal{\textcolor{urlclr}{\url{#1}}}}
+\newcommand{\urrl}[1]{\textnormal{\textcolor{urlclr}{#1}}}
 
 \newcommand{\langl}{\begin{picture}(4.5,7)
 \put(1.1,2.5){\rotatebox{60}{\line(1,0){5.5}}}
@@ -52,10 +82,11 @@ Let's say we want to create the two charts in Figure~\ref{fig:charts}. The chart
 a bar chart that shows two different values for each bar. The chart on the right consists of two
 line charts that share the \X axis with parts of the timeline highlighted using two different colors.
 
-Many libraries that can draw bar charts and line charts, but adding those extra
-features will only be possible if the author already thought about your exact scenario.
+Many libraries can draw bar charts and line charts, but extra features like multiple bars
+for each label, alignment of multiple charts or custom color coding can only be used if the
+library author already thought about your exact scenario.
 Google Charts \cite{gcharts} supports the left chart (it is called Dual-X Bar Chart) but there is no
-way to add a background, or sharing an axis between charts. The alternative is to use a more
+way to add a background or share an axis between charts. The alternative is to use a more
 low-level library. In D3 \cite{d3} you construct the chart piece by piece, but you have to
 tediously transform your values to coordinates in pixels yourself. For scientific plots,
 you could use ggplot2 \cite{ggplot2}, based on the Grammar of Graphics \cite{grammar}.
@@ -63,18 +94,19 @@ A chart is a mapping from data to geometric objects (points, bars, lines) and th
 properties (\X and \Y coordinate, shape, color). However, the range of charts that can be
 created using this systematic approach is still somewhat limited.
 
+\begin{figure}[b]
+  \vspace{0.5em}
+  \includegraphics[scale=0.55]{figures/charts}
+  \vspace{0.25em}
+  \caption{Two charts about UK politics: Comparison of election results from 2017 and 2019 (left)
+  and GBP/USD exchange rate with highlighted areas before and after the 23 June 2016 Brexit vote.}
+  \label{fig:charts}
+\end{figure}
+
 What would an elegant functional approach to data visualization look like? A functional programmer
 would want a domain-specific language that has a small number of primitives that allow us to define
 high level abstractions such as a bar chart and that uses domain values such as the exchange
 rate, rather than pixels, in its basic building blocks.
-
-\begin{figure}[h]
-  \includegraphics[scale=0.57]{figures/charts}
-  \vspace{0.25em}
-  \caption{Two charts about UK politics: Comparison of election results from 2017 and 2019 (left)
-    and GBP/USD exchange rate with highlighted areas before and after the 23 June 2016 Brexit vote.}
-  \label{fig:charts}
-\end{figure}
 
 As is often the case with domain-specific languages, finding the right primitives is more of an art
 than science. For this reason, we present our solution, a library named Compost, as a functional pearl.
@@ -86,17 +118,22 @@ of examples. Compost has a number of specific desirable properties:
   axes are all expressed in terms of more primitive building blocks using a small number of combinators.
 \item The primitives are specified in domain terms. When drawing a line, the value of a \\ \Y coordinate
   is an exchange rate of 1.36 USD/GBP, not 67 pixels from the bottom.
-\item Most common chart types can be easily captured as high level abstractions, but there is a
-  way of creating a majority of more interesting custom charts.
+\item Common chart types such as bar charts or line charts can be easily captured as high level
+  abstractions, but many interesting custom charts can be created as well.
 \item The approach can easily be integrated with the Elm architecture \cite{elm}
-	to creating web-based charts that involve animations or interaction with the user.
+	to create web-based charts that involve animations or interaction with the user.
 \end{itemize}
 %
 The presentation in this paper focuses on explaining the primitives and combinators of the
 domain-specific language. We outline the structure of an implementation, but omit the details; filling
-those in merely requires careful thinking about geometry and projections. An F\#
-implementation, including all our examples, is available
-at: \urrl{http://github.com/compostjs}.
+those in merely requires careful thinking about geometry and projections.
+
+Compost is available as open-source at \urrl{http://compostjs.github.io}. It is implemented in F\#,
+but is available as a plain JavaScript library thanks to the Fable F\# to JavaScript compiler.
+The core logic consists of 800 lines of code and depends on the virtual-dom
+library (\urrl{http://npmjs.com/package/virtual-dom}) for the
+implementation of the interactive features, meaking it easily portable to other functional
+programming languages.
 
 \section{Basic charts: Overlaying chart primitives}
 We introduce individual features of the Compost library gradually. The first important aspect of
@@ -141,17 +178,23 @@ units of measure to make the values more descriptive.
 %
 \begin{figure}
 \begin{equation*}
-\begin{array}{rcl}
-v & = & \kvd{cat}~c, r \\
-  & | & \kvd{cont}~n\\[1.25em]
-  ~
+\begin{array}{llcl}
+\textit{Category} & c\\
+\textit{Ratio} & r\\
+\textit{Number} & n\\
+\textit{Text} & t \\
+\textit{Color} & \gamma \\
+\textit{Value} & v & = & \kvd{cat}~c, r \\
+&   & | & \kvd{cont}~n
 \end{array}
-\qquad
-\begin{array}{rclcl}
-s & = &\kvd{line}~\gamma, [\,v_{x1}, v_{y1}, \ldots, v_{xn}, v_{yn}\,] & | & \kvd{overlay}~[\,s_1, \ldots, s_n\,]\\
- & | & \kvd{fill}~\gamma, [\,v_{x1}, v_{y1}, \ldots, v_{xn}, v_{yn}\,] & | &\kvd{axis}_{l/r/t/b}~s\\
- & | & \kvd{text}~\gamma, v_x, v_y, t & | &\kvd{padding}~n_t,n_r,n_b,n_l,s\\
- & | & \kvd{bubble}~\gamma, v_x, v_y, w, h
+\begin{array}{lrcl}
+\textit{Shape} & s & = &\kvd{line}~\gamma, [\,v_{x1}, v_{y1}, \ldots, v_{xn}, v_{yn}\,]\\
+&  & | & \kvd{fill}~\gamma, [\,v_{x1}, v_{y1}, \ldots, v_{xn}, v_{yn}\,] \\
+&  & | & \kvd{text}~\gamma, v_x, v_y, t \\
+&  & | & \kvd{bubble}~\gamma, v_x, v_y, n_w, n_h \\
+&  & | & \kvd{overlay}~[\,s_1, \ldots, s_n\,] \\
+&  & | &\kvd{axis}_{l/r/t/b}~s\\
+&  & | &\kvd{padding}~n_t,n_r,n_b,n_l,s\\
 \end{array}
 \end{equation*}
 \caption{Core primitives of the Compost domain-specific language. Values $v$ are either categorical
@@ -162,8 +205,12 @@ s & = &\kvd{line}~\gamma, [\,v_{x1}, v_{y1}, \ldots, v_{xn}, v_{yn}\,] & | & \kv
 \subsection{Basic primitives and combinators}
 \label{sec:basic-primitives}
 
-Now we can define the basic elements of the Compost domain-specific language.
-A chart element is represented by the shape $s$ defined in Figure~\ref{fig:shape}.
+Compost is an embedded domain-specific language, implemented as a set of functions. In the
+subsequent code samples, we will use color to distinguish primitives of the Compost language,
+such as \kvd{overlay} or \kvd{cat} from primitives of the host language such as \fkvd{let} or
+\fkvd{for}.
+
+A chart element is represented by a shape $s$, as defined in Figure~\ref{fig:shape}.
 A primitive shape can be a text label, a line connecting a list of points, a filled polygon
 defined by a list of points or a bubble at a given point with a given width and height.
 The position of points is specified by \X and \Y coordinates, which can be either categorical or
@@ -177,7 +224,7 @@ axes and calculates suitable projections using a method discussed in the next
 section. The $\kvd{padding}$ combinator adds padding around a specified shape and $\kvd{axis}$ adds
 an axis showing the inferred scale on the left, right, top or bottom of a given shape.
 Using those primitives, we can construct the simple UK election results bar chart in Figure~\ref{fig:simple} (left):
-%
+
 \begin{equation*}
 \begin{array}{l}
 \fkvd{let}~\ident{conservative},~\ident{labour}~=\\
@@ -187,7 +234,7 @@ Using those primitives, we can construct the simple UK election results bar char
 \quad \kvd{fill}~\strf{\#ff0000},
  ~[\;\,(\kvd{cat}~\strf{Labour}, \num{0}), (\kvd{cont}~\num{0}), (\kvd{cat}~\strf{Labour}, \num{0}), (\kvd{cont}~\num{202}),\\
 \hspace{6.7em}\;(\kvd{cat}~\strf{Labour}, \num{1}), (\kvd{cont}~\num{202}), (\kvd{cat}~\strf{Labour}, \num{1}), (\kvd{cont}~\num{0})\,\;]\\[0.5em]
-\kvd{axis}_l~(\kvd{axis}_b~(\kvd{overlay}~[~\ident{labour}, \ident{conservative}~]))\\
+\kvd{axis}_l~(\kvd{axis}_b~(\kvd{overlay}~[~\ident{conservative}, \ident{labour}~]))\\
 \end{array}
 \end{equation*}
 
@@ -204,11 +251,12 @@ i.e.~$\kvd{cat}~\strf{Conservative}, \num{0}$ on the left and $\kvd{cat}~\strf{C
 on the right.
 
 \begin{figure}
-  \includegraphics[scale=0.57]{figures/simple}
+  \includegraphics[scale=0.55]{figures/simple}
   \vspace{0.25em}
   \caption{Simple chart showing the UK election results; using automatically inferred scales (left)
     and using rounded Y scale and explicitly defined (reordered) X scale (right).}
   \label{fig:simple}
+  \vspace{-1.5em}
 \end{figure}
 
 Extending the snippet to generate a grouped bar chart that shows two results
@@ -235,10 +283,39 @@ list of election results containing a five-element tuple consisting of a party n
 \vspace{-0.5em}
 \noindent
 Aside from iterating over all available parties and splitting the bar, the example also adds padding
-around the bars. This is specified in pixels rather than in terms of domain values. A similar
+around the bars, which is specified in pixels. A similar
 result could be be achieved by drawing a bar using a range from $\num{0.05}$ to $\num{0.5}$, but
 specifying padding precisely in pixels is sometimes preferable.
 The chart is still missing a title, which we add in Section~\ref{sec:abstractions}.
+
+\subsection{Choosing the level of language abstraction}
+\label{sec:basic-level}
+
+Perhaps the most important aspect of the design of any domain-specific language is the level
+of abstraction it uses. The bar chart example discussed in the previous section illustrates
+the choice made in Compost. On the one hand, Compost gives us flexibility by letting us
+compose charts from shapes. On the other hand, Compost limits what we can do by using
+two-dimensional space with positions determined by categorical or continuous values.
+In other words, the Compost design lies in the middle of a broader spectrum.
+
+An example of a more general domain-specific language is the Pan language \cite{fun} for producing
+images. Pan represents images as functions from a 2D point to a color. This makes it possible to
+create powerful combinators, e.g.~polar image transformation, but it makes it harder
+to express logic important for charting, e.g.~automatic alignment of shapes defined in terms
+of categorical values. Compost makes it easy to put two bars side-by-side in a
+bar chart, but harder to define generic combinators for aligning images.
+
+An example of a less general domain-specific language is the Haskell Chart library \cite{hcharts}.
+Haskell Chart provides a wide range of plots (such as lines, candles, areas, points, error bars, pies, etc.),
+but those can only be composed in limited ways by overlaying them or arranging them in a grid.
+The language is closer to the domain of the most common applications, but it places more
+restrictions on what can be expressed.
+
+The design of the Compost domain-specific language aims to capture the key principles shared
+by most charts, but avoid using a long list of different plot types. Different types of charts
+are all produced by composing shapes, but the ways in which shapes can be composed and transformed
+are limited to those that are needed for typical charts. We discuss the limitations of this
+approach in more detail in Section~\ref{sec:limits}.
 
 \subsection{Inferring scales and projections}
 \label{sec:basic-scales}
@@ -257,38 +334,15 @@ space based on the inferred scale. A scale $l$ is defined in Figure~\ref{fig:sca
 %
 A continuous scale is defined by a minimal and maximal value that need to be mapped to the
 available chart space. A categorical scale is defined by a list of individual categorical values.
-Note that we do not need a minimal and maximal ratios of the used categorical values as Compost
-will use an equal space for each category, regardless of where in this space a shape needs to
+Note that we do not need minimal and maximal ratios of the used categorical values as Compost
+will use equal space for each category, regardless of where in this space a shape needs to
 appear.
-
-\begin{figure}
-\vspace{-0.5em}
-\begin{equation*}
-\begin{array}{rcl}
-l & = & \kvd{continuous}~n_{min}, n_{max} \lsep \kvd{categorical}~[\,c_1, \ldots, c_k\,]
-\end{array}
-\end{equation*}
-\vspace{-1em}
-\caption{A scale $l$ can be continuous, defined by a range, or categorical, defined by a list of values.}
-\label{fig:scale}
-\vspace{-1em}
-\end{figure}
-\begin{figure}
-\begin{equation*}
-\begin{array}{rclcl}
-s & = & \kvd{roundScale}_{x/y} s      &|& \kvd{nest}_{x/y}~v_{min}, v_{max}, s \\
-  & | & \kvd{explicitScale}_{x/y}~l, s &|&  (\ldots)
-\end{array}
-\end{equation*}
-\caption{Additional combinators for controlling and nesting scales, extending earlier definition of $s$.}
-\label{fig:control}
-\end{figure}
 
 Scale inference is done by a simple recursive function that walks over the given shape and
 constructs two scales for the \X and \Y axis, using the \X and \Y coordinates that appear in the shape.
 Most of the work is done by a simple helper function that takes two scales, $l_1$~and $l_2$,
 and produces a new scale that represents the union of the two:
-%
+
 \begin{equation*}
 \begin{array}{l}
 \ident{union}~(\kvd{continuous}~n_l, n_h)~(\kvd{continuous}~n'_l, n'_h) =\\
@@ -316,6 +370,20 @@ the screen. For a continuous scale, the projection is a linear transformation. F
 categorical scale with $k$ values, we split the available chart space into $k$ equally sized
 regions and then map a categorical value $\kvd{cat}~c, r$ to the region corresponding to $c$
 according to the ratio $r$.
+
+\begin{figure}
+\vspace{-0.5em}
+\begin{equation*}
+\begin{array}{rcl}
+\textit{Scale}~~~l & = & \kvd{continuous}~n_{min}, n_{max} \lsep \kvd{categorical}~[\,c_1, \ldots, c_k\,]
+\end{array}
+\end{equation*}
+\vspace{-1em}
+\caption{A scale $l$ can be continuous, defined by a range, or categorical, defined by a list of values.}
+\label{fig:scale}
+\vspace{-1em}
+\end{figure}
+
 
 \subsection{Types and units of measure}
 \label{sec:basic-types}
@@ -365,6 +433,17 @@ The rule for \kvd{line} ensures that all X and Y values have the same types, $\s
 respectively and infers $\kvd{Shape}~\sigma_x, \sigma_y$ as the type of the shape. The rule for
 \kvd{overlay} ensures that all composed shapes have the same type, including the type of \X and \Y scales.
 
+\begin{figure}
+\begin{equation*}
+\begin{array}{rclcl}
+\textit{Shape}~~~s & = & \kvd{roundScale}_{x/y} s      &|& \kvd{nest}_{x/y}~v_{min}, v_{max}, s \\
+   & | & \kvd{explicitScale}_{x/y}~l, s &|&  (\ldots)
+\end{array}
+\end{equation*}
+\caption{Additional combinators for controlling and nesting scales, extending earlier definition of $s$.}
+\label{fig:control}
+\end{figure}
+
 \section{Advanced charts: Controlling scale composition}
 \label{sec:fancy}
 
@@ -387,12 +466,12 @@ scale would have a maximum $\num{400}$. For categorical scale, the operation doe
 The \kvd{explicitScale} operation replaces the inferred scale with an explicitly
 provided scale (the type of the inferred scale has to match with the type of the explicitly given
 scale). For example, the chart in Figure~\ref{fig:simple} (right) is constructed using the
-following code (reusing the \ident{labour} and \ident{conservative} variables defined earlier):
+following code (reusing the \ident{conservative} and \ident{labour} variables defined earlier):
 %
 \begin{equation*}
 \begin{array}{l}
 \kvd{axis}_l~(\kvd{axis}_b~(\kvd{roundScale}_y~(\kvd{explicitScale}_x~(\kvd{categorical}~[\,\strf{Labour},\strf{Conservative}\,]),\\
-\qquad \kvd{overlay}~[~\ident{labour}, \ident{conservative}~]~)))\\
+\qquad \kvd{overlay}~[~\ident{conservative}, \ident{labour}~]~)))\\
 \end{array}
 \end{equation*}
 \vspace{-0.75em}
@@ -413,13 +492,18 @@ would also need to infer the scales and then generates labels and lines in suita
 \subsection{Nested scales}
 
 The most interesting primitive for controlling scale composition
-is $\kvd{nest}_{x/y}$. The behaviour is similar to that of the SVG viewport \cite{svg}.
-It takes two values, $v_{min}, v_{max}$ and a shape $s$ as arguments and
+is $\kvd{nest}_{x/y}$. As with other primitives like \kvd{padding}, the primitive takes a shape
+with some additional parameters and defines a new shape.
+Its behaviour is similar to that of the SVG viewport \cite{svg}.
+The \kvd{nest} primitive takes two values, $v_{min}, v_{max}$ and a shape $s$ as arguments and
 nests the scale of the shape $s$ inside the region defined by $v_{min}, v_{max}$.
-When inferring scales of shapes, the scale of $\kvd{nest}_{x/y}~l, s$ will be a categorical or continuous scale
-constructed from the values $v_{min}$ and $v_{max}$, regardless of the values that are used inside
-the shape $s$. The chart space between $v_{max}$ and $v_{min}$ will then be used to render the
-nested shape $s$ using its inferred scale. An example of nesting is shown in Figure~\ref{fig:nesting}.
+When inferring scales of shapes, the scale of $\kvd{nest}_{x/y}~v_{min}, v_{max}, s$ will be a
+categorical or continuous scale constructed from the values $v_{min}$ and $v_{max}$, regardless
+of the values that are used inside the shape $s$. The chart space between $v_{max}$ and $v_{min}$
+will then be used to render the nested shape $s$ using its inferred scale. In other words, the
+operation defines a virtual coordinate system that exists only inside the newly created shape,
+but is invisible to anything outside of the shape.
+An example of nesting is shown in Figure~\ref{fig:nesting}.
 Here, a chart with a continuous scale from $\num{1.1}$ to $\num{1.4}$ (e.g.~GBP/EUR exchange rates)
 is nested in the left half of another chart, which has a continuous scale from $\num{0}$ to $\num{100}$.
 
@@ -523,15 +607,16 @@ These are defined using $\kvd{nest}_{x/y}$.
 \begin{figure}
   \includegraphics[scale=0.57]{figures/standard}
   \vspace{0.25em}
-  \caption{Sample charts built using derived abstractions; a scatter plot visualizing the Iris\\
-    dataset with a title (left) and a pairplot comparing two Iris features (right).}
+  \caption{Sample charts built using derived abstractions; a scatter plot visualizing the Iris dataset with a title (left) and a pairplot comparing two Iris features (right).}
   \label{fig:standard}
 \end{figure}
 
 The second shape simply wraps the specified chart $s$ to which we are attaching the title. The first
 positions the text title in the middle of the available space. To do so, we explicitly set the \X and
 \Y scales inside the upper shape to continuous scales from $\num{0}$ to $\num{100}$ and then position
-the text label in the middle, at a point $(\kvd{cont}~\num{50}), (\kvd{cont}~\num{50})$.
+the text label in the middle, at a point $(\kvd{cont}~\num{50}), (\kvd{cont}~\num{50})$. We assume
+that the \kvd{text} primitive centers the text, although the actual implementation also allows the
+user to specify horizontal and vertical alignment.
 Figure~\ref{fig:standard} (left) shows a sample scatter plot chart with a title created using the
 \ident{title} combinator.
 
@@ -572,7 +657,7 @@ and $\ident{get}~y~r$. Histograms are composed from filled shapes. To obtain the
 a helper function $\ident{bins}~x~\ident{data}$, which returns a list of bins specified by a triple
 consisting of a lower and an upper range $x_1, x_2$ and the count $y$.
 
-The example shows that the Compost is simple yet expressive. With just
+The example shows that Compost is simple yet expressive. With just
 a few lines of code, we are able to construct charts that, in other systems, require dedicated
 libraries. The essential aspect of the language making this possible is the automatic inference
 of scales and their mapping to the available space as well as the \kvd{nest} operation.
@@ -589,11 +674,15 @@ using drag \& drop, zooming to a selected chart range and animations. Custom int
 typically implemented using low-level libraries such as D3, but doing so requires directly handling
 JavaScript events and modifying the browser DOM.
 
+Compost uses the Elm architecture \cite{mvu} to support interactive data visualizations.
+In this model, an interactive visualization is described using a pair of user-defined types
+and a pair of user-defined functions. The \emph{state} type represents the current state of what
+is displayed (e.g.~animation step or selection) and the \emph{event} type represents actions that
+the user can perform (e.g.~start an animation or draw a selection range). The two functions
+use the state and event types. The \emph{view} function creates a chart based on the current
+state and the \emph{update} function specifies how the state changes when an event occurs.
+
 \subsection{Domain-specific events}
-Compost can be used in conjunction with a virtual-dom library to create interactive data
-visualizations based on the Elm architecture \cite{mvu}. An interactive visualization is described using
-a pair of functions -- the \emph{view} function creates a chart based on the current state and
-the \emph{update} function specifies how the state changes when an event occurs.
 
 To support handling of mouse-based events, Compost adds three additional primitives to the definition
 of shape, shown in Figure~\ref{fig:mouse}. The three new primitives make it possible to handle
@@ -603,7 +692,6 @@ of the event specified in the domain units of the chart. This means that if the 
 bar representing the Conservative party in a bar chart, the values might be, for example,
 $\kvd{cat}~\strf{Conservative},\num{0.75}$ for \X and $\kvd{cont}~\num{120.5}$ for \Y.
 
-\end{figure}
 \begin{figure}
 \begin{equation*}
 \begin{array}{rclcl}
@@ -617,7 +705,7 @@ s & = & \kvd{mouseUp}~(\lambda \,x~y \rightarrow e), s  &|& \kvd{mouseDown}~(\la
 \end{figure}
 
 \subsection{You Draw It data visualizations}
-To illustrate building of interactive data visualizations using Compost, we look at one aspect of
+To illustrate building interactive data visualizations using Compost, we look at one aspect of
 ``You Draw It''. We want to create a bar chart where the user can use drag \& drop
 to move individual bars. Figure~\ref{fig:youdraw} shows the interactive chart before and after an
 interaction. The first step is to define types representing the state and events that can occur:
@@ -632,8 +720,8 @@ interaction. The first step is to define types representing the state and events
 
 \vspace{-0.5em}
 \noindent
-The state is a pair of boolean, indicating whether the user is currently dragging, and
-a list of key value pairs, storing the number of seats for each political party. Two types of events
+The state is a pair of a boolean, indicating whether the user is currently dragging, and
+a list of key/value pairs, storing the number of seats for each political party. Two types of events
 can occur in the visualization. First, the user may start or stop dragging, which is indicated using
 $\ident{Moving}(\fkvd{true})$ and $\ident{Moving}(\fkvd{false})$, respectively. Second, the user
 may change a value for a party, which is represented by the $\ident{Update}$ event.
@@ -660,18 +748,14 @@ represent the party (which bar the user is dragging) and the new value (new numb
 If the user is currently dragging, we replace the value associated with the party $p$ in \noindent the
 list $s$ using the \ident{map} function. If the user is not currently dragging, the event is ignored.
 
-\begin{figure}[t]
-  \includegraphics[scale=0.57]{figures/youdraw}
-  \vspace{1em}
-  \caption{Interactive ``You Draw it'' data visualization. The user moves cursor to a bar (left),
-    pushes a mouse button and drags the bar to the position that they think is the correct one (right).}
-  \label{fig:youdraw}
-\end{figure}
-
 Finally, the \ident{view} function takes the current state and builds the data visualization
 using the Compost domain-specific language. In addition, it also takes a parameter \ident{trigger},
-which is a function of type $\ident{Event}\rightarrow\ident{unit}$ that can be used to trigger
-events in handlers, registered using primitives such as \kvd{mouseMove}.
+which is an effectful function of type $\ident{Event}\rightarrow\ident{unit}$ that can be used to
+trigger events in handlers, registered using primitives such as \kvd{mouseMove}. The \ident{trigger}
+function is provided by the Compost runtime. When it is invoked from an event handler, it takes
+the current state, transforms it using the \emph{update} function, sets the new state as the
+current state and invokes the \emph{view} function to display the new state.
+
 To build the bar chart in Figure~\ref{fig:youdraw}, we use the same approach as in
 Section~\ref{sec:basic-primitives}. The only addition are the event handlers registered using
 \kvd{mouseMove}, \kvd{mouseUp} and \kvd{mouseDown}:
@@ -699,6 +783,12 @@ and triggers the $\ident{Update}(p, v)$ event to update the state. The handlers 
 \kvd{mouseUp} and \kvd{mouseDown} do not use the coordinates. They simply switch the flag
 indicating whether the user is currently dragging or not.
 
+The primitives for specifying mouse event handlers can be nested or appear in multiple sub-shapes
+of the composed shape. This makes it possible to attach different event handlers to different
+parts of a chart and get event coordinates in local units. In case of nesting, the nested handler
+will capture events that occur in the space occupied by the shape it wraps, but it will ignore
+events occuring outside of this area.
+
 The pair of functions, \ident{update} and \ident{view}, together with an initial state is
 all that is needed to create an interactive data visualization. Compost calls
 \ident{view} each time the state changes and uses virtual-dom to update the chart
@@ -706,6 +796,14 @@ displayed in the browser. Although creating an interactive visualization is more
 creating a static one, the domain-specific nature of Compost is invaluable. We can
 simply take the values $p$ and $v$ produced by a mouse event, use those to update the state
 and then, again, render an updated chart.
+
+\begin{figure}[t]
+  \includegraphics[scale=0.57]{figures/youdraw}
+  \vspace{1em}
+  \caption{Interactive ``You Draw it'' data visualization. The user moves cursor to a bar (left),
+    pushes a mouse button and drags the bar to the position that they think is the correct one (right).}
+  \label{fig:youdraw}
+\end{figure}
 
 
 \section{Implementation structure: Scale inference and rendering}
@@ -724,6 +822,7 @@ with additional information that is needed later for rendering. Second, the libr
 the shape onto an available space and produces the chart, represented as an SVG object.
 
 \subsection{Inferring the scales of a shape}
+\label{sec:impl-infer}
 
 In order to render a shape, we need to know the range of values that should appear on the \X and
 \Y axes. This is done by inferring a scale for each of the axes from the individual \X and \Y
@@ -815,6 +914,8 @@ a data structure representing an SVG document:
 \ident{drawShape}~:~(\ident{float}*\ident{float})*(\ident{float}*\ident{float}) \rightarrow \ident{Scale}*\ident{Scale}\rightarrow\ident{Shape}\rightarrow\ident{Svg}
 \end{equation*}
 
+\vspace{-1.25em}
+\noindent
 For primitive shapes, the operation projects the coordinates using \ident{project} and constructs
 a corresponding SVG document. For shapes with sub-shapes it calls itself recursively, possibly
 with an adjusted scale or area. The two cases discussed earlier illustrate this:
@@ -842,14 +943,70 @@ which the \X coordinates in the sub-shape $\ident{shape}$ should be projected.
 To do this, we recursively call \ident{drawShape}, but use $x_1'$ and $x_2'$ as the \X coordinates
 of the target area and ${ns}_x$ as the \X scale. The \Y area and scales are propagated unchanged.
 
+\section{Limitations and future work}
+\label{sec:limits}
+
+As discussed in Section~\ref{sec:basic-level}, the Compost library chooses a level of abstraction
+that makes it possible to express a wide range of charts, but does not allow arbitrary image
+manipulation. The examples discussed so far provide a good review of what can be expressed
+using Compost. It is also worth considering what cannot currently be expressed. For many of the
+current limitations, we also consider what additional primitive would address the problem.
+
+\subsection{Radial charts and image transformations}
+Compost cannot currently produce pie charts and other radial charts. This could be supported by
+defining a primitive \kvd{polar} that renders a shape $s$ specified as a parameter using
+a polar coordinate system instead of the default Cartesian system. Like the \kvd{nest} primitive,
+this would create a new shape that occupies a newly defined chart region. The \kvd{polar}
+primitive would make it possible to create pie charts, but also more elaborate Circos charts
+used to visualize genomic data \cite{circos}.
+
+Radial charts provide a clear motivation for supporting polar geometries, but we do not currently
+expect the need for more general image transformations such as those supported by Pan \cite{fun}.
+Those are useful for producing visually appealing images, but may not be necessary for data
+visualization. Arguably, we also do not expect the need for more general layout combinators such
+as \ident{above} or \ident{besides}  \cite{monoids}. Those can be expressed elegantly using image transformations.
+In Compost, we can achieve similar effect using \kvd{nest} and \kvd{explicitScale}, as shown when
+definining \ident{title} in Section~\ref{sec:abstractions}.
+
+
+\subsection{Combinations and transformations of scales}
+
+Another area in which Compost could be extended is to allow more flexible handling of scales.
+Currently, categorical scales are mapped to bins of equal size and continuous scales are mapped
+using a linear transformation. The current design does not make it possible to use logarithmic
+scale or, for example, contracted axis where a sub-range of values in the middle is omitted.
+Both of these could be supported if Compost allowed the user to specify a custom value
+transformation function.
+
+Another interesting challenge is to allow overlaying of charts with multiple scales. This can
+currently be done by using \kvd{overlay} together with \kvd{nest}. However, a more principled
+approach would be to allow the user to specify multiple, possibly named, scales for each shape.
+The \ident{calculateScales} operation discussed in Section~\ref{sec:impl-infer} would then need
+to return a list of scales rather than just a pair.
+
+\subsection{Controlling visual elements of a chart}
+
+There is also a number of occasions where the user might require more control over various
+visual elements of the chart such as fonts, text alignment or visual aspects of the automatically
+generated axes. The current implementation of Compost already allows control over fonts, font
+sizes and text alignment, but we omit the details for brevity.
+
+Controlling the visual aspects of axes is a more interesting problem. In fact, the
+\kvd{axis} primitive described in this paper is not a primitive operation, but rather a derived
+one. It is implemented by calculating the scales of the shape specified as an argument and
+overlaying it with lines (for axes and grid), text elements (for labels) and adding a padding.
+The current implementation does not allow much customization, but the user can look at the
+implementation and easily create their own version, much like they can create their own version
+of the \ident{title} operation described in Section~\ref{sec:abstractions}.
+
 \section{Conclusions}
 This paper presents a functional take on the problem of designing easy to use, but flexible
-abstractions for composing data visualizations. We hope to find a sweet between high-level, but
+abstractions for composing data visualizations. We hope to find a sweet spot between high-level, but
 inflexible approaches and low-level, but hard to use approaches.
 
 Most work in this space is based on Grammar of Graphics \cite{grammar}, designing more or less complex and
 powerful variants \cite{layered,vega-lite,vega,polaris}. In Grammar of Graphics, a chart is a mapping from
-data to a chart elements and their visual attributes. In contrast, in Compost, the mapping is
+data to chart elements and their visual attributes. In contrast, in Compost, the mapping is
 specified in the host programming language and a chart is merely a resulting data type
 describing the visual elements using domain-specific primitives.
 
@@ -866,14 +1023,14 @@ we treat those as built-in for simplicity. Third, we only treat \X and \Y as sca
 similarly treat other visual features (colors of bars, size of bubbles) as scales, which would
 allow a more high-level specification of certain charts.
 
-Even in the basic form, the Compost library makes it possible to
-create a wide range of standard, atypical and even interactive charts. Moreover, we hope that
-other functional programmers agree that it does so in a simple, logical and easy-to-understand way.
-In other words, we hope the presented functional library is, indeed, a functional pearl.
-
-\section*{Conflicts of Interest}
-The author is employed by University of Kent. He has been affliated with The Alan Turing Institute
-(2016-2020), Microsoft Research (2014-2016) and University of Cambridge (2011-2016).
+\paragraph{Acknowledgements}
+The Compost library is the result of my prolonged effort to create an elegant charting API for
+F\#, which was supported, at various stages, by Don Syme at Microsoft Research and Howard Mansell
+at BlueMountain Capital. The idea of Compost first came together in discussion with Mathias
+Brandewinder and was (much much later) implemented thanks to the support of Google Digital News
+Initiative and The Alan Turing Institute. The final motivation for this paper was an invitation
+to talk at the LambdaDays conference in Krak\'ow and the positive comments from the attendees.
+Finally, the anonymous referees provided valuable feedback that made this a better paper.
 
 \bibliographystyle{jfp}
 \bibliography{paper}
