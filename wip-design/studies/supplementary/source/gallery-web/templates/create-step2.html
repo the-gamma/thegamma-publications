@@ -1,0 +1,199 @@
+{% extends "default.html" %}
+
+{% block head %}
+<title>Aggregate and sumarize data | The Gamma Gallery</title>
+<link href="https://thegamma.net/lib/thegamma-{{ model.CurrentVersion }}/thegamma.css" rel="stylesheet">
+<script src='https://www.google.com/recaptcha/api.js'></script>
+{% endblock %}
+
+{% block body %}
+<header class="create">
+<div class="container">
+  <div class="row">
+    <div class="col-sm-12 col-md-10 col-lg-8">
+      <a href="#" onclick="document.getElementById('nextstep').value='step1';document.getElementById('create-form').submit()">
+        <h2><span>1. Data source</span><span class="arrow"></span></h2></a>
+      <a class="selected"><h2><span>2. Transform</span><span class="arrow"></span></h2></a>
+      <a {% if model.VizSource != "" %}href="#" onclick="document.getElementById('nextstep').value='step3';document.getElementById('create-form').submit()"
+         {% else %}class="passive"{% endif %}><h2><span>3. Visualize</span><span class="arrow"></span></h2></a>
+      <a class="passive"><h2><span>4. Publish</span><span class="arrow"></span></h2></a>
+      <p>Great! We have some data available. If you uploaded your own CSV file or choose the
+        Olympic medal demos, then you can edit the source code, but also use the
+        pivot type provider through a simple user interface in the editor.</p>
+    </div>
+  </div>
+</div>
+</header>
+
+<article>
+<div class="container">
+
+<div class="row"><div class="col-sm-12">
+  <div class="shadow" style="background:white;margin-bottom:100px;min-height:800px">
+    <div class="tab-body" style="padding:20px">
+      <form name="create-form" id="create-form" action="/create" method="post" enctype="multipart/form-data">
+        <input type="hidden" name="nextstep" id="nextstep" value="step3">
+        <input type="hidden" value="{{ model.PastedData | htmlEncode }}" name="pasted-data">
+        <input type="hidden" value="{{ model.TransformSource | htmlEncode }}" name="transform-source" id="transform-source">
+        <input type="hidden" value="{{ model.VizSource | htmlEncode }}" name="viz-source" id="viz-source"/>
+        <input type="hidden" value="{{ model.ChartType | htmlEncode }}" name="chart-type" id="chart-type"/>
+        <input type="hidden" value="{{ model.UploadId | htmlEncode }}" name="upload-id" />
+        <input type="hidden" value="{{ model.UploadPasscode | htmlEncode }}" name="upload-passcode" />
+        <div class="row">
+          <div class="col-md-3">
+            <label>Writing data transformations</label>
+            <p>For more information about the pivot type provider, see
+              <a href="http://thegamma.net/exploring/">aggregating and visualizing data</a>.</p>
+            <p>You can start again, so edit the code, delete some parts and type "." to get
+              auto-completion with available members! The hint below tells what kind of
+              visualization we can create:</p>
+            <p style="margin-bottom:0px"><i class="fa fa-line-chart"></i> &nbsp; Line chart with numeric data</p>
+            <p style="margin-top:0px;margin-bottom:0px"><i class="fa fa-bar-chart"></i> &nbsp; Bar chart with numeric values</p>
+            <p style="margin-top:0px"><i class="fa fa-table"></i> &nbsp; We can visualize data as a table</p>
+            <p>To create a chart, replace the last item <code>get the data</code>, which returns the whole table with
+              <code>get series</code> and choose keys and numerical values!</p>
+          </div>
+          <div class="col-md-9 thegamma">
+            <div style="border-radius:4px;border:solid 1px #cccccc;padding:2px">
+              <div id="ed1"></div>
+              <div id="ed1-errors" class="errors"></div>
+            </div>
+            <div style="text-align:right">
+              <p style="float:left;padding:10px 0px 0px 10px;color:#909090;" id="typechecking">
+                <img src="/lib/loading.gif"/> &nbsp;
+                Type checking source code. Please wait...
+              </p>
+              <p style="float:left;padding:10px 0px 0px 10px;" id="tcresult">
+              </p>
+              <button id="gotoviz" name="gotoviz" class="btn btn-success" style="margin-top:10px" disabled>Create a visualization &nbsp; <i class="fa fa-chevron-right"></i></button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+
+  </div>
+</div></div>
+
+</div>
+</article>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.js"
+  integrity="sha256-16cdPddA6VdVInumRGo6IbivbERE8p7CQR3HzTBuELA=" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
+  integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="https://thegamma.net/lib/thegamma-{{ model.CurrentVersion }}/babel.min.js"></script>
+<script src="https://thegamma.net/lib/thegamma-{{ model.CurrentVersion }}/require.js"></script>
+<script>
+  require.config({
+    paths:{'vs':'https://thegamma.net/lib/thegamma-{{ model.CurrentVersion }}/vs'},
+    map:{ "*":{"monaco":"vs/editor/editor.main"}}
+  });
+
+  var editor;
+  require(["monaco", "https://thegamma.net/lib/thegamma-{{ model.CurrentVersion }}/thegamma.js"], function (_, g) {
+    var services = "https://thegamma-services.azurewebsites.net/";
+    var graphServices = "https://thegamma-graph-service.azurewebsites.net/";
+    var providers =
+      g.providers.createProviders({
+        "libraries": g.providers.library("https://thegamma.net/lib/thegamma-{{ model.CurrentVersion }}/libraries.json"),
+        {% if model.UploadId != "" %}
+          "uploaded": g.providers.pivot("https://gallery-csv-service.azurewebsites.net/providers/csv/{{ model.UploadId }}"),
+        {% endif %}
+        "worldbank": g.providers.rest(services + "worldbank"),
+        "shared": g.providers.rest("https://gallery-csv-service.azurewebsites.net/providers/listing"),
+        "web": g.providers.rest("https://gallery-csv-service.azurewebsites.net/providers/data"),
+        "expenditure": g.providers.rest("https://govuk-expenditure.azurewebsites.net/expenditure"),
+        "drWho": g.providers.rest(graphServices + "drWho"),
+        "olympics": g.providers.pivot(services + "pdata/olympics") });
+
+    // Create context which is used to create editor & run code
+    var ctx = g.gamma.createContext(providers);
+    ctx.errorsReported(function (errs) {
+      var lis = errs.slice(0, 5).map(function (e) {
+        return $("<li>")
+          .append($("<span class='err'>error " + e.number + "</span>"))
+          .append($("<span class='loc'>at line " + e.startLine + " col " + e.startColumn + "</span>"))
+          .append(": " + e.message);
+      });
+      var ul = $("<ul>").append(lis);
+      $("#ed1-errors").empty().append(ul);
+    });
+
+    var code = "{{ model.TransformSource | jsEncode }}\n\n\n\n\n";
+    var opts =
+      { autoHeight: true,
+        maxHeight: 1000,
+        monacoOptions: function(m) {
+          m.fontFamily = "Inconsolata";
+          m.fontSize = 15;
+          m.lineHeight = 20;
+          m.lineNumbers = false;
+        } };
+
+    // Create the editor & select the code to display UI
+    editor = ctx.createEditor("ed1", code, opts);
+    var monaco = editor.getMonacoEditor();
+    var lines = monaco.getModel().getLineCount()-5;
+    var col = monaco.getModel().getLineLastNonWhitespaceColumn(lines);
+    monaco.focus();
+    monaco.setSelection({startColumn:0,endColumn:col,startLineNumber:0,endLineNumber:lines});
+
+    // Check the type of the result
+    var timer = -1;
+    function typeCheck() {
+      var code = editor.getValue();
+      ctx.check(code).then(function(res) {
+        document.getElementById("gotoviz").disabled = !res.wellTyped;
+        var msg;
+        var clr = "#c82020";
+        if (res.wellTyped) {
+          var does = res.getEntities().filter(function(ent) { return ent.kind == "do"; });
+          if (does.length > 0) {
+            var cmd = does[0];
+            var children = cmd.getChildren();
+            if (children[0].type.kind == "object" && children[0].type.members.indexOf("sortValues") >= 0) {
+              var kt = children[0].type.generics[0];
+              var vt = children[0].type.generics[1];
+              var typ;
+              if (vt == "number") {
+                if (kt == "number" || kt == "date") typ = "line-chart";
+                else typ = "bar-chart";
+              } else {
+                typ = "table";
+              }
+              var source = code.substr(cmd.range.start, cmd.range.end - cmd.range.start + 1);
+              document.getElementById("transform-source").value = source;
+              document.getElementById("chart-type").value = typ;
+              msg = "<i class='fa fa-" + typ + "'></i> &nbsp; The code is well-typed and returns data you can visualize!";
+              clr = "#10aa20";
+            }
+            else { clr = "#d07040"; msg = "<i class='fa fa-cube'></i> &nbsp; The code is well-typed, but the result is not a data series!"; }
+          } else { msg = "<i class='fa fa-ellipsis-h'></i> &nbsp; The code is empty or contains only <code>let</code> definitions!"; }
+        }
+        else msg = "<i class='fa fa-wrench'></i> &nbsp; The code is not well-typed. Fix the errors so that we can continue!";
+
+        document.getElementById("tcresult").innerHTML = msg;
+        document.getElementById("tcresult").style.color = clr;
+        document.getElementById("typechecking").style.display = "none";
+        document.getElementById("tcresult").style.display = "block";
+      });
+    }
+    function setupTimer() {
+      if (timer != -1) clearTimeout(timer);
+      timer = setTimeout(function() {
+        timer = -1;
+        typeCheck();
+      }, 2000);
+    }
+    monaco.onDidChangeModelContent(function() {
+      document.getElementById("typechecking").style.display = "block";
+        document.getElementById("tcresult").style.display = "none";
+      document.getElementById("gotoviz").disabled = true;
+      setupTimer();
+    });
+    setupTimer();
+  });
+</script>
+
+{% endblock %}

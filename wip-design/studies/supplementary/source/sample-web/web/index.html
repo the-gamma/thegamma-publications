@@ -1,0 +1,186 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+  <meta name=viewport content="width=device-width, initial-scale=1">
+
+  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet"
+    integrity="sha384-T8Gy5hrqNKT+hzMclPo118YTQO6cYprQmhrYwIiQ/3axmI1hQomh7Ud2hPOy8SP1" crossorigin="anonymous">
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" 
+    integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    
+  <link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="96x96" href="/img/favicon-96x96.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-16x16.png">
+  <meta name="theme-color" content="#F4C300">    
+  <title>The Gamma: Embedding sample</title>
+
+  <!-- thegamma.css contains style definitions for the live preview and you'll need it in 
+    your projects that use The Gamma; custom.css contains extra styling for this demo page -->
+  <link href="https://thegamma.net/lib/thegamma-0.1/thegamma.css" rel="stylesheet">
+  <link href="/lib/custom.css" rel="stylesheet">
+</head>
+<body>
+  <div id="sizer"></div>
+
+  <script type="text/thegamma" id="demo">let data =
+  olympics
+    .'filter data'.'Games is'.'Rio (2016)'.then
+    .'group data'.'by Athlete'.'sum Gold'.then
+    .'sort data'.'by Gold descending'.then
+    .paging.take(8)
+    .'get series'.'with key Athlete'.'and value Gold'
+
+chart.column(data).legend(position="none")
+  .set(fontName="Roboto", fontSize=12, colors=["#F4C300"],
+    title="Top medalists (by number of gold medals) at Rio 2016")
+  </script>
+
+  <article>
+    <div class="container">
+      <div class="row">
+      <div class="col-md-2 hidden-sm"></div>
+      <div class="col-md-8 col-sm-12">
+        <a href="/"><h1><span><strong>The Gamma</strong>: Embedding sample</span></h1></a>
+
+        <p>This is a minimal sample page demonstrating how to use <a href="https://thegamma.net">The 
+          Gamma</a> for creating open, transparent and customizable visualizations. The chart below
+          is based on the <a href="http://rio2016.thegamma.net/">Olympic medalists visualizations</a>
+          and shows the top athletes (by number of gold medals) in Rio 2016 games. You can click 
+          "Edit source code" to see and modify the visualization. The full source code of this
+          demo is <a href="https://github.com/the-gamma/thegamma-sample-web">available on GitHub</a>. 
+          See the README for description of how it works!        
+         </p>        
+      </div>
+      </div>
+      <div class="row">
+      <div class="col-sm-12 thegamma">
+        <!-- The 'out1' element is used as output - running the visualization code will create
+          chart and put the output in the `out1` element below (replacng the loading text) -->
+        <div id="out1" class="output">
+          <div class="placeholder">
+            Loading the visualization...
+          </div>
+        </div>
+        <button class="btn btn-success" id="editbtn">Edit source code</button>
+      </div>
+      </div>
+    </div>
+  </article>
+            
+  <div class="modal fade" id="editor" tabindex="-1" role="dialog">
+    <div class="modal-dialog" style="width:80vw; max-width:1000px">
+      <div class="modal-content" style="height:90vh">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+          <h4 class="modal-title">Editor</h4>
+        </div>
+        <div class="modal-body thegamma">
+          <!-- This modal dialog opens when you click "Edit source code" - the 'ed1' element
+            is used to create the Monaco-based source editor and 'ed1-errors' is used in the
+            code below to render errors reported from The Gamma -->
+          <div id="ed1"></div>
+          <div id="ed1-errors" class="errors"></div>
+          <button class="btn btn-success" id="okbtn">Update page</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Third-party standard references -->
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/numeral.js/1.5.3/numeral.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.6.15/browser-polyfill.min.js"></script>
+  <script src="https://code.jquery.com/jquery-2.1.4.js" 
+    integrity="sha256-siFczlgw4jULnUICcdm9gjQPZkw/YPDqhQ9+nAOScE4=" crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"
+    integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+  
+  <!-- Loading Monaco and TheGamma scripts -->
+  <script src="/node_modules/babel-standalone/babel.min.js"></script>
+  <script src="/node_modules/requirejs/require.js"></script>
+  <script>
+    // This follows the standard way of loading the Monaco editor (https://github.com/Microsoft/monaco-editor)
+    // although we use normal 'require.js' and also load the compiled 'thegamma.js' (which depends on Monaco)
+    require.config({
+      paths:{'vs':'node_modules/monaco-editor/min/vs'},
+      map:{ "*":{"monaco":"vs/editor/editor.main"}}
+    });
+    require(["vs/editor/editor.main", "node_modules/thegamma-script/dist/thegamma.js"], function (_, g) {      
+      // Configure type providers available in The Gamma
+      // (when running thegamma-services locally, use http://127.0.0.1:10042/)
+      var services = "https://thegamma-services.azurewebsites.net/";      
+      var graphServices = "https://thegamma-graph-service.azurewebsites.net/";
+
+      var providers = 
+        g.providers.createProviders({ 
+          "worldbank": g.providers.rest(services + "worldbank"),
+          "drWho": g.providers.rest(graphServices + "drWho"),
+          //"houses": g.providers.pivot("http://127.0.0.1:8087/land-registry-monthly-price-paid-data"),
+          //"medals": g.providers.pivot("http://127.0.0.1:8087/medals"),
+          
+          "libraries": g.providers.library("/node_modules/thegamma-script/dist/libraries.json"),
+          "olympics": g.providers.pivot(services + "pdata/olympics") });
+          
+      // Create context which is used to create editor & run code
+      // When errors are reported, display the errors in modal dialog (while editting)
+      var ctx = g.gamma.createContext(providers);
+      ctx.errorsReported(function (errs) { 
+        var lis = errs.slice(0, 5).map(function (e) { 
+          return $("<li>")
+            .append($("<span class='err'>error " + e.number + "<span>"))
+            .append($("<span class='loc'>at line " + e.startLine + " col " + e.startColumn + "</span>"))
+            .append(": " + e.message);          
+        });        
+        var ul = $("<ul>").append(lis);
+        $("#ed1-errors").empty().append(ul);
+      });
+
+      // Get sample code and run it; use the '#out1' element for outputs
+      var code = document.getElementById("demo").innerHTML;
+      ctx.evaluate(code, "out1");
+
+      // We create editor lazily when the "Edit source code" button is clicked the first time
+      var editor = null;
+      var editbtn = document.getElementById("editbtn");
+      var okbtn = document.getElementById("okbtn");
+      
+      // Options passed to the editor - specify size & configuration function
+      // that sets properties directly for the Monaco editor
+      var opts =
+        { height: document.getElementById("sizer").clientHeight - 150,
+          width: document.getElementById("sizer").clientWidth - 40,
+          monacoOptions: function(m) {
+            m.fontFamily = "Inconsolata";
+            m.fontSize = 15;
+            m.lineHeight = 20;
+            m.lineNumbers = false;
+          } };
+
+      // Create editor if it is not created yet
+      editbtn.onclick = function() {
+        $('#editor').modal();
+        if (!editor) editor = ctx.createEditor("ed1", code, opts);
+      };
+      
+      // Get editor text and run it on the main page
+      okbtn.onclick = function() { 
+        $('#editor').modal('hide');
+        code = editor.getValue();
+        ctx.evaluate(code, "out1");
+      };
+    });
+  </script>
+
+  <!-- More fancy libraries -->
+  <script type="text/javascript" src="//www.google.com/jsapi"></script>
+  <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+      
+    ga('create', 'UA-65311433-1', 'auto');
+    ga('send', 'pageview');  
+  </script>
+</body>
+</html>

@@ -1,0 +1,333 @@
+@import url(https://fonts.googleapis.com/css?family=Inconsolata|Kreon:300,400,700|Roboto:300,400,500,700,400italic);
+
+#sizer {
+  position:absolute;
+  z-index:-1000;
+  background:transparent;
+  height:90vh;
+  width:80vw;
+  max-width:1000px;
+}
+
+body, .modal-content { 
+  background:url(https://thegamma.net/img/bg.png);
+}
+header {
+  background:url(https://thegamma.net/img/bg.png);
+  padding:50px 0px 40px 0px;
+}
+header h1 {
+  font:400 24pt Kreon,'Times New Roman',times,serif;
+  margin:0px 0px 30px 0px;
+  line-height:34pt;
+}
+header h2 {
+  font:300 18pt Kreon,'Times New Roman',times,serif;
+  line-height:28pt;
+  margin:20px 30px 20px 0px;
+  display:inline-block;
+}
+header h3 {
+  font:400 18pt Kreon,'Times New Roman',times,serif;
+  line-height:28pt;
+  margin:0px 0px 5px 0px;
+  color:#e8e8e8;
+}
+header h1 span, header h2 span {
+  padding:4px 10px 4px 10px;
+  background:#F4C300;
+  color:black;
+}
+header h2 span {
+  padding:4px 15px 4px 15px;
+}
+header p {
+  font:14pt 'Roboto',sans-serif;
+  line-height:19pt;
+  font-weight:300;
+  color:#c8c8c8;
+}
+header p strong {
+  font-weight:500;
+  color:#e8e8e8;
+}
+header a:hover h2 span, header a:hover h1 span {
+  background:#EFD47C;
+}
+header a, header a:hover {
+  text-decoration:none !important;
+}
+
+
+header.create {
+  padding:30px 0px 40px 0px;
+}
+header.create a h2 {
+  margin:0px 10px 30px 0px;
+}
+header.create a h2 span {
+  width:150px;
+  height:46px;
+  padding:4px 5px 4px 10px;
+  display:inline-block;
+}
+header.create a.passive:hover h2 span {
+  background:#F4C300;
+  cursor:default;
+}
+header.create a.selected h2 span {
+  cursor:default;
+  background:#EFD47C;
+}
+header.create a h2 span.arrow {
+  width:0px; 
+  padding:0px;
+  border-top: 23px solid transparent;
+  border-bottom: 23px solid transparent;
+  background:transparent;
+  position:relative;
+  top:16px;
+}
+header.create a h2 span.arrow, header.create a.passive:hover h2 span.arrow {
+  border-left:15px solid #F4C300;
+  background:transparent;
+}
+header.create a.selected h2 span.arrow, header.create a:hover h2 span.arrow {
+  border-left:15px solid #EFD47C;
+  background:transparent;
+}
+
+
+footer {
+  background:url(https://thegamma.net/img/bg.png);
+  padding:30px 0px 70px 0px;
+}
+footer p {
+  font:11pt 'Roboto',sans-serif;
+  line-height:16pt;
+  font-weight:300;
+  color:#c8c8c8;
+}
+footer a {
+  color:white !important;
+}
+footer .form-control {
+  background:#303030;
+  color:#c8c8c8;
+  border-color:#606060;
+}
+.btn-success {
+  border-color:#606060 !important;
+  background:#404040 !important;
+  color:#e0e0e0 !important;
+}
+.btn-success:hover, .btn-success:focus {
+  border-color:#606060 !important;
+  color:#e0e0e0 !important;
+  background:#606060 !important;
+}
+
+
+
+.navbar-brand {
+  padding:8px 16px 8px 16px;
+}
+.navbar {
+  margin-bottom:0px;
+}
+.navbar-brand span {
+  display:inline-block;
+  margin:6px 0px 0px 10px;
+  font-weight:700;
+  color:white;
+}
+.navbar-default {
+  background:#1b1b1b;
+  border-style:none;
+  border-radius:0px;
+}
+.navbar-default a {
+  color:#c8c8c8 !important;
+  font:300 14pt 'Kreon',serif;
+}
+.navbar-default a:hover {
+  color:white !important;
+}
+
+article {
+  min-height:600px;
+  margin:0px 0px 0px 0px;
+  padding:40px 0px 50px 0px; 
+  background:#F2F1ED;
+}
+article h2 {
+  font:22pt 'Kreon',serif;
+  margin:10px 0px 10px 0px;
+}
+article h3 {
+  font:18pt 'Kreon',serif;
+  margin:10px 0px 20px 0px;
+}
+article p, article li {
+  font:17px 'Roboto',sans-serif;
+  line-height:24px;
+}
+article blockquote p {
+  font:20px 'kreon',sans-serif;
+  line-height:27px;
+}
+article li {
+  margin:0px 0px 10px 0px;
+}
+article ul {
+  margin:0px 0px 20px 0px;
+}
+article p { 
+  margin:0px 0px 20px 0px;
+}
+article code {
+  font:15px Inconsolata,consolas,monaco,monospace;
+  background:transparent;
+}
+article pre, article pre code {
+  font:15px Inconsolata,consolas,monaco,monospace;
+  line-height:18.5px;
+}
+pre, .shadow {
+  border-radius:5px;
+  -webkit-box-shadow: 0px 0px 10px 0px rgba(220,220,220,1);
+  -moz-box-shadow: 0px 0px 10px 0px rgba(220,220,220,1);
+  box-shadow: 0px 0px 10px 0px rgba(220,220,220,1);
+  border-style:none;
+}
+#demo {
+  background:white;
+  margin:20px 20px 40px 20px;
+  padding:0px 0px 20px 0px;
+}
+#demo p {
+  color:#808080;
+  font-size:12pt;
+}
+#demo h3 {
+  color:#606060;
+}
+.preview {
+  background:white;
+  margin:20px 20px 40px 20px;
+  padding:10px 15px 0px 15px;
+  text-align:center;
+}
+article pre {
+  margin:0px 30px 20px 15px;
+  padding:15px;
+  background:white;
+  color:#404040;
+}
+pre .k, pre .kd { color:#3182bd; }
+pre .r { color:#BC3427; }
+pre .s, pre .s2 { color:#8A9322; }
+pre .c3, pre .o, pre .p { color:#A04B87; }
+pre .n, pre .mi, pre .c1, pre .c2 { color:#529E38; }
+pre .nt { color:#A04B87; }
+pre .na { } 
+pre .nx { }
+
+.pad-sm {
+  padding:20px 0px 0px 40px;
+}
+@media screen and (max-width:1024px) {
+  .pad-sm {
+    padding:20px 30px 0px 40px
+  }
+}
+
+
+article ul li, article ul {
+  list-style:none;
+  margin:0px;
+  padding:0px;
+}
+article h3, article p {
+  margin-bottom:10px;
+}
+article ul li {
+  margin-bottom:40px;
+}
+header a {
+  color:white !important;
+  text-decoration:underline;
+}
+.tab-body {
+  background:white;
+  position:relative;
+  z-index:1001;
+  padding:10px;
+}
+.tab-body h2 {
+  margin:20px 0px 10px 0px;
+}
+.tab-body label {
+  font:bold 15px 'Roboto',sans-serif;
+}
+.tab-body p, .tab-body li {
+  font:15px 'Roboto',sans-serif;
+  line-height:22px;
+  margin:10px 0px 10px 0px;
+} 
+.tab-body li {
+  margin:0px 0px 5px 20px;
+  list-style-type:disc;
+}
+.tab-body ul {
+  margin-bottom:5px;
+}
+.tabs {
+  height:40px;
+}
+.tab i { 
+  margin-right:3px;
+}
+.tab { 
+  cursor:pointer;
+  color:#a0a0a0;
+  margin:0px 10px 0px 10px;
+  float:left;
+  padding:10px 25px 10px 25px;
+  position:relative;
+  top:2px;
+  border-radius:5px 5px 0px 0px;
+  -webkit-box-shadow: 0px 0px 10px 0px rgba(220,220,220,1);
+  -moz-box-shadow: 0px 0px 10px 0px rgba(220,220,220,1);
+  box-shadow: 0px 0px 10px 0px rgba(220,220,220,1);
+
+  z-index:999;
+  background:#f0f0f0;
+}
+.tab-inactive {
+  cursor:default;
+}
+.tab-sel {
+  z-index:1000;
+  background:white;
+}
+form {
+  padding-top:20px;
+}
+#submit, #goshare {
+  margin-top:10px;
+}
+.form-group {
+  padding-right:20px;
+}
+.submit-group {
+  text-align:right;
+}
+.error {
+  color:#ff0000;
+  padding:3px 0px 0px 5px;
+  display:none;
+}
+.tab-body .chosen-container li {
+  font:14px 'Roboto',sans-serif;
+}

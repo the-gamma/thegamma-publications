@@ -1,0 +1,156 @@
+{% extends "default.html" %}
+
+{% block head %}
+<title>Create a new visualizations | The Gamma Gallery</title>
+<link href="https://thegamma.net/lib/thegamma/thegamma.css" rel="stylesheet">
+<script src='https://www.google.com/recaptcha/api.js'></script>
+{% endblock %}
+
+{% block body %}
+<header class="create">
+<div class="container">
+  <div class="row">
+    <div class="col-sm-12 col-md-10 col-lg-8">
+      <a class="selected"><h2><span>1. Data source</span><span class="arrow"></span></h2></a>
+      <a {% if model.TransformSource != "" %}href="#" onclick="document.getElementById('nextstep').value='step2';document.getElementById('create-form').submit()"
+         {% else %}class="passive"{% endif %}><h2><span>2. Transform</span><span class="arrow"></span></h2></a>
+      <a {% if model.VizSource != "" %}href="#" onclick="document.getElementById('nextstep').value='step3';document.getElementById('create-form').submit()"
+         {% else %}class="passive"{% endif %}><h2><span>3. Visualize</span><span class="arrow"></span></h2></a>
+      <a class="passive"><h2><span>4. Publish</span><span class="arrow"></span></h2></a>
+      <p>Get started with The Gamma in four simple steps! First, select your
+        data source. You can choose one of our built-in data sources or simply upload
+        a CSV file. For more options, see <a href="http://thegamma.net/publishing/">publishing data</a>,
+        which explains how to write your own data service.</p>
+    </div>
+  </div>
+</div>
+</header>
+  
+<article>
+<div class="container">
+  
+<div class="row"><div class="col-sm-12">
+  <div class="shadow" style="background:white;margin-bottom:100px;padding-bottom:50px">    
+    <div class="tab-body" style="padding:20px">            
+      <form name="create-form" id="create-form" action="/create" method="post" enctype="multipart/form-data">
+      <input type="hidden" name="nextstep" id="nextstep" value="step2">
+      <input type="hidden" value="{{ model.PastedData | htmlEncode }}" name="pasted-data">        
+      <input type="hidden" value="{{ model.TransformSource | htmlEncode }}" name="transform-source">
+      <input type="hidden" value="{{ model.VizSource | htmlEncode }}" name="viz-source" id="viz-source"/>
+      <input type="hidden" value="{{ model.ChartType | htmlEncode }}" name="chart-type" id="chart-type"/>
+      <input type="hidden" value="{{ model.UploadId | htmlEncode }}" name="upload-id" />
+      <input type="hidden" value="{{ model.UploadPasscode | htmlEncode }}" name="upload-passcode" />
+      <div class="row">
+        <div class="col-sm-4">
+          <div class="form-group">
+            <label for="samplesource">Use sample source</label>
+            <p>If you just want to try The Gamma, you can select one of our sample data sources.
+              After you choose the data source, you can modify the code to choose other indicators,
+              years or other kinds of aggregations.</p>
+              
+            <select class="form-control" name="samplesource" id="samplesource" style="margin:15px 0px 15px 0px">
+              <option value="">Select a sample dataset</option>
+              <optgroup label="Olympic medal statistics">
+                <option value="olympics
+  .'group data'.'by Team'.'sum Gold'.then
+  .'sort data'.'by Gold descending'.then
+  .paging.take(10)
+  .'get series'.'with key Team'.'and value Gold'">Countries by number of gold medals</option>
+              <option value="olympics
+  .'group data'.'by Year'.'count distinct Team'.then
+  .'sort data'.'by Year'.then
+  .'get series'.'with key Year'.'and value Team'">Number of distinct countries per year</option>
+              <option value="olympics
+  .'filter data'.'Games is'.'Rio (2016)'.then
+  .'group data'.'by Athlete'.'count all'.then
+  .'sort data'.'by count descending'.then
+  .paging.take(10)
+  .'get series'.'with key Athlete'.'and value count'">Top medallists from Rio 2016</option>
+              </optgrouup>
+              <optgroup label="World Bank time series">
+                <option value="worldbank
+  .byCountry.World.'Climate Change'
+  .'Population, total'">Total population of the World</option>
+                <option value="worldbank
+  .byCountry.'United Kingdom'
+  .'Economy &amp; Growth'.'GDP per capita (current US$)'">GDP per capita of United Kingdom</option>
+                <option value="worldbank
+  .byCountry.'United States'.'Climate Change'
+  .'CO2 emissions (kt)'">CO2 emissions of United States</option>
+                <option value="worldbank
+  .byCountry.China.'Climate Change'
+  .'CO2 emissions (kt)'">CO2 emissions of China</option>
+              </optgrouup>
+              <optgroup label="World Bank top countries">
+                <option value="worldbank
+  .byYear.'2010'.'Climate Change'.'CO2 emissions (kt)'
+  .sortValues(reverse=true).take(10)">Total CO2 emissions in 2010</option>
+                <option value="worldbank
+  .byYear.'1960'.'Climate Change'.'CO2 emissions (kt)'
+  .sortValues(reverse=true).take(10)">Total CO2 emissions in 1960</option>
+                <option value="worldbank
+  .byYear.'2010'.'Climate Change'.'CO2 emissions (metric tons per capita)'
+  .sortValues(reverse=true).take(10)">CO2 emissions per capita in 2010</option>
+                <option value="worldbank
+  .byYear.'2010'.'Climate Change'.'Population, total'
+  .sortValues(reverse=true).take(10)">Total population in 2010</option>                
+                <option value="worldbank
+  .byYear.'2010'.Health.'Health expenditure, total (% of GDP)'
+  .sortValues(reverse=true).take(15)">Healt expenditure (% of GDP) in 2010</option>
+              </optgrouup>
+            </select>
+            <p>You can also find more sample data by browsing <a href="/all">the gallery</a>.
+              If you know what you're doing, you can also go directly to writing code!              
+            </p>
+            <button id="usesample" name="usesample" class="btn btn-success" style="margin-top:10px; width:200px" disabled>Use sample data source &nbsp; <i class="fa fa-chevron-right"></i></button>
+            <button id="skipsample" name="skipsample" class="btn btn-success" style="margin-top:10px; width:200px">Skip directly to editor &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <i class="fa fa-chevron-right"></i></button>
+          </div>        
+        </div>
+        <div class="col-sm-8">
+          <div class="form-group">
+            <label for="data"  style="margin-bottom:10px">Upload your own data</label>                      
+            <textarea class="form-control" name="uploaddata" rows="10" id="uploaddata" placeholder="Copy and paste data from Excel or CSV file...">{{ model.PastedData }}</textarea>
+            {% if model.UploadError != "" %}
+              <p style="padding:10px 0px 0px 0px;color:#c82020">
+                <i class="fa fa-exclamation-triangle"></i> &nbsp; <strong>Error when uploading data: </strong> {{ model.UploadError }}
+              </p>
+            {% endif %}
+            <p>Do not upload or paste files that you want to keep private. After the file
+              is uploaded, it will become publicly available and others may download the
+              full content of the file. If you want to use The Gamma in a private way,
+              see <a href="http://thegamma.net/developers/">the developer documentation</a>
+              or <a href="mailto:tomas@tomasp.net">get in touch</a> for support.</p>
+            <div style="text-align:right">
+              <label for="uploadcsv" class="btn btn-success" style="font-weight:normal;margin-top:10px">Choose a CSV file... &nbsp; <i class="fa fa-upload"></i></label>
+              <input id="uploadcsv" name="uploadcsv" type="file" style="display:none" onchange="document.getElementById('create-form').submit();"/> &nbsp;
+              <button id="usepasted" name="usepasted" class="btn btn-success" style="margin-top:10px" disabled>Upload pasted data &nbsp; <i class="fa fa-chevron-right"></i></button>            
+            </div>
+          </div>        
+        </div>
+      </div>
+      </form>      
+    </div>
+        
+  </div>
+</div></div>
+
+</div>
+</article>
+
+<script type="text/javascript">
+  document.getElementById("samplesource").onchange = function() { 
+    document.getElementById("usesample").disabled = document.getElementById("samplesource").value.trim().length == 0;
+  }
+  document.getElementById("uploaddata").onkeyup = function() { 
+    document.getElementById("usepasted").disabled = document.getElementById("uploaddata").value.trim().length == 0;
+  }
+  document.getElementById("uploaddata").onchange = function() { 
+    document.getElementById("usepasted").disabled = document.getElementById("uploaddata").value.trim().length == 0;
+  }
+  document.getElementById("uploaddata").oninput = function() { 
+    document.getElementById("usepasted").disabled = document.getElementById("uploaddata").value.trim().length == 0;
+  }
+  document.getElementById("usepasted").disabled = document.getElementById("uploaddata").value.trim().length == 0;
+</script>
+
+{% endblock %}

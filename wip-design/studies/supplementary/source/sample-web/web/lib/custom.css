@@ -1,0 +1,107 @@
+@import url(https://fonts.googleapis.com/css?family=Inconsolata|Kreon:300,400,700|Roboto:400,700,400italic);
+
+/***************************************************************************************************
+  Styling related to The Gamma integration
+***************************************************************************************************/
+
+/** styling for error reporting **/
+.errors {
+  position:absolute;
+  background:white;
+  bottom:65px;
+  right:20px;
+  left:20px;
+  padding:5px;
+  width:calc(100%-40px);
+}
+
+.errors ul, .errors li {
+  list-style:none;
+  margin:0px;
+  padding:0px;
+}
+.errors li .err {
+  background:#D16159;
+  color:white;
+  padding:2px 5px 2px 5px;
+  margin-right:5px;
+  font-weight:bold;
+}
+.errors li .loc {
+  color:#a0a0a0;
+}
+.errors li {
+  color:#303030;
+  font-size:10pt;
+  margin:2px 0px 2px 0px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/** helper element used for getting the size of window **/
+#sizer {
+  position:absolute;
+  z-index:-1000;
+  background:transparent;
+  height:90vh;
+  width:80vw;
+  max-width:1000px;
+}
+
+/***************************************************************************************************
+  Formatting to make the page look nicer
+***************************************************************************************************/
+
+article h1 {
+  font-family:Kreon,'Times New Roman',times,serif;
+  font-size:30pt;
+  margin:30px 0px 30px 0px;
+  line-height:1.4em;
+}
+article a span {
+  color:black;
+  background:#F4C300;
+  padding:3px 10px 3px 10px;
+}
+article a:hover {
+  text-decoration:none;
+}
+article a:hover span {
+  background:#FFEC9B;
+  color:black;
+}
+body {
+  font-family:'Roboto',verdana,sans-serif;
+  font-size:13pt;
+  background-color:#F2F1ED;
+  overflow-x:hidden;
+  overflow-y:scroll;
+}
+article p {
+  font-size:13pt;  
+  margin:0px 0px 60px 0px;
+}
+article {
+  padding-top:30px;
+}
+button {
+  margin-top:10px;
+  min-width:120px;
+}
+.btn-success {
+  border-color:#BFBBAC !important;
+  background:#E5E2D7 !important;
+  color:#636159 !important;
+}
+.btn-success:hover, .btn-success:focus {
+  color:#636159 !important;
+  border-color:#BFBBAC !important;
+  background:#F5F2E7 !important;
+}
+.modal-content {
+  background-color:#F2F1ED;
+}
+.modal-dialog h4 {
+  font-family:Kreon,'Times New Roman',times,serif;
+}
