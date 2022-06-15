@@ -1,0 +1,52 @@
+1
+00:00:00,270 --> 00:00:05,820
+Exploring data in a programming environment that shows the source code, increases transparency,
+
+2
+00:00:05,820 --> 00:00:14,400
+reproducibility and empowers users to ask critical questions. But can we make those features accessible to non-programmers?
+
+3
+00:00:14,400 --> 00:00:18,960
+The Gamma is a simple text based data exploration environment that allows
+
+4
+00:00:18,960 --> 00:00:23,730
+non-experts to explore data from a wide range of data sources using iterative prompting
+
+5
+00:00:23,730 --> 00:00:31,140
+a simple, easy to learn interactional principle. Using iterative prompting data,
+
+6
+00:00:31,140 --> 00:00:38,610
+analysts can construct complete data exploration scripts by repeatedly selecting one of several offered options from an auto-complete list.
+
+7
+00:00:38,610 --> 00:00:47,520
+Iterative prompting turns auto-complete from a programmer assistance tool into an end-user programming mechanism.
+
+8
+00:00:47,520 --> 00:00:53,180
+It can be used to access a wide range of data sources in a uniform way.
+
+9
+00:00:53,180 --> 00:01:03,730
+This includes querying tabular data, retrieving data from data cubes and exploring the structure of graph databases.
+
+10
+00:01:03,730 --> 00:01:09,280
+Iterative prompting lowers the barrier to entry for programmatic data exploration.
+
+11
+00:01:09,280 --> 00:01:19,510
+In a study evaluating the first experience of using the Gamma, 12 out of 13 non-programmers completed a non-trivial data exploration task,
+
+12
+00:01:19,510 --> 00:01:25,880
+half of them without any assistance. To quote a participant from our study,
+
+13
+00:01:25,880 --> 00:01:32,160
+"For somebody who does not do coding or programming, this does not feel that daunting."
+

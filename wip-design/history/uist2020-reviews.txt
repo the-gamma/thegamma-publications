@@ -1,0 +1,536 @@
+-----------------------------------------------------------------------------
+UIST 2020 - Reviews
+-----------------------------------------------------------------------------
+
+1AC review
+
+  Meta-Review: Summary Rating
+
+    2.5  Weakly Reject
+
+  Meta-Review: Creative and Forward-thinking Summary Rating
+
+    3.5
+
+  The Meta Review (Primary)
+
+    Summary
+
+    R3: “This paper presents a textual programming toolkit for interacting with data.
+    The key technical contribution is what the authors call "iterative prompting" that
+    is like autocomplete but less limited. The proposed consumers of this toolkit are
+    journalists, and the proposed beneficiaries also include readers of data-based
+    journalism. The user study evaluates, without a control condition, whether non-
+    programmers (though not specifically journalists?) could use the toolkit to
+    achieve author-designed data wrangling and transformation tasks.”
+
+    Positives:
+
+    The reviews find many positives about the problem and the idea:
+    * AC2 The idea is intriguing. In particular the limited set of commands (in
+    contrast to more powerful but complex environments) and the extensive use of auto-
+    completion could have the potential to make a contribution in the field.
+    * R1; The topic of data-driven journalism is very timely and interesting.
+    * R2: The central premise of this paper is "iterative prompting", a user interface
+    where code intellisense / autocomplete is taken to the extreme. While this idea
+    may seem infeasible for general-purpose programming (I can't imagine even the most
+    sophisticated deep learning based systems knowing my intentions if I just keep
+    hitting "tab" and selecting from a menu), the authors have convinced me that it
+    *can* work for the limited domain of exploratory data analysis and visualization
+    in a "SQL-like" way.
+
+
+    However, they also largely agree on the concerns with the paper in it’s current
+    form.
+
+    The first is about the design decisions and contribution:
+
+    * R1; It is not clear what the exact goals of Gamma are. This makes it challenging
+    to understand which set of tools/technologies (e.g., R, Python, Vega-Lite,
+    Tableau) it can be logically compared to, in turn, making it difficult to assess
+    Gamma’s value addition.
+    * R1. The paper talks in-depth about Gamma’s features but lacks enough details
+    about how the design goals were generated and the underlying language’s design.
+    This again makes it challenging to assess the research contribution.
+    * R2: “ too much focus on issues of journalism that wasn't substantiated in the
+    paper itself."
+    * AC: “I believe the key argument for arguing that notebooks are messy and hard to
+    reproduce lies in the fact that people pursue multiple threads of data analyses as
+    they explore data, resulting in many “useless” instructions that can confuse the
+    person needing to reproduce it later. I am not sure how offering the scripting
+    language proposes in the submission solves this issue? People would still explore,
+    e.g. trying several commands, some of them revealing useless. If anything
+    notebooks offer the possibility to edit previous instructions to remove them. It
+    appears critical for the authors to articulate how this approach provides less
+    mess and easier to reproduce analyses."
+
+    The second is about related work that should be addressed.
+    * Ac2: However, the paper needs to do a better job at discussing the approach in
+    relation to existing work and flesh out the specific contribution, describing it
+    in sufficient detail.
+    * Ac2: The submission needs to reference textual scripting environment such as
+    GUESS, a textual environment providing commands for working with data and creating
+    visualization
+    * Ac2: the concept of iterative prompting and its difference with regular auto-
+    completion or intellisense (available in IDEs) is not crystal clear. It the
+    difference that all possible commands are shown when users type “.”?
+    * R2: Related work: Two other data science programming environments with
+    simplified user interfaces
+    * - Iris: A Conversational Agent for Complex Tasks (CHI 2018)
+    * - design goal for non-technical end-users, using a chat-based interface
+    * - DS.js: Turn Any Webpage into an Example-Centric Live Programming Environment
+    for Learning Data Science (UIST 2017)
+    * - pops up autocomplete suggestions for tabular data based on selection context
+    * - Also the startup product Kite (and probably other startups) mine Github
+    repositories of code to build a deep learning model to help do autocomplete for
+    general-purpose code:
+    * https://kite.com/javascript/
+    * R3: “I wish the related work section made a more compelling case for why this is
+    a significant leap forward from prior work, conceptually or technically. Right
+    now, many of the relevant works are described, but without much language
+    contrasting this work's contribution to that prior work."
+
+
+    I will echo AC2’s final thought: "Overall, I think the contribution is not clear
+    enough to recommend acceptance at this stage. It may be with substantial editing.
+    I would suggest the authors to focus on the unique contributions in relation to
+    existing work."
+
+  Personal Rating
+
+    (blank)
+
+  Creative and Forward-thinking Personal Rating
+
+    (blank)
+
+  Expertise
+
+    Knowledgeable
+
+  Summary and Contribution
+
+    (blank)
+
+  The Personal Review
+
+    (blank)
+
+  Post-PC Meeting review comments
+
+    This paper was discussed at the PC meeting. Based on the comments by reviewers and
+    program committee members, it was decided that this paper was below the bar.
+
+----------------------------------------------------------------
+
+2AC review
+score 2.5/5
+
+  Personal Rating
+
+    2.5  Weakly Reject
+
+  Creative and Forward-thinking Personal Rating
+
+    3.5
+
+  Expertise
+
+    Expert
+
+  Summary and Contribution
+
+    This submission presents a script interface with auto-completion (intellisense) of
+    a limited set of commands for non-programmers to load, analyze and visualize data.
+    The submission is framed for data journalists but could apply to a broader range
+    of users.
+
+    The idea is intriguing. In particular the limited set of commands (in contrast to
+    more powerful but complex environments) and the extensive use of auto-completion
+    could have the potential to make a contribution in the field. However, the paper
+    needs to do a better job at discussing the approach in relation to existing work
+    and flesh out the specific contribution, describing it in sufficient details.
+
+  The Secondary Personal Review
+
+    Several ideas presented in this paper have potential to make a contribution to the
+    field I believe.  The key issue with this submission however is the currently
+    unclear contribution:
+
+    1-	wrt computational notebooks
+
+    I believe the key argument for arguing that notebooks are messy and hard to
+    reproduce lies in the fact that people pursue multiple threads of data analyses as
+    they explore data, resulting in many “useless” instructions that can confuse the
+    person needing to reproduce it later.
+
+    I am not sure how offering the scripting language proposes in the submission
+    solves this issue?  People would still explore, e.g. trying several commands, some
+    of them revealing useless. If anything notebooks offer the possibility to edit
+    previous instructions to remove them. It appears critical for the authors to
+    articulate how this approach provides less mess and easier to reproduce analyses.
+
+    2-	wrt scripting systems such as GUESS
+
+    The submission needs to reference textual scripting environment such as GUESS, a
+    textual environment providing commands for working with data and creating
+    visualization (https://dl.acm.org/doi/10.1145/1124772.1124889), and articulate the
+    differences. It appears that The Gamma may offer a more limited language,
+    especially regarding the creation of visualizations, making it perhaps simpler to
+    use, but perhaps also harder to produce visualizations that users care about.
+
+    3-	wrt auto-completion/intellisense
+
+    Finally, the concept of iterative prompting and its difference with regular auto-
+    completion or intellisense (available in IDEs) is not crystal clear. It the
+    difference that all possible commands are shown when users type “.”?  If so, the
+    usability is tightly linked to the very limited number of operations in the
+    language provided or other strategies would be required. This tradeoff should also
+    be articulated more clearly. It also becomes crucial to weight the benefit of a
+    limited language that enables seeing all commands but may miss key functions vs a
+    more powerful language that may requires strategies such as typing a few first
+    letters or search for a usable auto-completion.
+
+
+    Overall, I think the contribution is not clear enough to recommend acceptance at
+    this stage. It may be with substantial editing. I would suggest the authors to
+    focus on the unique contributions in relation to existing work.  In particular,
+    the ideas that strike me as most compelling are:
+
+    1-      a limited language for data analysis and visualization: What is the
+    tradeoff with other more powerful environments? What was included (what and why is
+    it essential)? What was excluded (what and why is it expandable)?  This should
+    also come with evidence that such limited languages is sufficient to complete a
+    large percentage of analyses and explorations from the target audience.
+
+    2-      iterative prompting: describing clearly what is unique compare to regular
+    auto-complete functions (the fact that people can see the entire set of
+    possibility?) and assessing the impact of this difference on the analysis appears
+    critical.
+
+    Finally, there are other areas of improvements for this submission. Notably, it
+    lacks quite a number of details on how choices were made, and the specific focus
+    on data journalists is awkward as the evaluation of the systems was not performed
+    with this target audience.
+
+  Post-PC Meeting review comments
+
+    (blank)
+
+----------------------------------------------------------------
+
+reviewer 1 review
+score 2.5/5
+
+  Overall Rating
+
+    2.5 Weakly Reject
+
+  Creative and Forward-thinking Rating
+
+    2.5
+
+  Expertise
+
+    Knowledgeable
+
+  Summary and Contribution
+
+    The paper describes Gamma, an environment that seeks to make data analysis and
+    visualization easier for journalists.
+
+    The topic of data-driven journalism is very timely and interesting. It is evident
+    that a lot of work has been put into the development and based on the examples in
+    the paper as well as the online gallery, it seems that Gamma could indeed be a
+    good tool for novices to learn and perform basic data science tasks.
+
+    That said, I have two major concerns with the current paper:
+    1. It is not clear what the exact goals of Gamma are. This makes it challenging to
+    understand which set of tools/technologies (e.g., R, Python, Vega-Lite, Tableau)
+    it can be logically compared to, in turn, making it difficult to assess Gamma’s
+    value addition.
+    2. The paper talks in-depth about Gamma’s features but lacks enough details about
+    how the design goals were generated and the underlying language’s design. This
+    again makes it challenging to assess the research contribution.
+
+    I expand upon these points in my review below. However, since addressing these
+    points may require significantly rewriting the paper, I lean towards rejecting the
+    paper for this year’s conference.
+
+  The Review
+
+    The premise of supporting journalists by helping them rapidly explore the data and
+    create transparent reports is a promising one (and also very timely). The paper,
+    in general, is easy to follow and does a good job of illustrating the breadth of
+    capabilities that Gamma presents.
+
+    However, as I mentioned in the summary, there are two major issues I see in the
+    current submission that prevent me from recommending acceptance:
+
+    1. Unclear goals: Data exploration? Data analysis? Data visualization?
+
+    The paper starts by focusing on data-driven journalism and how it is difficult for
+    journalists to visualize data and generate reports. Then the paper switches to
+    talking about data exploration in general and then about targeted data analysis.
+    These terms are also used interchangeably throughout the paper, adding to the
+    confusion about Gamma’s core goal.
+
+    While I understand that there is overlap between these concepts and visualizations
+    can be a part of exploration and analysis, depending on the focus, Gamma would
+    need to support a different or more complex set of capabilities. For instance, for
+    data exploration, the assumption would be that the user is unaware of the
+    attributes and values in the dataset making it difficult to use Gamma’s
+    suggestions since they seem to assume familiarity with the data and having a goal
+    in mind. On the other hand, for data analysis, I would argue that with the growing
+    suite of Python packages and improvements to programming environments like Jupyter
+    making it easier for novices to conduct data analysis, Gamma doesn’t provide
+    enough operations. Finally, from a visualization perspective, Gamma’s support
+    seems limited and is restricted to very basic visualizations with a small set of
+    customization options (which seems rather important from a journalism standpoint).
+
+    In its current framing, I felt Gamma’s focus is around helping journalists
+    visualize data and ensuring that the process of creating the visualization is
+    transparent. While this is an ambitious and important idea, Gamma’s visualization
+    capabilities seem very limited for it to be of practical use. Furthermore,
+    requiring users to write code like “charts.column()” makes it similar to current R
+    /Python-based visualization packages. However, those packages already provide easy
+    capabilities to create both the illustrated visualizations as well as more
+    advanced ones. Regarding transparency, with grammars like Vega-Lite and languages
+    like Idyll, it is already possible to share how a chart was created. Although I
+    understand that the form of sharing is JSON or Markdown, the limited capabilities
+    of Gamma in comparison to these other options reduces the overall utility.
+
+    While my concerns may be amplified by my understanding of Gamma’s main goal, this
+    is a point that the paper needs to clarify so it is possible to assess Gamma’s
+    functionality and the extent to which it accomplishes the targeted goal.
+
+
+
+    2. Lacking design and implementation details
+
+    Similar to many language/toolkit papers, there is a question of whether Gamma is a
+    solid engineering effort that makes some tasks easier or if it has ample merit
+    from a research standpoint. I appreciate that the paper openly addresses this and
+    tries to clarify it using Olsen’s metrics. Regardless of the Discussion section in
+    the paper, I personally believe Gamma has merit both from a practical and research
+    standpoint. However, the current paper reads more like a “user manual” at times
+    and leaves it up to the readers to interpret the key takeaways.
+
+    For instance, the paper lists two design goals of Open Journalism and End-user
+    Data Exploration (the second one seems rather generic). While some of the listed
+    points particularly under the former are interesting, the paper provides no
+    details about the experience of collaborating with journalists or in what capacity
+    was the author collaborating with them. More details about this could help gain a
+    better understanding of the challenges and also instigate future work on tools for
+    data-driven journalism.
+
+    One of the primary contributions claimed by the paper is the idea of “iterative
+    prompting.” However, as the paper also states, this is very related to
+    functionalities in contemporary IDEs. Although the proposed approach is focused
+    towards working with data, calling it a novel contribution seems like a bit of an
+    overkill. One specific point about the approach that I was unclear about is if the
+    operation suggestions are contextual to previously performed actions (e.g., will a
+    “group by” operation be suggested if it will break a previously applied sorting
+    operation) or if they simply list everything that is possible? While I initially
+    assumed the former, the discussion under “Making complex things possible may hurt”
+    on page 9 made it sound otherwise. In other words, if the suggestions were
+    contextual, there should be no errors and users should be able to select any
+    option from the list of suggestions.
+
+    Finally, from a visualization standpoint, it is unclear how Gamma decides when it
+    should render a table vs. a chart or which chart should be shown (e.g., line chart
+    vs. bar chart). While it seems like this process is automated for some examples in
+    the paper (e.g., Figure 4) for others it seems like users need to write the code
+    to create the chart (e.g. Figure 7). Again there may be a rationale to do this but
+    that is not clear from the paper. Providing more details about this was another
+    opportunity to highlight the research value that I felt the paper missed out on.
+
+
+
+
+    Some other minor points to improve/clarify:
+
+    - There are a number of typos in the paper. “pioneerd” (Page 2), “allows non-
+    experts create simple” (Page 3), “The can display the value” (Page 6), “simeple”
+    (Page 8) etc.  I am only highlighting a few instances but in general the paper
+    would benefit from another round of proof-reading.
+
+    - The last two contribution bullets in the introduction aren’t really
+    contributions but merely describe what the paper presents. These can be rephrased.
+
+    - It is not clear how functions like setColors() work or how a novice user like a
+    journalist would discover, learn, and use such a feature within a time constraint.
+
+    - User study: it is not clear what the “demo” at the start of each session was.
+    Depending on what topics it covered participants may simply have followed what
+    they learnt from the demo instead of really understanding how Gamma works. The
+    responses to RQ2 exacerbate this concern further.
+
+    - Table 1 lists 13 participants but Table 2 lists 9. It is unclear why there is a
+    difference.
+
+----------------------------------------------------------------
+
+reviewer 2 review
+score 4/5
+
+  Overall Rating
+
+    4.0 Probably Accept
+
+  Creative and Forward-thinking Rating
+
+    4.5
+
+  Expertise
+
+    Expert
+
+  Summary and Contribution
+
+    This paper presents a data science programming tool with a restricted user
+    interface: users incrementally build up their code by selecting from a contextual
+    autocomplete menu while seeing the resulting data tables and visualizations live-
+    update. They can also manually edit code as necessary.
+
+  The Review
+
+    This system is a clever twist that supplements the growing body of literature
+    around data science tools, computational notebook technologies, and DSLs for data
+    wrangling. I recommend acceptance. The central premise of this paper is "iterative
+    prompting", a user interface where code intellisense / autocomplete is taken to
+    the extreme. While this idea may seem infeasible for general-purpose programming
+    (I can't imagine even the most sophisticated deep learning based systems knowing
+    my intentions if I just keep hitting "tab" and selecting from a menu), the authors
+    have convinced me that it *can* work for the limited domain of exploratory data
+    analysis and visualization in a "SQL-like" way. Basically if I get a CSV file (or
+    a data cube or graph database, which the system also supports) and want to
+    transform its data in SQL-like ways or make a set of basic data visualizations to
+    answer exploratory questions, I can imagine doing so via iterative prompting. The
+    set of operations is restricted enough so that the system's set of autocomplete
+    suggestions seems tractable. And live previews of outputs will help keep me on
+    track or "steer" me toward the eventual goal. Of course, as with all systems of
+    this sort (the authors talk about this a bit in the evaluation), it's possible for
+    users to get "stuck" on a local maxima and need to backtrack to take a different
+    strategy to achieve their goals. Such a system does still require training, which
+    is OK. The authors openly acknowledge that nothing can remove the "irreducible
+    complexity" of doing data science.
+
+    There are always things that we can critique about systems prototypes, but I think
+    that this is a good fit for UIST because it has a clever premise ("what if we just
+    let people program using auto-complete?") and executes well on it. One could
+    criticize the user interface as being "simplistic", but that's precisely its
+    design goal. I think this is a good contribution to the growing body of literature
+    on data science tooling.
+
+    More detailed comments and suggestions:
+
+    - I'd like to see some more discussion on the *quality* of data sets that are
+    necessary to make this system feasible. I'd imagine that a raw un-wrangled data
+    set would be hard to work with verbatim, since users would need to do a lot of
+    cleaning, pre-processing, and wrangling before making their queries. But I think
+    that requiring wrangled data is fine, since there are nice repositories of open
+    data sets available already, and if this were deployed in the field, presumably
+    some data engineers would take care of the wrangling work before presenting
+    cleaned data sets to journalists / project managers to explore using TheGamma.
+
+    Related work: Two other data science programming environments with simplified user
+    interfaces
+    - Iris: A Conversational Agent for Complex Tasks (CHI 2018)
+      - design goal for non-technical end users, using a chat-based interface
+    - DS.js: Turn Any Webpage into an Example-Centric Live Programming Environment for
+    Learning Data Science (UIST 2017)
+      - pops up autocomplete suggestions for tabular data based on selection context
+    - Also the startup product Kite (and probably other startups) mine github
+    repositories of code to build a deep learning model to help do autocomplete for
+    general-purpose code:
+    https://kite.com/javascript/
+
+    - I'm not sure what "Magic Escalator of Knowledge" means on Page 5
+
+    - minor typos: "feedaback" (page 2), "allows uses" -> users (page 6)
+
+    - The paper makes clear the authors' personal motivations for choosing journalism
+    as the motivating domain, and I agree that journalists are a great target
+    audience, but I felt that there was perhaps too much focus on issues of journalism
+    that wasn't substantiated in the paper itself. Given covid-19, I know we are not
+    supposed to be overly critical on user study details, but it seems like a full
+    study was run here with 13 participants (great!), but only one was a journalist.
+    Given the framing of the paper, I was expecting this system to be evaluated on
+    journalists. Of course, I still think the user study is valuable since the
+    participants were all non-programmers so they are a good target audience for this
+    system (e.g., project managers). But I think it weakens the paper to have the
+    introductory pitch be so strongly tied to journalists, especially mentioning
+    issues of fake news (which is a polarizing word nowadays!) and such. I was coming
+    into this paper expecting an end-user data science environment specifically *for*
+    journalists, but instead we got something far more general (which is again good!)
+
+----------------------------------------------------------------
+
+reviewer 3 review
+score 2/5
+
+  Overall Rating
+
+    2.0 Probably Reject
+
+  Creative and Forward-thinking Rating
+
+    2.0 Disagree that this paper is creative and forward-thinking
+
+  Expertise
+
+    Expert
+
+  Summary and Contribution
+
+    This paper presents a textual programming toolkit for interacting with data. The
+    key technical contribution is what the authors call "iterative prompting" that is
+    like autocomplete but less limited. The proposed consumers of this toolkit are
+    journalists, and the proposed beneficiaries also include readers of data-based
+    journalism. The user study evaluates, without a control condition, whether non-
+    programmers (though not specifically journalists?) could use the toolkit to
+    achieve author-designed data wrangling and transformation tasks.
+
+  The Review
+
+    This paper has the makings of a great UIST paper. Unfortunately, I do not think
+    it's ready yet for the following three reasons: (1) there are some mismatches
+    between the motivation and evaluation (2) there are some mismatches between the
+    motivation and design and (3) the magnitude of the impact of the key conceptual
+    contribution of iterative prompting is not well captured in the evaluation, so
+    it's not clear to me as a reader just how successful that key innovation is.
+
+    *Motivation/Evaluation mismatch*
+    This paper makes a lot of time and effort to describe the needs of journalists and
+    the current journalism environment (loss of trust etc.) which are very important
+    topics. However, of the 13 recruited study participants, only one is a (former)
+    journalist. They are currently employed in non-technical roles, but their actual
+    programming experience would be appreciated, as well as some evidence about the
+    programming experience of journalists, so that we can judge that the participants
+    are a reasonable substitute for the intended toolkit users.
+
+    *Motivation/Design mismatch*
+    The description of user needs that motivate the creation of this tool, i.e.,
+    transparency and reader engagement, are laudable needs to address, but the link to
+    a programming toolkit that makes programming easier is only loosely linked to
+    these needs. What impact will a toolkit whose primary research contribution is
+    helping the composer of scripts (i.e., the journalist) navigate various options
+    have on perceived transparency for readers? How does a programming toolkit for
+    journalists increase reader engagement? Are you expecting readers will be able to
+    read the journalist's code to better understand the analysis that was done, rather
+    than read the textual description in the article? Or edit the code to conduct
+    their own counterfactual analysis? The evaluation does not attempt to evaluate
+    these implied benefits of the toolkit, given how it's motivated.
+
+    *Magnitude of contribution*
+    I wish the related work section made a more compelling case for why this is a
+    significant leap forward from prior work, conceptually or technically. Right now,
+    many of the relevant works are described, but without much language contrasting
+    this work's contribution to that prior work.
+    One of the other key contributions, identifying design requirements for data
+    exploration tools for journalists, would be appropriate to claim if the authors
+    conducted interviews with journalists and/or journalism consumers.
+
+----------------------------------------------------------------
+

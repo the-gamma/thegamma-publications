@@ -1,0 +1,381 @@
+-----------------------------------------------------------------------------
+CHI 2021 - Reviews
+-----------------------------------------------------------------------------
+
+1AC review
+score 2/5
+
+  Expertise
+
+    Knowledgeable
+
+  Recommendation
+
+    Possibly Reject: The submission is weak and probably shouldn't be accepted, but
+    there is some chance it should get in; 2.0
+
+  1AC: The Meta-Review
+
+    This paper introduces a novel tool intended to support non-programmers in
+    navigating and making simple manipulations on data (filtering, aggregating, etc.)
+    with a technique of interactive prompting. The system suggests possible
+    completions at each step, eventually generating a program in a textual language.
+    The typical output of such programs is a simple visualization in the form of,
+    e.g., a bar chart.
+
+    All reviewers agree that this work is of interest to the HCI community and that
+    there are interesting ideas such as the unified way to build queries over
+    different data sources. They also all agree that the paper is not ready for
+    publication yet, because of the following issues (I only list the main ones, the
+    authors will find more detail in individual reviews):
+
+    - Actual contribution beyond the state-of-the-art is not clearly identified
+    (2AC,R1).
+
+    - Lack of convincing evidence about the performance difference between The Gamma
+    and other query building system (2AC,R2), in particular w.r.t the added value of
+    iterative prompting (2AC), but about learnability as well (R2).
+
+    - Unclear how the system actually supports *exploration* (R1) since all examples
+    show a single, linear exploration path. I had the same question after reading the
+    paper.
+
+    - Mismatch between targeted audience (revolving around data journalism) and study
+    participants (2AC,R1,R2). The case for The Gamma as a tool for data journalists
+    needs to be better motivated. R2 provides a detailed analysis of the paper's
+    weaknesses in that respect.
+
+    - Threats to external validity (2AC,R2). As mentioned by 2AC, there is some
+    potential for "people-pleasing" in the study design. The paper should clarify how
+    this was taken into account. Clarifications about the conditions in which
+    assistance was provided to users are necessary (2AC,R2).
+
+    - Missing information about the study design and results (2AC,R2).
+
+    While the authors have an opportunity to submit a rebuttal, the magnitude of
+    changes required for it to be considered for publication seem to be well beyond
+    what can be achieved in the single, short camera-ready revision cycle implemented
+    by CHI.
+
+    One additional comment from 1AC: I found the insistence on the completeness of the
+    proposed interactive specification technique somewhat odd. Claims about
+    correctness, completeness, and to some extent soundness are usually backed by some
+    evidence such as actual formal proofs thereof. Here, I could not find anything of
+    the sort. It is ok not to have such proofs included in the manuscript for an HCI-
+    focused paper, but then I would expect either the authors not to put this forward
+    so much, or to provide a link to material that does establish this completeness
+    property unequivocally.
+
+  Rebuttal response
+
+    (blank)
+
+----------------------------------------------------------------
+
+2AC review
+score 2/5
+
+  Expertise
+
+    Knowledgeable
+
+  Recommendation
+
+    Possibly Reject: The submission is weak and probably shouldn't be accepted, but
+    there is some chance it should get in; 2.0
+
+  Review
+
+    This paper describes a system of iterative prompting combined with a text-based
+    programming language, intended to support non-programmers in constructing their
+    desired queries of data. This is certainly of interest to the HCI community,
+    regarding the expansion of computation to more and more users.
+
+    The related work is appropriately grounded in HCI literature, but the magnitude of
+    the difference between the work and prior literature reads as small, and the
+    *evaluation does not show that this small difference has a significant effect.* If
+    the evaluation had a control condition with SQL or one of any other similar
+    autocomplete systems and/or query-building systems, that would really help
+    elucidate its impact.
+
+    This paper has some mismatches in goals and outcomes:
+    1. Goals and evaluation mismatch: The authors motivate the work by talking about
+    intended users, i.e., journalists and readers, but the study participants
+    (recruitment is not explained) are not specifically from either group, but instead
+    are asked about how whether they think those groups would benefit.
+    2. Claimed goal-enabling novel feature and evidence mismatch: The authors claim
+    that a key component of their contribution, iterative prompting, is what
+    distinguishes their work from others but their study fails to measure the impact
+    of this feature. While targeting non-programmers, they acknowledge that their
+    system is still a programming language, requiring the building of a mental model
+    just like any other programming language, and they describe how many of their
+    participants do not in fact build that mental model, i.e., around the use of the
+    function “then.” This is evidence that iterative prompting (and live previews) on
+    top of a query language is not sufficient for lowering the barriers to non-
+    programmers.
+
+    Study design concerns:
+    1. Given that the explanation of the system was grounded in how it’s different
+    than SQL, it makes sense that SQL would be used as a control condition; why did
+    the authors decide not to include a control?
+    2. What measures were taken to prevent significant “people-pleasing” in their
+    rated approval of statements (shown in Fig 5)? This is a threat to external
+    validity. If this study was to be repeated, including statements that are
+    negative, i.e., “I was confused by the system,” next to the positive statements
+    like “I found the system easy to use” can help in this regard.
+    3. What kind of assistance were participants given by the experimenters? How did
+    the experimenters determine that they were “stuck” and in need of help? If this
+    study was to be repeated, giving experimenters a guide or other principled
+    restrictions on the help they can give can help ameliorate this major threat to
+    external validity.
+
+    Other questions about the study protocol that were not answered in the paper
+    itself but would need to be in a camera ready:
+    1. How were the participants recruited?
+    2. How long was the session in which the participants participated?
+
+  Rebuttal response
+
+    (blank)
+
+----------------------------------------------------------------
+
+reviewer 1 review
+score 2.5/5
+
+  Expertise
+
+    Expert
+
+  Recommendation
+
+    . . . Between possibly reject and neutral; 2.5
+
+  Review
+
+    This paper introduces Gamma, an interactive system that supports data exploration
+    through iterative prompting. Given a dataset, it suggests data operations that can
+    be sequenced to generate a data table and/or a chart. The paper presents two use
+    cases to demonstrate the various aspects of the system in addition to a
+    qualitative user study.
+
+    Overall, the idea of interactive prompting is quite interesting. The attached demo
+    shows some compelling examples supporting the idea.
+
+    However, I found the contribution and originality of this work may not be
+    significant, or at least I was not fully convinced of it. First of all, as the
+    authors acknowledged in the related work section, the conceptual idea is very
+    similar to natural language-based or conversational interfaces for data
+    exploration. In fact, I felt that conversational interfaces might be superior than
+    the proposed work. The paper needs to better articulate the distinction between
+    them to make a convincing case.
+
+    Likewise, it is also difficult to imagine how the presented work is better than
+    direct manipulation interfaces. Shelf-configurations interfaces such as Tableau
+    seem to generate much more expressive data visualizations beyond simple charts and
+    can also perform data operations under the hood (encapsulating the query language
+    using visual and interactive methods).
+
+    Also, I am curious how the proposed work reduces the gulfs of execution and
+    evaluation. For instance, if I want to generate a horizontal bar chart in Fig 2.,
+    it seems I need to take specific steps. I think this has a much wider gap compared
+    to simply specifying the dimension for the y-axis and the measure for the x-axis
+    and just selecting the top five to filter. On the other hand, showing the outcomes
+    of the intermediate steps seems to help reduce the gulf of evaluation.
+
+    I would like to see more discussion on how the system supports data “exploration”.
+    Almost all examples, if I am not wrong, show a single exploration path from the
+    dataset to the completion of the query. What if I want to modify the query and
+    explore different paths (confirming one hypothesis led to different hypotheses)?
+    Also, is the query robust for the different orderings of the commands or should I
+    have a specific ordering to reach a specific chart? If I have to follow the exact
+    sequence of commands to create a specific bar chart, I think the usability is
+    probably not better than a simple natural language/direct manipulation interface.
+
+    I also have other minor questions about the details. For example, I am curious how
+    the system chooses specific visual encodings based on the query. Why bar charts
+    versus line charts? Can the system create other than the presented charts and
+    how?.
+
+    The paper mentions that the underlying motivation for this work is from the field
+    of journalism. But the connection to journalism is not very clear. I wonder if a
+    formative study such as interviews with journalists or positioning the work based
+    on actual problem cases that journalists face would be useful to motivate the need
+    for this work.
+
+
+    The x-axis title in the graph is missing.
+
+    I think the core part of this work is the system itself. So, the case studies and
+    user study could be reduced to make rooms for adding more explanations and
+    clarifications necessary above.
+
+  Rebuttal response
+
+    (blank)
+
+----------------------------------------------------------------
+
+reviewer 2 review
+score 2.5/5
+
+  Expertise
+
+    Knowledgeable
+
+  Recommendation
+
+    . . . Between possibly reject and neutral; 2.5
+
+  Review
+
+    This work introduces “The Gamma” a text query mechanism, that uses auto-completion
+    to iteratively construct query operations on different data sources (tabular,
+    graph, data-cubes) and produce very simple visualisations (barcharts, linecharts).
+    The main innovation here is the querying mechanism that is unified across these
+    data sources, and the idea of using auto-completion to make the scripting/query
+    language accessible to non-programmers.  This first part is to me the main
+    contribution of the paper, which is a valuable one for the visualisation
+    community. If this were a shorter paper focusing on these aspects, I would have
+    argued for acceptance. Nevertheless, the paper goes further to make several claims
+    (2nd and 3rd contribution) about how this addresses challenges faced by data
+    journalists, lowers barriers to entry, supports learning; as well as a user study
+    that claims to show that users can learn from examples and transfer knowledge. In
+    my opinion the connection to the challenges faced by data journalism is not well
+    grounded, and there are several issues with the user study that make it hard to
+    draw conclusions. Overall, while I do believe the main idea is of value, there are
+    aspects of the paper (attempt to tie it to data journalism and results from the
+    user study) that are not as convincing and would require a thorough rewriting, if
+    not outright removing. These types of changes I feel would go beyond what is
+    possible within a CHI revision round.
+
+    Detailed review
+    ===========
+
+    I liked how this approach allows a unified way of querying different data sources
+    (tabular, graph, data-cubes), as it has the potential to allow users to use a
+    single environment for several data types. And the idea of auto-completion makes
+    sense in the context of text queries, as it allows users to see what options are
+    available to them. The vocabulary used by “The Gamma” scripting seems for the most
+    part appropriate (like “sort”, “sum”, “group” - others like “take” a bit less so)
+    and people who have some experience with tabular data (and even better databases)
+    are likely able to understand what the operators are trying to achieve (although
+    this was not proven, see 2i).  Even though the tool does not really contribute to
+    visualization encodings (as far as I can tell it supports barcharts and
+    linecharts), I believe it has value for the visualization community as a tool to
+    create unified queries. If this were the main contribution put forward by the
+    paper, I would have been more positive. As it stands, a considerable part of the
+    paper is taken up by sections 4,5,6 which I believe do not provide enough evidence
+    for the other claimed contributions.
+
+    1. Connection to data journalism:
+    (i)The paper attempts to motivate its design of the work by reporting the needs of
+    data journalism. As the paper mentions, transparency and reproducibility are
+    indeed major challenges faced by journalists today. And while it can be argued
+    that the addition of “The Gamma” scripts may make the analysis reproducible, it is
+    unclear if it makes it more trustworthy “through transparency” (as mentioned in
+    the abstract and section 4), or if it “encourages meaningful engagement”. To make
+    such claims, the paper needs to study the understandability of scripts (ie if they
+    can be read by un-trained readers) and if these readers are “more engaged” when
+    these scripts are given to them (instead of just a story or a visualization).
+    (ii) Given how often the paper mentions the data journalism motivation, I was
+    expecting more details when discussing how data journalists attempt to promote
+    transparency now  - in particular given how the paper claims past collaborations
+    with data journalists. This could have acted as the “baseline” to compare the
+    system against, even in the form of a discussion.
+    (iii) Moreover, I was hoping that the example tasks used in the study would be
+    driven by existing data stories from the news. It is possible these tasks do
+    indeed come from real news stories, but this is never said in the paper.
+    (iv) Finally, the abstract, intro and section 4 of the paper generally refer to
+    transparency and engagement with respect to the audience of the articles (as far
+    as I understand). Nevertheless, the case study and study focus on the authoring of
+    the articles, ie the data journalists. There seems to be a mismatch here. I
+    suspect the approach tries to support both, but it is motivated by targeting
+    mainly the audience and tested by targeting only the authors.
+
+    I felt the connection of the work with data journalism is weak and does not
+    warrant the weight put on it in the writing of the paper.  Please note I am not
+    saying that the approach does not have potential in the domain, just that this
+    potential is largely unproven.
+
+    2. Issues with the user study.
+    It is encouraging to see the paper attempt to get feedback on the use of the
+    system. Nevertheless, I feel the user study has several limitations.
+
+    Design:
+    (i) The paper makes several claims about the learnability of the approach (e.g.,
+    in the abstract and the research question RQ3 in section 6). I have two concerns
+    regarding learnability. First, the paper itself does not report the details of the
+    tasks related to learning (I found these in the supplementary material). Second,
+    and more importantly,  these tasks (lords, olympics) do not actually try to see if
+    people understand the scripts: the task start by giving the scripts and explaining
+    to participants what the scripts actually do. They thus do not test the
+    “learnability” of the scripts. They do test the “transfer”.
+    (ii) The details of the study are really vague. The between-subject design seems
+    somewhat random (the assignment of tasks to participants does not seem to have a
+    logic, some tasks have 5 participants, some 3, some 2). It almost seems that some
+    of the tasks were added as an afterthought. The goal of the tasks is not clear in
+    the text (ie how they tie to the research questions), given that the description
+    of the tasks, especially the last two, is very vague.
+    (iii) Last, but not least, I felt the study missed the opportunity to show how
+    powerful the approach can be compared to other competitors. We can envision
+    situations where explanations (“scripts”) of how to reach the results of the tasks
+    done here could have been done in a software such as Excel, or a visual querying
+    language (inspired for example by Scratch). In particular tools like Excel and
+    googlesheets that are accessible to a wide range of people make a very clear
+    competitor, at least for the tabular data. And although the paper is right that
+    these other tools were designed with different goals, they can still be used to
+    perform operations such as the ones supported by "The Gamma" (sum, aggregate,
+    sort, etc). Without a comparison we do not know if indeed “The Gamma” is a good
+    alternative in terms of ease of understanding and reusability.
+
+    Reporting:
+    The reporting of the study is also not clear.
+    (iv) In the context of the study, what does it mean to require guidance or to
+    partially complete a task (7/13 participants)? I can imaging trying to change
+    items in the script (eg dimension names) without really understanding the script,
+    so I am not sure what these findings tell us about how easy it is to use or to
+    understand the tool.
+    (v) The results often mention x/11 participants, but the study reports 13
+    participants. Is this a typo or for some reason results of 2 participants are not
+    considered?
+    (v) It seems the questionnaire asks questions to participants that have different
+    experiences, without making any distinctions. For example, there is a question
+    about the usefulness of the tool for data journalists, but only one participant
+    was a data journalist. Are the other participants knowledgeable about data
+    journalism and if not, how can they answer this question? Participants are also
+    asked questions on using the tool with different data sources, but participants’
+    experience with this is very different (as some actually did this in their tasks).
+    Overall, I find it very hard to give weight to the findings reported here.
+
+    The study is not informative enough to understand what are the benefits of this
+    querying approach.  strongly recommend removing all claims in the paper about
+    learnability (as this was not tested) and providing details to help contextualise
+    the results.
+
+
+    3. Some further comments/concerns.
+    i) I appreciate that the paper references the work by Olsen on the challenges of
+    evaluating complex systems. Nevertheless, I feel several of the claims made in 7.2
+    are not evident for the reader. For example, the importance of the tool for the
+    domain has not been demonstrated (see my comment on data journalism), and I am not
+    sure what aspect of the discussion or study showed empowerment and allowed users
+    to do things they could not do before (or can now do them easier, faster). I do
+    definitely agree with the point of generality (which as I mentioned is the main
+    contribution).
+    ii) I suggest to explain in the abstract what is the “single interaction
+    principle”
+
+
+    Overall, this paper makes an interesting technical contribution in the form of a
+    text querying approach using auto-completion, that works over multiple types of
+    data sources. Nevertheless, a large part of the paper is taken up by two aspects
+    that I believe require considerable work (connection to data journalism, user
+    study) before the paper is published.
+
+  Rebuttal response
+
+    (blank)
+
+----------------------------------------------------------------
+
