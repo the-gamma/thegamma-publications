@@ -1,0 +1,100 @@
+{% extends "default.html" %}
+
+{% block head %}
+<meta name="description" content="The easiest way to create and share your open and transparent data visualizations that are linked to the original data source and encourage the reader to explore data further and discover more fun facts on their own!" />
+<meta name="author" content="Tomas Petricek" />
+<meta property="og:title" content="The Gamma: Share your visualizations" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://snippets.thegamma.net" />
+<meta property="og:image" content="http://thegamma.net/img/logo.png" />  
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:site" content="@thegamma_net" />
+<meta name="twitter:title" content="The Gamma: Share your visualizations" />
+<meta name="twitter:description" content="The easiest way to create and share your open and transparent data visualizations that are linked to the original data source and encourage the reader to explore data further and discover more fun facts on their own!" />
+<meta name="twitter:image" content="http://thegamma.net/img/logo.png" />  
+<title>The Gamma: Share your visualizations</title>
+{% endblock %}
+
+{% block body %}
+<header>
+<div class="container">
+  <div class="row">
+    <div class="col-sm-12 col-md-10 col-lg-8">
+      <a href="/"><h1><span><strong>The Gamma</strong>: Share your data visualizations</span></h1></a>
+      <p>The easiest way to create &amp; share your open and transparent data visualizations
+        that are linked to the original data source and encourage the reader to explore
+        data further and discover more fun facts on their own!</p>
+      {% assign hp = model | isHome %}
+      {% if hp == "true" %}
+      <a href="/create"><h2><span>Create snippet</span></h2></a>
+      <a href="/all"><h2><span>View all snippets</span></h2></a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+</header>
+  
+<article>
+<div class="container">
+  
+<div class="row"><div class="col-sm-12 col-md-8">
+  {% assign hp = model | isHome %}
+  {% if hp == "true" %}
+  <h2>Recently shared snippets</h2>
+  <p>Here you can find sample snippets created using The Gamma. This site makes it easy to 
+    <a href="/insert">create &amp; share</a> your own snippets, but also embed them into your 
+    own web page - just pick a snippet, copy the displayed HTML code and paste it into your
+    page. If you want to have more control, you can go to The Gamma <a href="http://thegamma.net/developers/">
+    developer documentation</a> and use oru JavaScript component directly.</p><br />
+  {% endif %}
+</div></div>
+
+<div class="row">
+  <div class="content col-md-6">
+    <ul>
+      {% for item in model %}
+        {% assign mod = forloop.index0 | modTwo %}
+        {% if mod == 0 %}
+        <li>
+          <h3><a href="/{{ item.id }}/{{ item.title | cleanTitle }}">{{ item.title }}</a></h3>
+          <p>{{ item.description }}</p>
+          <p><strong>Posted:</strong> {{ item.posted | niceDate }} by 
+          {{ item.author }}<br />
+          {% if item.twitter == null %}{% else %}<a href="https://twitter.com/{{ item.twitter }}">@{{ item.twitter }}</a>{% endif %}
+          {% unless item.link == null or item.twitter == null %} | {% endunless %}
+          {% if item.link == null %}{% else %}<a href="{{ item.link }}">more information</a>{% endif %}</p>
+        </li>
+        {% endif %}
+      {% endfor %}
+    </ul>
+  </div>
+  <div class="content col-md-6">
+    <ul>
+      {% for item in model %}
+        {% assign mod = forloop.index0 | modTwo %}
+        {% if mod == 1 %}
+        <li>
+          <h3><a href="/{{ item.id }}/{{ item.title | cleanTitle }}">{{ item.title }}</a></h3>
+          <p>{{ item.description }}</p>
+          <p><strong>Posted:</strong> {{ item.posted | niceDate }} by 
+          {{ item.author }}<br />
+          {% if item.twitter == null %}{% else %}<a href="https://twitter.com/{{ item.twitter }}">@{{ item.twitter }}</a>{% endif %}
+          {% unless item.link == null or item.twitter == null %} | {% endunless %}
+          {% if item.link == null %}{% else %}<a href="{{ item.link }}">more information</a>{% endif %}</p>
+        </li>
+        {% endif %}
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+
+<div class="row"><div class="col-sm-12 col-md-8">
+  {% if hp == "true" %}
+  <p>For more snippets, see <a href="/all">the list of all shared snippets...</a></p>
+  {% endif %}
+</div></div>
+
+
+</div>
+</article>
+{% endblock %}

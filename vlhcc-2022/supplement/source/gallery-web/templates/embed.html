@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+  <title>{{ model.title }}</title>
+</head>
+<body>
+
+<script type="text/thegamma" id="s{{ model.id }}-code">
+{{ model.code }}
+</script>
+<div class="thegamma" id="s{{ model.id }}"></div>
+
+<script type="text/javascript">
+if (!thegamma) { var thegamma=[],tg="https://thegamma.net/lib/thegamma-{{ model.version }}/";
+["//www.google.com/jsapi",tg+"babel.min.js",tg+"core-js.min.js",tg+"require.js",tg+"embed.js"].
+forEach(function(u) { document.write('<sc'+'ript type="text/javascript" src="'+u+'"></sc'+'ript>'); });
+} thegamma.push("s{{ model.id }}");
+</script>
+
+</body>
+</html>

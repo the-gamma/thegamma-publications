@@ -1,0 +1,2 @@
+This folder contains supplementary materials for paper "The Gamma: Programmatic Data Exploration for Non-programmers". This includes a snapshot of the source code of The Gamma system, detailed information about tasks completed in the user study and a questionaire that was given to participants at the end of the study (the results are not reported in the paper).
+ 

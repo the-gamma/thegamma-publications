@@ -1,0 +1,256 @@
+{% extends "default.html" %}
+
+{% block head %}
+<meta name="description" content="{{ model.description }}" />
+<meta name="author" content="{{ model.author }}" />
+<meta property="og:title" content="{{ model.title }}" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://snippets.thegamma.net/{{ model.id }}/{{ model.title | cleanTitle }}" />
+<meta property="og:image" content="https://thegamma.net/img/logo.png" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:site" content="@thegamma_net" />
+<meta name="twitter:title" content="{{ model.title }}" />
+<meta name="twitter:description" content="{{ model.description }}" />
+<meta name="twitter:image" content="https://thegamma.net/img/logo.png" />
+<title>{{ model.title }} | The Gamma Gallery</title>
+
+<link href="https://thegamma.net/lib/thegamma-{{ model.version }}/thegamma.css" rel="stylesheet">
+<script src='https://www.google.com/recaptcha/api.js'></script>
+{% endblock %}
+
+{% block body %}
+<script type="text/thegamma" id="demo">{{ model.code }}</script>
+
+<header>
+<div class="container">
+  <div class="row">
+    <div class="col-sm-12 col-md-10 col-lg-8">
+      <a href="/"><h1><span><strong>The Gamma</strong>: {{ model.title }}</span></h1></a>
+      <p>{{ model.description }}</p>
+      <p>This snippet has been shared {{ model.posted | niceDate }} by <strong>{{ model.author }}</strong>.
+      {% if model.twitter == null %}{% else %}You can contact the author via Twitter at <a href="https://twitter.com/{{ model.twitter }}">@{{ model.twitter }}</a>.{% endif %}
+      {% if model.link == null %}{% else %}For more information, see the <a href="{{ model.link }}">author's web page</a>.{% endif %}</p>
+    </div>
+  </div>
+</div>
+</header>
+
+<article>
+<div class="container">
+
+<div class="row thegamma">
+  <div class="col-md-1"></div>
+  <div class="col-md-10">
+    <div class="shadow" style="padding:20px;background:white">
+    <div id="out1" class="output">
+      <div class="placeholder">
+        Loading the visualization...
+      </div>
+    </div>
+    </div>
+  </div>
+  <div class="col-md-1"></div>
+</div>
+
+<div class="row" style="margin-top:50px"><div class="col-sm-12">
+  <div class="tabs">
+    <div class="tab-sel tab" id="tab_0" onclick="switchTabs(0);"><i class="fa fa-code"></i> Edit the snippet</div>
+    <div class="tab" id="tab_1" onclick="switchTabs(1);"><i class="fa fa-code-fork"></i> Share your version</div>
+    <div class="tab" id="tab_2" onclick="switchTabs(2);"><i class="fa fa-share-alt"></i> Embed the snippet</div>
+  </div>
+  <div class="shadow" style="background:white;min-height:800px">
+
+    <div class="tab-body thegamma" id="tab_body_0">
+      <div id="ed1"></div>
+      <div id="ed1-errors" class="errors"></div>
+      <div style="padding:20px 0px 0px 10px"><button id="run" class="btn btn-success">Run snippet</button></div>
+    </div>
+
+    <div class="tab-body" id="tab_body_1" style="display:none">
+      <form class="form-horizontal" name="insert-form" id="insert-form" action="/insert" onsubmit="return validateForm();" method="post">
+        <input type="hidden" name="version" value="{{ model.version }}" />
+        <div class="form-group">
+          <label for="title" class="col-sm-2 control-label">Title*</label>
+          <div class="col-sm-10">
+            <input type="text" class="form-control" id="title" name="title" value="{{ model.title }}">
+            <div id="title_error" class="error">Please enter snippet title.</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="description" class="col-sm-2 control-label">Description*</label>
+          <div class="col-sm-10">
+            <textarea class="form-control" name="description" rows="3" id="description">{{ model.description }}</textarea>
+            <div id="description_error" class="error">Please enter snippet description.</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="source" class="col-sm-2 control-label">Source code*</label>
+          <div class="col-sm-10">
+            <textarea readonly="readonly" class="form-control" name="source" rows="6" id="source"></textarea>
+            <div id="source_error" class="error">Snippet source code cannot be empty.</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="author" class="col-sm-2 control-label">Author*</label>
+          <div class="col-sm-10">
+            <input type="text" class="form-control" id="author" name="author" placeholder="Your Name">
+            <div id="author_error" class="error">Please enter author name.</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="twitter" class="col-sm-2 control-label">Twitter</label>
+          <div class="col-sm-10">
+            <input type="text" class="form-control" id="twitter" name="twitter" placeholder="yourhandle">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="link" class="col-sm-2 control-label">Link</label>
+          <div class="col-sm-10">
+            <input type="text" class="form-control" id="link" name="link" placeholder="https://...">
+          </div>
+        </div>
+        <div class="form-group submit-group">
+          <div class="col-sm-offset-2 col-sm-10">
+            <div class="recaptcha" style="float:right">
+              <div class="g-recaptcha" data-sitekey="6LeShxMUAAAAAA25BYR6xSXTu0j9w3-aYxOCKIAx"></div>
+              <div id="human_error" class="error">Please verify you are a human.</div>
+            </div>
+          </div>
+          <div class="col-sm-offset-2 col-sm-10">
+            <button type="submit" id="submit" name="submit" value="Share snippet" class="btn btn-success">Share snippet</button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <div class="tab-body" id="tab_body_2" style="display:none;padding:30px">
+      <textarea readonly="readonly" class="form-control" rows="5" style="width:100%;font:11pt Inconsolata" id="embedcode">
+&lt;script type="text/thegamma" id="s{{ model.id }}-code"&gt;
+{{ model.code }}
+&lt;/script&gt;
+&lt;div class="thegamma" id="s{{ model.id }}"&gt;&lt;/div&gt;
+
+&lt;script type="text/javascript"&gt;
+if (!thegamma) { var thegamma=[],tg="https://thegamma.net/lib/thegamma-{{ model.version }}/";
+["//www.google.com/jsapi",tg+"babel.min.js",tg+"core-js.min.js",tg+"require.js",tg+"embed.js"].
+ forEach(function(u) { document.write('&lt;sc'+'ript type="text/javascript" src="'+u+'"&gt;&lt;/sc'+'ript&gt;'); });
+} thegamma.push("s{{ model.id }}");
+&lt;/script&gt;</textarea>
+    <p style="color:#808080; margin-top:20px">We can generate a
+      <a href="/{{ model.id }}/{{ model.title | cleanTitle }}/embed">minimal page with the embedded snippet</a>
+      for you. This is just a sample and contains no other styling.</p>
+    <p style="color:#808080">To embed the snippet on your web page, just copy &amp; paste the
+      above HTML code into your web page. The first part includes the code of the snippet. You can
+      modify this later if you wish. The second part loads The Gamma and needs to be included at
+      least once per page. For most efficient loading, put it at the end of your document. If
+      you need more control, you can use <a href="https://thegamma.net/developers/">The Gamma as a
+      stand-alone JavaScript component</a>.</p>
+    </div>
+  </div>
+</div></div>
+
+</div>
+</article>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.js"
+  integrity="sha256-16cdPddA6VdVInumRGo6IbivbERE8p7CQR3HzTBuELA=" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
+  integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="https://thegamma.net/lib/thegamma-{{ model.version }}/babel.min.js"></script>
+<script src="https://thegamma.net/lib/thegamma-{{ model.version }}/require.js"></script>
+<script>
+  require.config({
+    paths:{'vs':'https://thegamma.net/lib/thegamma-{{ model.version }}/vs'},
+    map:{ "*":{"monaco":"vs/editor/editor.main"}}
+  });
+
+  var editor;
+
+  function validateForm() {
+    document.getElementById("source").value = editor.getValue();
+    var elems = ["title","description","source","author"];
+    var valid = true;
+    for(var i = 0; i < elems.length; i++) {
+      var elemValid = document.getElementById(elems[i]).value.trim() != "";
+      document.getElementById(elems[i]+"_error").style.display = elemValid ? "none" : "block";
+      valid = valid && elemValid;
+    }
+    var reValid = grecaptcha.getResponse().length > 0;
+    valid = valid && reValid;
+    document.getElementById("human_error").style.display = reValid ? "none" : "block";
+    return valid;
+  }
+
+  function switchTabs(idx) {
+    for(var i=0; i<=2; i++) document.getElementById("tab_" + i).className = "tab";
+    for(var i=0; i<=2; i++) document.getElementById("tab_body_" + i).style.display = "none";
+    document.getElementById("tab_body_" + idx).style.display = "block";
+    document.getElementById("tab_" + idx).className = "tab-sel tab";
+    document.getElementById("source").value = editor.getValue();
+
+    var ea = document.getElementById("embedcode");
+    if (ea && idx==2) { ea.style.height = (ea.scrollHeight + 10) + "px"; }
+  }
+
+
+  require(["monaco", "https://thegamma.net/lib/thegamma-{{ model.version }}/thegamma.js"], function (_, g) {
+    var services = "https://thegamma-services.azurewebsites.net/";
+    var graphServices = "https://thegamma-graph-service.azurewebsites.net/";
+    var provspec =
+      { "libraries": g.providers.library("https://thegamma.net/lib/thegamma-{{ model.version }}/libraries.json"),
+        "worldbank": g.providers.rest(services + "worldbank"),
+        "shared": g.providers.rest("https://gallery-csv-service.azurewebsites.net/providers/listing"),
+        "web": g.providers.rest("https://gallery-csv-service.azurewebsites.net/providers/data"),
+        "expenditure": g.providers.rest("https://govuk-expenditure.azurewebsites.net/expenditure"),
+        "drWho": g.providers.rest(graphServices + "drWho"),
+        "olympics": g.providers.pivot(services + "pdata/olympics") };
+    var config = "{{ model.config | jsEncode }}";
+    if (config.length > 0)
+      JSON.parse(config).providers.forEach(function(p) {
+        if (p[1] == "pivot") provspec[p[0]] = g.providers.pivot(p[2]);
+        if (p[1] == "rest") provspec[p[0]] = g.providers.rest(p[2]);
+      });
+    console.log(provspec);
+    var providers = g.providers.createProviders(provspec);
+
+    // Create context which is used to create editor & run code
+    var ctx = g.gamma.createContext(providers);
+    ctx.errorsReported(function (errs) {
+      var lis = errs.slice(0, 5).map(function (e) {
+        return $("<li>")
+          .append($("<span class='err'>error " + e.number + "</span>"))
+          .append($("<span class='loc'>at line " + e.startLine + " col " + e.startColumn + "</span>"))
+          .append(": " + e.message);
+      });
+      var ul = $("<ul>").append(lis);
+      $("#ed1-errors").empty().append(ul);
+    });
+
+    // Get sample code and run it; use the '#out1' element for outputs
+    var demo = document.getElementById("demo");
+    var code = demo == null ? 'placeholder.create("Add the source code for your visualization!")' : demo.innerText;
+    if (demo != null) ctx.evaluate(code, "out1");
+
+    // Setup handler for run button
+    document.getElementById("run").onclick = function() {
+      ctx.evaluate(editor.getValue(), "out1");
+      return false;
+    }
+
+    // Options passed to the editor - specify size & configuration function
+    // that sets properties directly for the Monaco editor
+    var opts =
+      { autoHeight: true,
+        maxHeight: 1000,
+        monacoOptions: function(m) {
+          m.fontFamily = "Inconsolata";
+          m.fontSize = 15;
+          m.lineHeight = 20;
+          m.lineNumbers = false;
+        } };
+
+    // We create editor lazily when the "Edit source code" button is clicked the first time
+    editor = ctx.createEditor("ed1", code, opts);
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,25 @@
+{
+  "name": "graph-service",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "dependencies": {
+    "express": "^4.17.1",
+    "neo4j-driver": "^1.7.5",
+    "underscore": "^1.9.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/the-gamma/graph-service.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/the-gamma/graph-service/issues"
+  },
+  "homepage": "https://github.com/the-gamma/graph-service#readme"
+}

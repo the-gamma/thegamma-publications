@@ -1,0 +1,242 @@
+{% extends "default.html" %}
+
+{% block head %}
+<title>Create a visualization | The Gamma Gallery</title>
+<link href="https://thegamma.net/lib/thegamma-{{ model.CurrentVersion }}/thegamma.css" rel="stylesheet">
+<script src='https://www.google.com/recaptcha/api.js'></script>
+<link href="/lib/chosen.css" rel="stylesheet">
+{% endblock %}
+
+{% block body %}
+<header class="create">
+<div class="container">
+  <div class="row">
+    <div class="col-sm-12 col-md-10 col-lg-8">
+      <a href="#" onclick="document.getElementById('nextstep').value='step1';document.getElementById('create-form').submit()">
+        <h2><span>1. Data source</span><span class="arrow"></span></h2></a>
+      <a href="#" onclick="document.getElementById('nextstep').value='step2';document.getElementById('create-form').submit()">
+        <h2><span>2. Transform</span><span class="arrow"></span></h2></a>
+      <a href="#" onclick="document.getElementById('nextstep').value='step3';document.getElementById('create-form').submit()">
+        <h2><span>3. Visualize</span><span class="arrow"></span></h2></a>
+      <a class="selected"><h2><span>4. Publish</span><span class="arrow"></span></h2></a>
+      <p>Almost done! In order to publish the visualization, we need a few more details,
+        so that we can add it to the gallery. We want to make this simple, so it will not
+        take long. Once that's done, you can embed the visualization in your web site!
+        </p>
+    </div>
+  </div>
+</div>
+</header>
+
+<article>
+<div class="container">
+
+<div class="row"><div class="col-sm-12">
+  <div class="shadow" style="background:white;margin-bottom:100px;min-height:800px">
+    <div class="tab-body" style="padding:0px 20px 20px 20px">
+      <form class="form-horizontal" name="create-form" id="create-form" action="/create" method="post" onsubmit="return validateForm();" enctype="multipart/form-data">
+        <input type="hidden" name="nextstep" id="nextstep" value="step5">
+        <input type="hidden" value="{{ model.PastedData | htmlEncode }}" name="pasted-data">
+        <input type="hidden" value="{{ model.TransformSource | htmlEncode }}" name="transform-source">
+        <input type="hidden" value="{{ model.VizSource | htmlEncode }}" name="viz-source" id="viz-source"/>
+        <input type="hidden" value="{{ model.ChartType | htmlEncode }}" name="chart-type" id="chart-type"/>
+        <input type="hidden" value="{{ model.UploadId | htmlEncode }}" name="upload-id" />
+        <input type="hidden" value="{{ model.UploadPasscode | htmlEncode }}" name="upload-passcode" />
+
+        <div class="form-group">
+          <div class="col-sm-2"></div>
+          <div class="col-sm-5">
+            <h2>Visualization details</h2>
+            <p>The following information about your visualization will appear in The Gamma
+              visualizations gallery. Please keep the gallery tidy and provide a title,
+              brief description and your name or alias. Twitter and link are optional!</p>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="title" class="col-sm-2 control-label">Title*</label>
+          <div class="col-sm-10">
+            <input type="text" class="form-control" id="title" name="title" placeholder="Snippet title">
+            <div id="title_error" class="error">Please enter snippet title.</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="description" class="col-sm-2 control-label">Description*</label>
+          <div class="col-sm-10">
+            <textarea class="form-control" name="description" rows="3" id="description"></textarea>
+            <div id="description_error" class="error">Please enter snippet description.</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="author" class="col-sm-2 control-label">Author*</label>
+          <div class="col-sm-10">
+            <input type="text" class="form-control" id="author" name="author" placeholder="Your Name">
+            <div id="author_error" class="error">Please enter author name.</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="twitter" class="col-sm-2 control-label">Twitter</label>
+          <div class="col-sm-10">
+            <input type="text" class="form-control" id="twitter" name="twitter" placeholder="yourhandle">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="link" class="col-sm-2 control-label">Link</label>
+          <div class="col-sm-10">
+            <input type="text" class="form-control" id="link" name="link" placeholder="https://...">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="col-sm-2"></div>
+          <div class="col-sm-5">
+            <h2>Review the visualization</h2>
+            <p>Before publishing, please review it once again to make
+              sure that everything looks good. If you want to make changes, click on the
+              arrows at the top to go back to a previous step.</p>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="col-sm-2"></div>
+          <div class="col-sm-9 thegamma">
+            <div id="out1" class="output">
+              <div class="placeholder">Loading</div>
+            </div>
+          </div>
+        </div>
+
+        {% if model.UploadId != "" %}
+        <div class="form-group">
+          <div class="col-sm-2"></div>
+          <div class="col-sm-5">
+            <h2>Publish the dataset <small>(optional)</small></h2>
+            <p>Help us build a collection of interesting datasets and
+              make the data you uploaded available to other The Gamma users!
+              We just need a few details about the dataset. Please specify
+              the source too - we care about transparency!</p>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="dstitle" class="col-sm-2 control-label">Title</label>
+          <div class="col-sm-10">
+            <input type="text" class="form-control" id="dstitle" name="dstitle" placeholder="Dataset title">
+            <div id="dstitle_error" class="error">Please enter title of the dataset.</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="dssource" class="col-sm-2 control-label">Source</label>
+          <div class="col-sm-10">
+            <input type="text" class="form-control" id="dssource" name="dssource" placeholder="Source of the dataset">
+            <div id="dssource_error" class="error">Please enter dataset source.</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="dstags" class="col-sm-2 control-label">Tags</label>
+          <div class="col-sm-10">
+            <select class="form-control" id="dstags" name="dstags" data-placeholder="For example: United Kingdom, London, Environment" multiple>
+              {% for t in model.DataTags %}<option value="{{ t }}">{{ t }}</option>{% endfor %}
+            </select>
+            <div id="dstags_error" class="error">Please enter snippet title.</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="dsdescription" class="col-sm-2 control-label">Description</label>
+          <div class="col-sm-10">
+            <textarea class="form-control" name="dsdescription" rows="3" id="dsdescription"></textarea>
+            <div id="dsdescription_error" class="error">Please enter dataset description.</div>
+          </div>
+        </div>
+        {% endif %}
+
+        <div class="form-group submit-group">
+          <div class="col-sm-offset-2 col-sm-10">
+            <div class="recaptcha" style="float:right">
+              <div class="g-recaptcha" data-sitekey="6LeShxMUAAAAAA25BYR6xSXTu0j9w3-aYxOCKIAx"></div>
+              <div id="human_error" class="error">Please verify you are a human.</div>
+            </div>
+          </div>
+          <div class="col-sm-offset-2 col-sm-10">
+            <button type="submit" id="goshare" name="goshare" value="Share snippet" class="btn btn-success">Publish the visualization &nbsp; <i class="fa fa-check"></i></button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+  </div>
+</div></div>
+
+</div>
+</article>
+
+<script src="https://code.jquery.com/jquery-2.2.4.min.js"
+  integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
+<script src="/lib/chosen.jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
+  integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="https://thegamma.net/lib/thegamma-{{ model.CurrentVersion }}/babel.min.js"></script>
+<script src="https://thegamma.net/lib/thegamma-{{ model.CurrentVersion }}/require.js"></script>
+<script>
+  require.config({
+    paths:{'vs':'https://thegamma.net/lib/thegamma-{{ model.CurrentVersion }}/vs'},
+    map:{ "*":{"monaco":"vs/editor/editor.main"}}
+  });
+
+  function validateForm() {
+    var elems = ["title","description","author"];
+    var valid = true;
+    for(var i = 0; i < elems.length; i++) {
+      var elemValid = document.getElementById(elems[i]).value.trim() != "";
+      document.getElementById(elems[i]+"_error").style.display = elemValid ? "none" : "block";
+      valid = valid && elemValid;
+    }
+    var dselems = ["dstitle","dssource","dstags","dsdescription"];
+    var dsenter = false;
+    var dsvalid = true;
+    for(var i = 0; i < dselems.length; i++) {
+      dsenter = dsenter || (document.getElementById(dselems[i]).value.trim() != "");
+      document.getElementById(dselems[i]+"_error").style.display = "none";
+    }
+    if (dsenter) {
+      for(var i = 0; i < dselems.length; i++) {
+        var dselemValid = document.getElementById(dselems[i]).value.trim() != "";
+        document.getElementById(dselems[i]+"_error").style.display = dselemValid ? "none" : "block";
+        dsvalid = dsvalid && dselemValid;
+      }
+    }
+
+    var reValid = grecaptcha.getResponse().length > 0;
+    valid = valid && reValid && (!dsenter || dsvalid);
+    document.getElementById("human_error").style.display = reValid ? "none" : "block";
+    return valid;
+  }
+
+  $("select").chosen({
+    create_option: true,
+    persistent_create_option: true,
+    skip_no_results: true
+  });
+
+  var editor;
+  require(["monaco", "https://thegamma.net/lib/thegamma-{{ model.CurrentVersion }}/thegamma.js"], function (_, g) {
+    var services = "https://thegamma-services.azurewebsites.net/";
+    var graphServices = "https://thegamma-graph-service.azurewebsites.net/";
+    var providers =
+      g.providers.createProviders({
+        "libraries": g.providers.library("https://thegamma.net/lib/thegamma-{{ model.CurrentVersion }}/libraries.json"),
+        {% if model.UploadId != "" %}
+          "uploaded": g.providers.pivot("https://gallery-csv-service.azurewebsites.net/providers/csv/{{ model.UploadId }}"),
+        {% endif %}
+        "worldbank": g.providers.rest(services + "worldbank"),
+        "shared": g.providers.rest("https://gallery-csv-service.azurewebsites.net/providers/listing"),
+        "web": g.providers.rest("https://gallery-csv-service.azurewebsites.net/providers/data"),
+        "expenditure": g.providers.rest("https://govuk-expenditure.azurewebsites.net/expenditure"),
+        "drWho": g.providers.rest(graphServices + "drWho"),
+        "olympics": g.providers.pivot(services + "pdata/olympics") });
+
+    // Create context which is used to create editor & run code
+    var ctx = g.gamma.createContext(providers);
+    var code = "{{ model.VizSource | jsEncode }}";
+    ctx.evaluate(code, "out1");
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,424 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+  <meta name=viewport content="width=device-width, initial-scale=1">
+
+  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet"
+    integrity="sha384-T8Gy5hrqNKT+hzMclPo118YTQO6cYprQmhrYwIiQ/3axmI1hQomh7Ud2hPOy8SP1" crossorigin="anonymous">
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="96x96" href="/img/favicon-96x96.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-16x16.png">
+  <meta name="theme-color" content="#F4C300">
+  <title>The Gamma: Embedding sample</title>
+
+  <!-- thegamma.css contains style definitions for the live preview and you'll need it in
+    your projects that use The Gamma; custom.css contains extra styling for this demo page -->
+  <link href="https://thegamma.net/lib/thegamma-0.1/thegamma.css" rel="stylesheet">
+  <link href="/lib/custom.css" rel="stylesheet">
+  <style>
+    #out1 { background:white; }
+    article { padding-top:0px; }
+    table td, table th { white-space: nowrap; font-size:9pt; }
+  </style>
+  <script type="text/javascript">
+
+    function guid(){
+      var d = new Date().getTime();
+      if (window.performance && typeof window.performance.now === "function") d += performance.now();
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+          var r = (d + Math.random()*16)%16 | 0;
+          d = Math.floor(d/16);
+          return (c=='x' ? r : (r&0x3|0x8)).toString(16);
+      });
+    }
+
+    var ssid = guid();
+    var pendingEvents = [];
+    var logTimer = -1;
+
+    function writeLog(callback) {
+      logTimer = -1;
+      if (pendingEvents.length > 0) {
+        var req = new XMLHttpRequest();
+        req.open("POST", "https://thegamma-logs.azurewebsites.net/log/turingstudy");
+        req.send(pendingEvents.join("\n"));
+        req.onreadystatechange = function () {
+          if (req.readyState === 4 && req.status === 200) {
+            if (callback) callback();
+          }
+        };
+      }
+      pendingEvents = [];
+    }
+
+    function logEvent(category, evt, id, data, callback) {
+      var usrid = document.cookie.replace(/(?:(?:^|.*;\s*)ttgsusrid\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+      if (usrid == "") {
+        $('#info').modal();
+        usrid = guid();
+        document.cookie = "ttgsusrid=" + usrid;
+      }
+
+      var logObj =
+        { "user":usrid, "session":ssid,
+          "time":(new Date()).toISOString(),
+          "url":window.location.toString(),
+          "element": id, "category": category, "event": evt, "data": data };
+
+      console.log("%c[logging][%s]: %s (%O): %s","color:blue", logObj.category, logObj.event, logObj, JSON.stringify(data))
+      pendingEvents.push(JSON.stringify(logObj));
+      if (logTimer != -1) clearTimeout(logTimer);
+      if (callback) {
+        writeLog(callback);
+      } else {
+        logTimer = setTimeout(writeLog, 1000);
+      }
+    }
+
+  </script>
+</head>
+<body>
+  <div id="sizer"></div>
+
+<script type="text/thegamma" id="study1">expenditure</script>
+<script type="text/thegamma" id="study2">lords</script>
+<script type="text/thegamma" id="study3">worldbank.byCountry.'United Kingdom'
+  .'Economy & Growth'.'GDP per capita (current US$)'
+
+worldbank.byCountry.Germany
+  .'Economy & Growth'.'GDP per capita (current US$)'
+
+worldbank.byCountry.'Czech Republic'
+  .'Economy & Growth'.'GDP per capita (current US$)'
+</script>
+<script type="text/thegamma" id="study4">olympics
+  .'group data'.'by Team'.'sum Gold'.then
+  .'sort data'.'by Gold descending'.then
+  .paging.take(5)
+  .'get series'.'with key Team'.'and value Gold'</script>
+
+  <article>
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-sm-12 ">
+          <a href="/"><h1><span>The Gamma: User experience study</span></h1></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-fluid">
+      <div class="row">
+      <div class="col-md-6 col-sm-12 thegamma">
+
+        <div style="background:white;padding:20px">
+          <div style="position:relative;padding-bottom:60px">
+            <div id="ed1"></div>
+            <div id="ed1-errors" class="errors" style="bottom:0px"></div>
+          </div>
+          <div>
+            <div style="padding:10px 0px 0px 10px;color:#909090;" id="typechecking">
+              <img src="/img/loading.gif"/> &nbsp; Type checking source code. Please wait...
+            </div>
+            <div style="padding:10px 0px 0px 10px;" id="tcresult"></div>
+          </div>
+        </div>
+
+      </div>
+      <div class="col-md-6 col-sm-12 thegamma">
+        <div id="out1" class="output">
+          <div class="placeholder">
+            Loading the visualization...
+          </div>
+        </div>
+      </div>
+      </div>
+    </div>
+  </article>
+
+  <div class="modal fade" id="info" tabindex="-1" role="dialog">
+    <div class="modal-dialog" style="width:80vw; max-width:1000px">
+      <div class="modal-content" style="height:90vh">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+          <h4 class="modal-title">Information</h4>
+        </div>
+        <div class="modal-body">
+          <h2>Thank you for joining this study</h2>
+
+<p>In this study, you will be asked to complete a task in an end-user programming environment.
+    After that, you will be asked follow-up questions, first in an interview and later via a
+    follow-up email. Your contact information will not be used for any other purpose and will
+    be removed from the data.</p>
+
+<p>By clicking "OK", I consent to participate in this study. I understand that all data will be kept confidential by the researcher. No personally
+  identifiable information will be kept after the completion of the study. I am free to withdraw at any time without giving a reason.
+  I consent to the publication of study results as long as the information is anonymous so that no
+  participants could be identified. </p>
+
+<p>The study has received approval from the Ethics Advisory Group of the University of Kent.</p>
+<br />
+
+          <div class="form-group">
+            <label>Your name</label>
+            <input type="text" class="form-control" id="inpName" placeholder="Enter your name">
+          </div>
+          <div class="form-group">
+            <label>Your email</label>
+            <input type="email" class="form-control" id="inpEmail" placeholder="Enter email">
+          </div>
+          <button class="btn btn-success" id="infobtn">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Third-party standard references -->
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/numeral.js/1.5.3/numeral.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.6.15/browser-polyfill.min.js"></script>
+  <script src="https://code.jquery.com/jquery-2.1.4.js"
+    integrity="sha256-siFczlgw4jULnUICcdm9gjQPZkw/YPDqhQ9+nAOScE4=" crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"
+    integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+
+  <!-- Loading Monaco and TheGamma scripts -->
+  <script src="/node_modules/babel-standalone/babel.js"></script>
+  <script src="/node_modules/requirejs/require.js"></script>
+  <script>
+    var infobtn = document.getElementById("infobtn");
+    infobtn.onclick = function() {
+      $('#info').modal('hide');
+      logEvent("user", "confirmed", "", {"name" : document.getElementById("inpName").value, "email": document.getElementById("inpEmail").value});
+    };
+
+    // This follows the standard way of loading the Monaco editor (https://github.com/Microsoft/monaco-editor)
+    // although we use normal 'require.js' and also load the compiled 'thegamma.js' (which depends on Monaco)
+    require.config({
+      paths:{'vs':'node_modules/monaco-editor/min/vs'},
+      map:{ "*":{"monaco":"vs/editor/editor.main"}}
+    });
+    require(["vs/editor/editor.main", "node_modules/thegamma-script/dist/thegamma.js"], function (_, g) {
+      // Configure type providers available in The Gamma
+      // (when running thegamma-services locally, use http://127.0.0.1:10042/)
+      var services = "https://thegamma-services.azurewebsites.net/";
+      //var services = "http://127.0.0.1:10042/";
+
+      var csvService = "https://gallery-csv-service.azurewebsites.net/";
+      //var csvService = "http://localhost:8897/";
+
+      var restServices = "http://localhost:10033/";
+
+      //var graphServices = "http://localhost:8000/";
+      var graphServices = "https://thegamma-graph-service.azurewebsites.net/";
+
+      var providers =
+        g.providers.createProviders({
+          "worldbank": g.providers.rest(services + "worldbank"),
+          "minimal": g.providers.rest(services + "minimal"),
+          //"houses": g.providers.pivot("http://127.0.0.1:8087/land-registry-monthly-price-paid-data"),
+          //"medals": g.providers.pivot("http://127.0.0.1:8087/medals"),
+          //"test": g.providers.rest("http://localhost:8897/providers/listing"),
+          //"airquality": g.providers.rest("http://localhost:10039/airquality"),
+          //"traffic": g.providers.rest("http://localhost:10039/traffic"),
+          //"enigma": g.providers.rest(restServices + "enigma"),
+          //"datadiff": g.providers.rest("http://127.0.0.1:10037/datadiff"),
+          "libraries": g.providers.library("/node_modules/thegamma-script/dist/libraries.json"),
+          "olympics": g.providers.pivot(csvService + "providers/csv/2017-06-17/file_0.csv"),
+          "videos": g.providers.pivot(csvService + "providers/csv/2017-05-12/file_8.csv"),
+          "views": g.providers.pivot(csvService + "providers/csv/2017-05-29/file_3.csv"),
+          "lords": g.providers.pivot(csvService + "providers/csv/2020-03-03/file_4.csv"),
+          "expenditure": g.providers.rest("https://govuk-expenditure.azurewebsites.net/expenditure"),
+          "web": g.providers.rest(csvService + "providers/data"),
+          "shared": g.providers.rest(csvService + "providers/listing"),
+          "drWho": g.providers.rest(graphServices + "drWho")
+        });
+
+      // Create context which is used to create editor & run code
+      // When errors are reportped, display the errors in modal dialog (while editting)
+      var ctx = g.gamma.createContext(providers);
+      ctx.errorsReported(function (errs) {
+        var lis = errs.slice(0, 5).map(function (e) {
+          return $("<li>")
+            .append($("<span class='err'>error " + e.number + "<span>"))
+            .append($("<span class='loc'>at line " + e.startLine + " col " + e.startColumn + "</span>"))
+            .append(": " + e.message);
+        });
+        var ul = $("<ul>").append(lis);
+        $("#ed1-errors").empty().append(ul);
+      });
+
+      // Get sample code and run it; use the '#out1' element for outputs
+      var id = window.location.search.substr(1);
+      logEvent("page", "loaded", "", {"id" : id});
+      var code = document.getElementById(id == "" ? "study1" : id).innerHTML;
+      ctx.evaluate(code, "out1");
+
+      ctx.check(code).then(function(res) {
+        window.rrr = res;
+      })
+
+      // Options passed to the editor - specify size & configuration function
+      // that sets properties directly for the Monaco editor
+      var opts =
+        { autoHeight: true,
+          enablePreview: false,
+          monacoOptions: function(m) {
+            m.fontFamily = "Inconsolata";
+            m.fontSize = 17;
+            m.lineHeight = 20;
+            m.lineNumbers = false;
+          } };
+
+      // Create editor if it is not created yet
+      var editor = ctx.createEditor("ed1", code, opts);
+      var monaco = editor.getMonacoEditor();
+
+      // Get editor text and run it on the main page
+      // okbtn.onclick = function() {
+      //   code = editor.getValue();
+      //   ctx.evaluate(code, "out1");
+      // };
+
+      function getCommandType(cmd) {
+        var children = cmd.getChildren();
+        if (children[0].type.kind == "object" && children[0].type.members.indexOf("sortValues") >= 0) {
+          var kt = children[0].type.generics[0];
+          var vt = children[0].type.generics[1];
+          return {type:"series", key:kt, value:vt};
+        }
+        return {type:"object"};
+      }
+
+      function hasPreview(cmd) {
+        var children = cmd.getChildren();
+        return (children[0].type.kind == "object" && children[0].type.members.indexOf("preview") >= 0);
+      }
+
+      function tryCreateLines(code, does) {
+        var run = "";
+        for(var i = 0; i < does.length; i++) {
+          var t = getCommandType(does[i]);
+          if (t.type == "series" && t.key == "number" && t.value == "number") {
+            run += "\nlet v" + i + " = " + code.substr(does[i].range.start, does[i].range.end-does[i].range.start+1);
+          } else {
+            return false;
+          }
+        }
+        if (does.length == 1) {
+          run += "\ncompost.charts.line(v0)";
+        } else {
+          run += "\ncompost.charts.lines([v0";
+          for(var i = 1; i < does.length; i++) run += ", v" + i;
+          run += "])"
+        }
+        ctx.evaluate(run, "out1");
+        return true;
+      }
+
+      function tryCreateMultipleOutputs(code, does) {
+        var run = "";
+        var html = "";
+        for(var i = 0; i < does.length; i++) {
+          var t = getCommandType(does[i]);
+          let c = "\nlet v" + i + " = " + code.substr(does[i].range.start, does[i].range.end-does[i].range.start+1);
+          let h = "<div id='out1_v" + i + "'></div>"
+          let ht = "<div id='out1_v" + i + "' style='overflow:auto'></div>"
+          if (t.type == "series" && t.key == "number" && t.value == "number") {
+            run += c; html += h;
+            run += "\ncompost.charts.line(v" + i + ").setSize(height=400).show(\"out1_v" + i + "\")"
+          } else if (t.type == "series" && t.value == "number") {
+            run += c; html += h;
+            run += "\ncompost.charts.bar(v" + i + ").setAxisY(label=\" \", labelOffset=150).setSize(height=400).show(\"out1_v" + i + "\")"
+          } else if (t.type == "series") {
+            run += c; html += ht;
+            run += "\ntable.create(v" + i + ").show(\"out1_v" + i + "\")"
+          } else if (hasPreview(does[i])) {
+            run += c; html += ht;
+            run += "\ntable.create(v" + i + ".preview).show(\"out1_v" + i + "\")"
+          }
+        }
+        if (html == "") return false;
+        document.getElementById("out1").innerHTML=html;
+        ctx.evaluate(run, "out1_na");
+        return true;
+      }
+
+      function typeCheck() {
+        var code = editor.getValue();
+        logEvent("preview", "checking", "", {"source":code});
+        ctx.check(code).then(function(res) {
+          var msg;
+          var valid = false;
+          var clr = "#c82020";
+
+          if (res.wellTyped) {
+            logEvent("preview", "checked", "", {"entities": res.getEntities().map(function(ent) { return ent.kind; }) });
+            var does = res.getEntities().filter(function(ent) { return ent.kind == "do"; });
+            if (does.length > 0) {
+              if (tryCreateLines(code, does)) {
+                logEvent("preview", "display", "", {"kind": "lines" });
+                msg = "<i class='fa fa-line-chart'></i> &nbsp; The code is good and returns data we can visualize!";
+                valid = true; clr = "#10aa20";
+              } else if (tryCreateMultipleOutputs(code, does)) {
+                logEvent("preview", "display", "", {"kind": "mixed" });
+                msg = "<i class='fa fa-table'></i> &nbsp; The code is good and returns data we can visualize!";
+                valid = true; clr = "#10aa20";
+              } else {
+                logEvent("preview", "display", "", {"kind": "nothing" });
+                msg = "<i class='fa fa-cube'></i> &nbsp; The code is good, but the result does not have a preview!";
+                valid = false; clr = "#d07040";
+              }
+            } else {
+              logEvent("preview", "display", "", {"kind": "empty" });
+              msg = "<i class='fa fa-ellipsis-h'></i> &nbsp; The code is empty or contains only let definitions!";
+            }
+          }
+          else {
+            logEvent("preview", "failed", "", null);
+            msg = "<i class='fa fa-wrench'></i> &nbsp; The code is not correct. Fix the errors so that we can continue!";
+          }
+
+          if (!valid) document.getElementById("out1").innerHTML = "";
+          document.getElementById("tcresult").innerHTML = msg;
+          document.getElementById("tcresult").style.color = clr;
+          document.getElementById("typechecking").style.display = "none";
+          document.getElementById("tcresult").style.display = "block";
+        });
+      }
+
+      var timer = -1;
+      function setupTimer() {
+        if (timer != -1) clearTimeout(timer);
+        timer = setTimeout(function() {
+          timer = -1;
+          typeCheck();
+        }, 1000);
+      }
+
+      monaco.onDidChangeModelContent(function() {
+        logEvent("editor", "edit", "", {"source":editor.getValue()});
+        document.getElementById("typechecking").style.display = "block";
+        document.getElementById("tcresult").style.display = "none";
+        setupTimer();
+      });
+      setupTimer();
+    });
+  </script>
+
+  <!-- More fancy libraries -->
+  <script type="text/javascript" src="//www.google.com/jsapi"></script>
+  <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-65311433-1', 'auto');
+    ga('send', 'pageview');
+  </script>
+</body>
+</html>

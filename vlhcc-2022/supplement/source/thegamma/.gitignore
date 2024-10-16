@@ -1,0 +1,17 @@
+npm-debug.log
+.ionide.debug
+.paket/paket.exe
+node_modules/
+paket-files/
+packages/
+.fake/
+dist/
+
+obj
+bin
+.vs
+*.suo
+*.bak
+debug.log
+*.VC.opendb
+*.VC.db
